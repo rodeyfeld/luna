@@ -20,6 +20,8 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@types/openlayers": "^4.6.23",
+		"ol": "^10.1.0",
 		"swagger-client": "^3.29.2"
 	}
 }
