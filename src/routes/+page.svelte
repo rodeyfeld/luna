@@ -4,4 +4,3 @@
 	let currentTile = 0;
 
 </script>
-<Map></Map>

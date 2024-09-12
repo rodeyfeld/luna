@@ -5,39 +5,15 @@
    width="25"
    height="25"
    viewBox="0 0 25 25"
-   sodipodi:docname="test.svg"
-   inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
-   inkscape:export-filename="test.svg"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   >
   <defs
      id="defs1" />
-  <sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="4.215"
-     inkscape:cx="40.332147"
-     inkscape:cy="43.060498"
-     inkscape:window-width="1920"
-     inkscape:window-height="1043"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="g1" />
+
   <g
-     inkscape:groupmode="layer"
-     inkscape:label="Image"
+
+
      id="g1">
     <image
        width="25"

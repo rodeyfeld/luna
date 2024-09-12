@@ -2,11 +2,11 @@
 
 export type List = Array<{ href: string; label: string; keywords: string; badge?: string }>;
 export const menuNavLinks: Record<string, Array<{ title: string; list: List }>> = {
-	'/docs': [
+	'/imagery': [
 		{
-			title: 'Docs',
+			title: 'Imagery',
 			list: [
-				{ href: '/docs/introduction', label: 'Introduction', keywords: 'svelte, sirens, license, release' },
+				{ href: '/imagery-create', label: 'Create Imagery', keywords: 'svelte, sirens, license, release' },
 				{ href: '/docs/get-started', label: 'Get Started', keywords: 'start, install, cli, tailwind, themes, stylesheets' },
 				{ href: '/docs/quickstart', label: 'Quickstart', keywords: 'start, setup, tutorial, guide' }
 			]

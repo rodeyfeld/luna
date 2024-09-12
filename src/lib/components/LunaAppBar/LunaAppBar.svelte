@@ -67,6 +67,7 @@
 			<a class="lg:!ml-0 w-[32px] lg:w-auto overflow-hidden" href="/" title="Go to Homepage">
 				<LunaLogo />
 			</a>
+			<span><b>LUNA</b></span>
 		</div>
 	</svelte:fragment>
 	<svelte:fragment slot="trail">
@@ -96,7 +97,7 @@
 						<li>
 							<a href="/blog">
 								<span class="w-6 text-center"><i class="fa-solid fa-bullhorn"></i></span>
-								<span>Blog</span>
+								<span>Providers</span>
 							</a>
 						</li>
 						<!-- <li>
@@ -109,13 +110,13 @@
 						<li>
 							<a href="/elements/core">
 								<!-- <span class="w-6 text-center"><DocsIcon name="tailwind" width="w-5" height="h-5" /></span> -->
-								<span>Tailwind</span>
+								<span>Configuration</span>
 							</a>
 						</li>
 						<li>
 							<a href="/actions/clipboard">
 								<!-- <span class="w-6 text-center"><DocsIcon name="svelte" width="w-6" height="h-6" /></span> -->
-								<span>Svelte</span>
+								<span>Satellites</span>
 							</a>
 						</li>
 						<li>
@@ -126,79 +127,6 @@
 						</li>
 					</ul>
 				</nav>
-				<!-- <div class="arrow bg-surface-100-800-token" /> -->
-			</div>
-		</div>
-
-		<!-- Theme -->
-		<div>
-			<!-- trigger -->
-			<button class="btn hover:variant-soft-primary" use:popup={{ event: 'click', target: 'theme', closeQuery: 'a[href]' }}>
-				<i class="fa-solid fa-palette text-lg md:!hidden"></i>
-				<span class="hidden md:inline-block">Theme</span>
-				<i class="fa-solid fa-caret-down opacity-50"></i>
-			</button>
-			<!-- popup -->
-			<div class="card p-4 w-60 shadow-xl" data-popup="theme">
-				<div class="space-y-4">
-					<section class="flex justify-between items-center">
-						<h6 class="h6">Mode</h6>
-						<LightSwitch />
-					</section>
-					<hr />
-					<div>
-						<a class="btn variant-filled w-full" href="/docs/generator">
-							<i class="fa-solid fa-palette"></i>
-							<span>Create a Theme</span>
-						</a>
-					</div>
-				</div>
-				<!-- <div class="arrow bg-surface-100-800-token" /> -->
-			</div>
-		</div>
-
-		<!-- Sponsor -->
-		<div>
-			<!-- trigger -->
-			<button class="btn hover:variant-soft-primary" use:popup={{ event: 'click', target: 'sponsor' }}>
-				<i class="fa-solid fa-heart text-lg md:!hidden"></i>
-				<span class="hidden md:inline-block">Sponsor</span>
-				<i class="fa-solid fa-caret-down opacity-50"></i>
-			</button>
-			<!-- popup -->
-			<div class="card p-4 w-60 shadow-xl" data-popup="sponsor">
-				<div class="space-y-4">
-					<nav class="list-nav">
-						<ul>
-							<li>
-								<a href="https://github.com/sponsors/skeletonlabs" target="_blank" rel="noreferrer">
-									<span class="w-6 text-center"><i class="fa-brands fa-github"></i></span>
-									<span>GitHub</span>
-								</a>
-							</li>
-							<li>
-								<a href="https://ko-fi.com/skeletonlabs" target="_blank" rel="noreferrer">
-									<span class="w-6 text-center"><i class="fa-solid fa-mug-saucer"></i></span>
-									<span>Ko-Fi</span>
-								</a>
-							</li>
-							<li>
-								<a href="https://patreon.com/user?u=83786276" target="_blank" rel="noreferrer">
-									<span class="w-6 text-center"><i class="fa-brands fa-patreon"></i></span>
-									<span>Patreon</span>
-								</a>
-							</li>
-						</ul>
-					</nav>
-					<hr />
-					<div>
-						<a class="btn variant-filled w-full" href="/docs/sponsorship">
-							<i class="fa-solid fa-gift"></i>
-							<span>Incentives</span>
-							<span class="badge variant-filled-secondary">New</span>
-						</a>
-					</div>
-				</div>
 				<!-- <div class="arrow bg-surface-100-800-token" /> -->
 			</div>
 		</div>
