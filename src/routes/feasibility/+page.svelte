@@ -1,6 +1,6 @@
 <script lang="ts">
-    import CreateImagery from '$lib/components/Imagery/CreateImagery.svelte';
-    import ListImagery from '$lib/components/Imagery/ListImagery.svelte';
+    import CreateFinder from '$lib/components/Feasibility/CreateFinder.svelte';
+    import ListFinders from '$lib/components/Feasibility/ListFinders.svelte';
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
     import type { PageData } from './$types'
     let tabSet: number = 0;
@@ -22,10 +22,10 @@
     <svelte:fragment slot="panel">
         {#if tabSet === 0}
         <form method="POST" action="?/submit">
-            <CreateImagery></CreateImagery>
+            <CreateFinder images={data.images}></CreateFinder>
         </form>
         {:else if tabSet === 1}
-            <ListImagery images={data.images}></ListImagery>
+            <ListFinders images={data.images}></ListFinders>
         {/if}
     </svelte:fragment>
 </TabGroup>

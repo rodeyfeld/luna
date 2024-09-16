@@ -1,6 +1,6 @@
 <script>
 		// Dependency: Floating UI
-		import { storePopup } from '@skeletonlabs/skeleton';
+	import { storePopup } from '@skeletonlabs/skeleton';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
@@ -16,6 +16,7 @@
 
 	import LunaAppBar from '$lib/components/LunaAppBar/LunaAppBar.svelte'
 	import LunaSideBar from '$lib/components/LunaSideBar/LunaSideBar.svelte'
+    import LunaFooterBar from '$lib/components/LunaFooterBar/LunaFooterBar.svelte';
 	import "../app.css";
     import Map from '$lib/components/Map/Map.svelte';
 </script>
@@ -27,7 +28,7 @@
 	<svelte:fragment slot="sidebarLeft"><LunaSideBar /></svelte:fragment>
 	<div class="grid grid-cols-[500px_1fr] h-full bg-surface-50-900-token border-r border-surface-500/30 {$$props.class ?? ''}">
 		<div class="bg-surface-500/30 p-4">
-
+			<!-- <slot name="apps"> -->
 			<slot />
 		</div>
 		<div  class="bg-surface-500/30 p-4">
@@ -35,6 +36,6 @@
 		</div>
 	</div>
 	
-	<svelte:fragment slot="pageFooter">CONNECTED</svelte:fragment>
+	<svelte:fragment slot="pageFooter"><LunaFooterBar /></svelte:fragment>
 
 </AppShell>

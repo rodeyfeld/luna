@@ -44,7 +44,7 @@
   #map {
     height: 100%;
     width: 100%;
-    filter: brightness(50%);
+    /* filter: brightness(50%); */
   }
 </style>
 

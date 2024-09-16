@@ -135,7 +135,7 @@
 		<div class="relative hidden lg:block">
 			<!-- trigger -->
 			<button class="btn hover:variant-soft-primary" use:popup={{ event: 'click', target: 'version' }}>
-				<span>Version</span>
+				<span>Contact</span>
 				<i class="fa-solid fa-caret-down opacity-50"></i>
 			</button>
 			<!-- popup -->
@@ -148,18 +148,17 @@
 								<span class="w-6 text-center"><i class="fa-solid fa-arrow-up-right-from-square opacity-50"></i></span>
 							</a>
 						</li>
+						<li>
+							<a href="https://v1.skeleton.dev/" target="_blank">
+								<span>Privacy Policy</span>
+								<span class="w-6 text-center"><i class="fa-solid fa-arrow-up-right-from-square opacity-50"></i></span>
+							</a>
+						</li>
 					</ul>
 				</nav>
 				<!-- <div class="arrow bg-surface-100-800-token"></div> -->
 			</div>
 		</div>
 
-		<!-- Search -->
-		<div class="md:inline md:ml-4">
-			<button class="btn space-x-4 variant-soft hover:variant-soft-primary" on:click={triggerSearch}>
-				<i class="fa-solid fa-magnifying-glass text-sm"></i>
-				<small class="hidden md:inline-block">{isOsMac ? '⌘' : 'Ctrl'}+K</small>
-			</button>
-		</div>
 	</svelte:fragment>
 </AppBar>

@@ -21,9 +21,7 @@
     </div>
     <svelte:fragment slot="panel">
         {#if tabSet === 0}
-        <form method="POST" action="?/submit">
             <CreateImagery></CreateImagery>
-        </form>
         {:else if tabSet === 1}
             <ListImagery images={data.images}></ListImagery>
         {/if}
