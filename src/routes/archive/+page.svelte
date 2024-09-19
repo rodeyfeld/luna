@@ -7,7 +7,8 @@
     export let data: PageData;
 </script>
 
-
+<!-- 
+<div class="bg-surface-500/30 p-4">
 <TabGroup>
     <div class="w-full grid grid-cols-2 gap-1" >
         <div>
@@ -21,9 +22,10 @@
     </div>
     <svelte:fragment slot="panel">
         {#if tabSet === 0}
-            <CreateFinder></CreateFinder>
+            <CreateFinder images={data.images}></CreateFinder>
         {:else if tabSet === 1}
             <ListFinders images={data.images}></ListFinders>
         {/if}
     </svelte:fragment>
 </TabGroup>
+</div> -->
