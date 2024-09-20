@@ -1,5 +1,5 @@
-import type { PageServerLoad } from './$types';
-import type { Actions } from './$types';
+import type { Actions } from "@sveltejs/kit";
+import type { PageServerLoad } from "./$types";
 
 function blankOrDate(input: FormDataEntryValue | null): string{
 	if(input == null){
@@ -8,20 +8,18 @@ function blankOrDate(input: FormDataEntryValue | null): string{
 	return input.toString()
 }
 
+
+
 function convertDateString(input: string): string {
     // Parse the input string to create a Date object
     const date = new Date(input);
-
-    // Adjust the time if necessary (e.g., subtracting 3 minutes for this example)
-    // You can change this logic as needed
-    date.setMinutes(date.getMinutes() - 3); // Adjust based on your requirement
-
     // Format the date to ISO string format with milliseconds and Z timezone
     const formattedDate = date.toISOString();
 
     return formattedDate;
 
 }
+
 
 export const load: PageServerLoad = async ({ fetch }) => {
 	let response = await fetch('/api/imagery', {
@@ -42,11 +40,15 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	});
 	data = await response.json();
 	let { finders = [] } = await data;
+
+
 	return {
 		images: images,
-		finders: finders
+		finders: finders,
+		finderContent: []
 	}
 };
+
 
 export const actions = {
 	submit: async ({ request, fetch }) => {
@@ -87,4 +89,26 @@ export const actions = {
 
 
 	},
+
+	execute: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const finderExecuteData = {
+			 	'feasibility_finder_id': formData.get("feasibility_finder_id"),
+		};
+
+		const response = await fetch('/api/feasibility/finder_execute', {
+			method: 'POST',
+			body: JSON.stringify(finderExecuteData),
+			headers: {
+				'content-type': 'application/json',
+			},
+		});
+		return {
+			success: true
+		}
+
+	},
+    
+
+
 } satisfies Actions;

@@ -2,30 +2,7 @@
     import CreateFinder from '$lib/components/Feasibility/CreateFinder.svelte';
     import ListFinders from '$lib/components/Feasibility/ListFinders.svelte';
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
-    import type { PageData } from './$types'
-    import FinderResult from '$lib/components/Feasibility/FinderResult.svelte';
-    import { getContext } from 'svelte';
     let tabSet: number = 0;
-    export let data: PageData;
-    const selectedFinder = getContext('finder'); 
-
-    let currentFinder: string = "";
-    let finderContent = [];
-	async function updateFinderContent() {
-
-        console.log("HERFE")
-		const response = await fetch(`/api/feasibility/finder_results/${currentFinder}`, {
-			method: 'GET',
-			headers: {
-				'content-type': 'application/json',
-			},
-		});
-
-        finderContent = await response.json()
-    }
-	
-
-
 </script>
 
 
@@ -48,11 +25,9 @@
                 <CreateFinder images={data.images}></CreateFinder>
             </form>
             {:else if tabSet === 1}
-                <ListFinders bind:finderValue={currentFinder}  finders={data.finders} ></ListFinders>
+                <ListFinders bind:finderValue={currentFinder}  finders={data.finders}></ListFinders>
             {/if}
         </svelte:fragment>
     </TabGroup>
 </div>
-<div  class="bg-surface-500/30 p-4">
-    <FinderResult finder={currentFinder} results={finderContent}></FinderResult>
-</div>
+<slot />

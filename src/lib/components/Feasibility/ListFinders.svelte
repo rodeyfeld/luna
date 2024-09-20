@@ -4,6 +4,7 @@
 	export let finders;
 
 	export let finderValue = '';
+
 </script>
 
 
@@ -12,7 +13,7 @@
 	<ListBox>
 		{#each finders as finder, i}
 			<ListBoxItem 
-				bind:group={finderValue} 
+				bind:group={finderValue}
 				name="finder" 
 				value="{finder.id}">{finder.id} | {finder.status}
 			</ListBoxItem>
