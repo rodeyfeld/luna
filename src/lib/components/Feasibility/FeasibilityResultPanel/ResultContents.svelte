@@ -1,10 +1,7 @@
 <script>
-    export let results;
-
-    // import { DataHandler } from '@vincjo/datatables'
-    // let results;
+    export let finder;
 </script>
 
 
-{results}
+{finder}
 

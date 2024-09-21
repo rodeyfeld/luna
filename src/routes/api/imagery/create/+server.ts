@@ -4,7 +4,6 @@ import { json, type RequestHandler } from "@sveltejs/kit";
 
 export const POST: RequestHandler = async ({ request }) => {
 	const requestData = await request.json()
-	console.log(requestData)
   	const url = "http://localhost:8000/api/core/imagery/create";
 
 	const response = await fetch(url, {

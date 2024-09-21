@@ -19,8 +19,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 export const actions = {
 	submit: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		
-		console.log(...formData)
 		const imageryCreateData = {
 				'name': formData.get('imageryName'),
 			 	'geometry': formData.get('imageryGEOJSON')
@@ -36,7 +34,5 @@ export const actions = {
 		return {
 			success: true
 		}
-
-
 	},
 } satisfies Actions;

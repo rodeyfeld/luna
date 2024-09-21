@@ -62,7 +62,6 @@ export const actions = {
 		});
 
 		let data = await response.json();
-		console.log(data)
 		const geometry = await data['image']['geometry'];
 		const startDate =  blankOrDate(formData.get("startDate"))
 		const endDate =  blankOrDate(formData.get("endDate"))
