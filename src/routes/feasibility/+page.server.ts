@@ -89,24 +89,6 @@ export const actions = {
 
 	},
 
-	execute: async ({ request, fetch }) => {
-		const formData = await request.formData();
-		const finderExecuteData = {
-			 	'feasibility_finder_id': formData.get("feasibility_finder_id"),
-		};
-
-		const response = await fetch('/api/feasibility/finder_execute', {
-			method: 'POST',
-			body: JSON.stringify(finderExecuteData),
-			headers: {
-				'content-type': 'application/json',
-			},
-		});
-		return {
-			success: true
-		}
-
-	},
     
 
 

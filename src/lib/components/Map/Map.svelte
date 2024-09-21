@@ -40,6 +40,7 @@
     })
 </script>
 
+
 <style>
   #map {
     height: 100%;
@@ -47,5 +48,4 @@
     /* filter: brightness(50%); */
   }
 </style>
-
-<div id="map"></div>
+<div id="map" class="w-full h-full"></div>

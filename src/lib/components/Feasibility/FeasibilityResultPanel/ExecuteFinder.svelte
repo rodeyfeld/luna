@@ -1,4 +1,5 @@
 <script>
+
     export let finder_data;
 </script>
 <div class="bg-surface-500/30 p-4">        
@@ -7,7 +8,10 @@
             <h1 class="h1">{finder_data.id}: {finder_data.name}</h1> 
         </div>
         <div>
-            <button class="btn variant-filled-primary" type="submit">Execute Finder</button>
+            <form method="POST" action="?/execute">
+                <input name="feasibility_finder_id" class="input disabled hidden" value={finder_data.id} type="text" />
+                <button class="btn variant-filled-primary">Execute Finder</button>
+            </form>
         </div>
     </div>
 </div>

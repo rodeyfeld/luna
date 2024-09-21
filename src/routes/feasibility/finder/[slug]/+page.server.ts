@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, fetch }) => {
 	
@@ -21,10 +21,33 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	data = await response.json();
 	
 	let finder_data = data.results;
-    console.log(finder_data)
 
 	return {
 		finder_results: finder_results,
 		finder_data: finder_data,
 	}
 };
+
+
+export const actions = {
+
+	execute: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const finderExecuteData = {
+				'feasibility_finder_id': formData.get("feasibility_finder_id"),
+		};
+
+		const response = await fetch('/api/feasibility_finder/finder_execute', {
+			method: 'POST',
+			body: JSON.stringify(finderExecuteData),
+			headers: {
+				'content-type': 'application/json',
+			},
+		});
+		return {
+			success: true
+		}
+
+	},
+
+} satisfies Actions;
