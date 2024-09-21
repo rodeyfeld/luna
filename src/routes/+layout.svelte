@@ -26,10 +26,9 @@
 	<svelte:fragment slot="header"><LunaAppBar /></svelte:fragment>
 
 	<svelte:fragment slot="sidebarLeft"><LunaSideBar /></svelte:fragment>
-	<div class="grid grid-cols-[500px_1fr] h-full bg-surface-50-900-token border-r border-surface-500/30 {$$props.class ?? ''}">
-		<slot /> 
-	</div>
 	
+	<slot /> 
+
 	<svelte:fragment slot="pageFooter"><LunaFooterBar /></svelte:fragment>
 
 </AppShell>

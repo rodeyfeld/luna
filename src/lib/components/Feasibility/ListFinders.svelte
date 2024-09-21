@@ -1,7 +1,6 @@
 <script>
     import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
 
-	export let finders;
 
 	export let finderValue = '';
 
@@ -11,12 +10,12 @@
 <h2>Existing Finders</h2>
 <div>
 	<ListBox>
-		{#each finders as finder, i}
+		<!-- {#each finders as finder, i}
 			<ListBoxItem 
 				bind:group={finderValue}
 				name="finder" 
 				value="{finder.id}">{finder.id} | {finder.status}
 			</ListBoxItem>
-		{/each}
+		{/each} -->
 	</ListBox>
 </div>
