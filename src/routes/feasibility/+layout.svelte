@@ -8,7 +8,7 @@
 
 <FeasibilityShell>
     <svelte:fragment slot="feasibilitySidebarLeft">
-        <FeasibilitySideBar finders={data.finders}/>
+        <FeasibilitySideBar finders={data.finders} images={data.images}/>
     </svelte:fragment>
     <slot /> 
 </FeasibilityShell>

@@ -1,16 +1,29 @@
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ fetch }) => {
-	const response = await fetch('/api/feasibility_finder', {
+	let response = await fetch('/api/imagery', {
 		method: 'POST',
 		body: JSON.stringify({ "user": "user_id" }),
 		headers: {
 			'content-type': 'application/json',
 		},
 	});
-	const data = await response.json();
+	let data = await response.json();
+	const { images = [] } = await data;
+
+	response = await fetch('/api/feasibility_finder', {
+		method: 'POST',
+		body: JSON.stringify({ "user": "user_id" }),
+		headers: {
+			'content-type': 'application/json',
+		},
+	});
+	data = await response.json();
 	const { finders = [] } = await data;
+
+	
 	return {
-		finders: finders
+		finders: finders,
+		images: images
 	}
 };

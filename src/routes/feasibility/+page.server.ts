@@ -21,35 +21,6 @@ function convertDateString(input: string): string {
 }
 
 
-export const load: PageServerLoad = async ({ fetch }) => {
-	let response = await fetch('/api/imagery', {
-		method: 'POST',
-		body: JSON.stringify({ "user": "user_id" }),
-		headers: {
-			'content-type': 'application/json',
-		},
-	});
-	let data = await response.json();
-	let { images = [] } = await data;
-	response = await fetch('/api/feasibility_finder', {
-		method: 'POST',
-		body: JSON.stringify({ "user": "user_id" }),
-		headers: {
-			'content-type': 'application/json',
-		},
-	});
-	data = await response.json();
-	let { finders = [] } = await data;
-
-
-	return {
-		images: images,
-		finders: finders,
-		finderContent: []
-	}
-};
-
-
 export const actions = {
 	submit: async ({ request, fetch }) => {
 		const formData = await request.formData();
@@ -74,7 +45,6 @@ export const actions = {
 			 	'name': finderName,			
 		};
 
-
 		response = await fetch('/api/feasibility/finder_create', {
 			method: 'POST',
 			body: JSON.stringify(finderCreateData),
@@ -85,11 +55,5 @@ export const actions = {
 		return {
 			success: true
 		}
-
-
-	},
-
-    
-
-
+	},  
 } satisfies Actions;

@@ -1,11 +1,10 @@
 
 <script>
+    export let images;
 
 
 	import { onMount } from 'svelte';
-
 	let time = new Date();
-
 	// these automatically update when `time`
 	// changes, because of the `$:` prefix
 	$: hours = time.getHours();
@@ -36,9 +35,9 @@
 <label class="label">
     <span>Imagery</span>
     <select class="select" name="imageId" size="10" value="1">
-        <!-- {#each images as image, i}
+        {#each images as image, i}
         <option value={image.id}>{image.id}| {image.name}</option>
-        {/each} -->
+        {/each}
     </select>
 </label>
 <label>    

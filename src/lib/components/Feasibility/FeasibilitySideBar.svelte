@@ -6,6 +6,7 @@
 
     let tabSet: number = 1;
     
+    export let images;
     export let finders;
 </script>
 
@@ -26,7 +27,7 @@
             <svelte:fragment slot="panel">
                 {#if tabSet === 0}
                 <form method="POST" action="?/submit">
-                    <CreateFinder></CreateFinder>
+                    <CreateFinder images={images}></CreateFinder>
                 </form>
                 {:else if tabSet === 1}
                     <ListFinders finders={finders}></ListFinders>
@@ -34,9 +35,9 @@
             </svelte:fragment>
         </TabGroup>
     </div>
-    <Map />
-    <div class="w-full h-full">test
-    </div>
+    <!-- <div class="w-full h-full">
+        <Map />
+    </div> -->
 
 </div>
 

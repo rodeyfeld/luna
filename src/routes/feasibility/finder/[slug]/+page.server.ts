@@ -11,7 +11,6 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	let data = await response.json();
 	
 	let finder_results = data.results;
-	console.log(finder_results)
 
     response = await fetch(`/api/feasibility_finder/finder_data/${params.slug}`, {
 		method: 'GET',
