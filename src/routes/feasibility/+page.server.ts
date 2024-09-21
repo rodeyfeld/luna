@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	});
 	let data = await response.json();
 	let { images = [] } = await data;
-	response = await fetch('/api/feasibility', {
+	response = await fetch('/api/feasibility_finder', {
 		method: 'POST',
 		body: JSON.stringify({ "user": "user_id" }),
 		headers: {

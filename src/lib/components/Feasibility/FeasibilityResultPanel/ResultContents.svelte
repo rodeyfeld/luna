@@ -5,6 +5,7 @@
 
     const handler = new DataHandler(finder_results, { rowsPerPage: 10 })
     const rows = handler.getRows()
+    $: finder_results, handler.setRows(finder_results)
 
 </script>
 
