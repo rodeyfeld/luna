@@ -5,13 +5,5 @@
 </script>
 
 <div  class="bg-surface-500/30 p-4">
-    <Finder finder_data={data.finder_data} finder_results={data.finder_results}></Finder>
-    <div>
-        test
-        <span>
-            {data.finder_data.id}
-        </span>
-        endtest
-    </div> 
-        
+    <Finder finder_data={data.finder_data} finder_results={data.finder_results}></Finder>        
 </div>
