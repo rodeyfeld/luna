@@ -18,7 +18,7 @@
 
 <FeasibilityShell>
     <svelte:fragment slot="feasibilitySidebarLeft">
-        <FeasibilitySideBar data={$feasiblity_store}  />
+        <FeasibilitySideBar />
     </svelte:fragment>
     <slot /> 
 </FeasibilityShell>

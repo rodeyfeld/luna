@@ -1,13 +1,3 @@
-<script lang="ts">
-    import CreateFinder from '$lib/components/Feasibility/CreateFinder.svelte';
-    import ListFinders from '$lib/components/Feasibility/ListFinders.svelte';
-	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
-    let tabSet: number = 0;
-
-
-</script>
-
-
 <div id="feasibility-shell" data-testid="feasibility-shell" class="grid grid-cols-10 h-full">
     <div class="col-span-3">
         <slot name="feasibilitySidebarLeft" />
