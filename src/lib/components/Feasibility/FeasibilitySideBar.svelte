@@ -7,7 +7,7 @@
     let tabSet: number = 0;
     let currentFinder: string = "";
     
-
+    export let finders;
 </script>
 
 
@@ -30,7 +30,7 @@
                 <CreateFinder></CreateFinder>
             </form>
             {:else if tabSet === 1}
-                <ListFinders bind:finderValue={currentFinder}></ListFinders>
+                <ListFinders finders={finders} bind:finderValue={currentFinder}></ListFinders>
             {/if}
         </svelte:fragment>
     </TabGroup>

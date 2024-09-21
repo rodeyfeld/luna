@@ -1,6 +1,6 @@
 <script>
-    // export let images;
-	
+    export let images;
+
     let images_count = images.length;
 </script>
 
@@ -14,13 +14,13 @@
 				<th>name</th>
 			</tr>
 		</thead>
-		<!-- <tbody>
+		<tbody>
 			{#each images as row, i}
 				<tr>
 					<td>{row.id}</td>
 					<td>{row.name}</td>
 				</tr>
 			{/each}
-		</tbody> -->
+		</tbody>
 	</table>
 </div>

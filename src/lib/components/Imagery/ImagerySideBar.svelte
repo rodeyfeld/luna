@@ -4,7 +4,7 @@
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 
     let tabSet: number = 0;
-    let currentFinder: string = "";
+    export let images;
 </script>
 
 
@@ -26,7 +26,7 @@
                 <CreateImagery></CreateImagery>
             </form>
             {:else if tabSet === 1}
-                <ListImagery></ListImagery>
+                <ListImagery images={images}></ListImagery>
             {/if}
         </svelte:fragment>
     </TabGroup>
