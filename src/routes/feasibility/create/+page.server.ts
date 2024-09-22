@@ -1,5 +1,5 @@
-import type { Actions } from "@sveltejs/kit";
-import type { PageServerLoad } from "./$types";
+import type { Actions, PageServerLoad } from './$types';
+
 
 function blankOrDate(input: FormDataEntryValue | null): string{
 	if(input == null){
@@ -45,7 +45,7 @@ export const actions = {
 			 	'name': finderName,			
 		};
 
-		response = await fetch('/api/feasibility/finder_create', {
+		response = await fetch('/api/feasibility_finder/finder_create', {
 			method: 'POST',
 			body: JSON.stringify(finderCreateData),
 			headers: {

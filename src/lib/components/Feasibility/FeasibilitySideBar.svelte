@@ -2,10 +2,10 @@
     import CreateFinder from '$lib/components/Feasibility/CreateFinder.svelte';
     import ListFinders from '$lib/components/Feasibility/ListFinders.svelte';
     import Map from '$lib/components/Map/Map.svelte';
-	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
+	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
 
     let tabSet: number = 1;
-    
+    export let slug;
     export let images;
     export let finders;
 </script>
@@ -16,28 +16,26 @@
             <TabGroup>
             <div class="w-full grid grid-cols-2 gap-1" >
                 <div>
-                    <Tab bind:group={tabSet} name="create" value={0}>CREATE
-                    </Tab>
+
+                        <TabAnchor href="/feasibility/create">CREATE
+                        </TabAnchor>
+
                 </div>
                 <div>
-                    <Tab bind:group={tabSet} name="view" value={1}>VIEW
-                    </Tab>
+                        <TabAnchor href="/feasibility/finder">VIEW
+                        </TabAnchor>
                 </div>
             </div>        
             <svelte:fragment slot="panel">
-                {#if tabSet === 0}
-                <form method="POST" action="?/submit">
+                {#if slug.includes('create')}
+                <form method="POST" action="create?/submit">
                     <CreateFinder images={images}></CreateFinder>
                 </form>
-                {:else if tabSet === 1}
+                {:else if slug.includes('finder')}
                     <ListFinders finders={finders}></ListFinders>
                 {/if}
             </svelte:fragment>
         </TabGroup>
     </div>
-    <!-- <div class="w-full h-full">
-        <Map />
-    </div> -->
-
 </div>
 
