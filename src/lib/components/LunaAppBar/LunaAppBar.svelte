@@ -64,9 +64,9 @@
 			<button on:click={drawerOpen} class="btn-icon btn-icon-sm lg:!hidden">
 				<i class="fa-solid fa-bars text-xl"></i>
 			</button>
-			<a class="lg:!ml-0 w-[32px] lg:w-auto overflow-hidden" href="/" title="Go to Homepage">
+			<!-- <a class="lg:!ml-0 w-[32px] lg:w-auto overflow-hidden" href="/" title="Go to Homepage">
 				<LunaLogo />
-			</a>
+			</a> -->
 			<span><b>LUNA</b></span>
 		</div>
 	</svelte:fragment>
