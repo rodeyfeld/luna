@@ -2,235 +2,90 @@
   import { onMount } from 'svelte';
   import Map from 'ol/Map.js';
   import View from 'ol/View.js';
-  import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style.js';
-  import { Draw, Modify, Translate } from 'ol/interaction.js';
-  import { MultiPoint, Point, Polygon, Geometry } from 'ol/geom.js';
-  import { OSM, Vector as VectorSource } from 'ol/source.js';
-  import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer.js';
-  import { getCenter, getHeight, getWidth } from 'ol/extent.js';
-  import {
-    never,
-    platformModifierKeyOnly,
-    primaryAction,
-  } from 'ol/events/condition.js';
-  import GeoJSON from 'ol/format/GeoJSON';
+  import TileLayer from 'ol/layer/Tile.js';
+  import OSM from 'ol/source/OSM.js';
+  import { Vector as VectorLayer } from 'ol/layer.js';
+  import { Vector as VectorSource } from 'ol/source.js';
+  import { Draw, Modify, Snap } from 'ol/interaction.js';
+    import { Point, Polygon, type Geometry } from 'ol/geom';
+    import { Feature } from 'ol';
+    import GeoJSON from 'ol/format/GeoJSON';
     import { geoJsonStore } from '$lib/stores/archive_store';
-  
-  let map; // Declare map variable
-  
-  const geojsonFormat = new GeoJSON();
-  const raster = new TileLayer({
+    import { fromLonLat, toLonLat } from 'ol/proj'; 
+    
+  const tileLayer = new TileLayer({
     source: new OSM(),
   });
-  const source = new VectorSource();
 
-  const style = new Style({
-    geometry: function (feature) {
-      const modifyGeometry = feature.get('modifyGeometry');
-      return modifyGeometry ? modifyGeometry.geometry : feature.getGeometry();
-    },
-    fill: new Fill({
-      color: 'rgba(255, 255, 255, 0.2)',
-    }),
-    stroke: new Stroke({
-      color: '#ffcc33',
-      width: 2,
-    }),
-    image: new CircleStyle({
-      radius: 7,
-      fill: new Fill({
-        color: '#ffcc33',
-      }),
-    }),
+  const vectorSource = new VectorSource({ wrapX: false });
+
+  const vectorLayer = new VectorLayer({
+    source: vectorSource,
   });
 
-  function calculateCenter(geometry: Geometry): { center: number[] | undefined; coordinates?: number[][]; minRadius: number; sqDistances?: number[] } {
-    let center, coordinates, minRadius;
-    const type = geometry.getType();
-    if (type === 'Polygon') {
-      let x = 0;
-      let y = 0;
-      let i = 0;
-      coordinates = geometry.getCoordinates()[0].slice(1);
-      coordinates.forEach(function (/** @type {number[]} */ coordinate) {
-        x += coordinate[0];
-        y += coordinate[1];
-        i++;
-      });
-      center = [x / i, y / i];
-    }
-    let sqDistances;
-    if (coordinates) {
-      sqDistances = coordinates.map(function (/** @type {number[]} */ coordinate) {
-        const dx = coordinate[0] - center[0];
-        const dy = coordinate[1] - center[1];
-        return dx * dx + dy * dy;
-      });
-      minRadius = Math.sqrt(Math.max.apply(Math, sqDistances)) / 3;
-    } else {
-      minRadius =
-        Math.max(
-          getWidth(geometry.getExtent()),
-          getHeight(geometry.getExtent()),
-        ) / 3;
-    }
-    return {
-      center: center,
-      coordinates: coordinates,
-      minRadius: minRadius,
-      sqDistances: sqDistances,
-    };
-  }
+  var map: Map;
+  let draw; // to keep track of the draw interaction
+  let currentPoint: Feature<Geometry>; // to store the currently drawn point
+  let polygonFeature: Feature<Geometry>; // to store the currently drawn point
 
-  const vector = new VectorLayer({
-    source: source,
-    style: function (feature) {
-      const styles = [style];
-      const modifyGeometry = feature.get('modifyGeometry');
-      const geometry = modifyGeometry
-        ? modifyGeometry.geometry
-        : feature.getGeometry();
-      const result = calculateCenter(geometry);
-      const center = result.center;
-      if (center) {
-        styles.push(
-          new Style({
-            geometry: new Point(center),
-            image: new CircleStyle({
-              radius: 4,
-              fill: new Fill({
-                color: '#ff3333',
-              }),
-            }),
-          }),
-        );
-        const coordinates = result.coordinates;
-        if (coordinates) {
-          const minRadius = result.minRadius;
-          const sqDistances = result.sqDistances;
-          const rsq = minRadius * minRadius;
-          const points = coordinates.filter(function (/** @type {any} */ coordinate, /** @type {string | number} */ index) {
-            return sqDistances[index] > rsq;
-          });
-          styles.push(
-            new Style({
-              geometry: new MultiPoint(points),
-              image: new CircleStyle({
-                radius: 4,
-                fill: new Fill({
-                  color: '#33cc33',
-                }),
-              }),
-            }),
-          );
-        }
-      }
-      return styles;
-    },
-  });
-
-  // Use onMount to initialize the map and interactions
   onMount(() => {
     map = new Map({
-      layers: [raster, vector],
-      target: 'map',
       view: new View({
-        center: [-11000000, 4600000],
-        zoom: 4,
+        center: [0, 0],
+        zoom: 1,
       }),
+      layers: [tileLayer, vectorLayer],
+      target: 'map',
     });
 
-    const defaultStyle = new Modify({ source: source })
-      .getOverlay()
-      .getStyleFunction();
-
-    const modify = new Modify({
-      source: source,
-      condition: function (event) {
-        return primaryAction(event) && !platformModifierKeyOnly(event);
-      },
-      deleteCondition: never,
-      insertVertexCondition: never,
-      style: function (feature) {
-        feature.get('features').forEach(function (modifyFeature) {
-          const modifyGeometry = modifyFeature.get('modifyGeometry');
-          if (modifyGeometry) {
-            const point = feature.getGeometry().getCoordinates();
-            let modifyPoint = modifyGeometry.point;
-            if (!modifyPoint) {
-              modifyPoint = point;
-              modifyGeometry.point = modifyPoint;
-              modifyGeometry.geometry0 = modifyGeometry.geometry;
-              const result = calculateCenter(modifyGeometry.geometry0);
-              modifyGeometry.center = result.center;
-              modifyGeometry.minRadius = result.minRadius;
-            }
-
-            const center = modifyGeometry.center;
-            const minRadius = modifyGeometry.minRadius;
-            let dx, dy;
-            dx = modifyPoint[0] - center[0];
-            dy = modifyPoint[1] - center[1];
-            const initialRadius = Math.sqrt(dx * dx + dy * dy);
-            if (initialRadius > minRadius) {
-              const initialAngle = Math.atan2(dy, dx);
-              dx = point[0] - center[0];
-              dy = point[1] - center[1];
-              const currentRadius = Math.sqrt(dx * dx + dy * dy);
-              if (currentRadius > 0) {
-                const currentAngle = Math.atan2(dy, dx);
-                const geometry = modifyGeometry.geometry0.clone();
-                geometry.scale(currentRadius / initialRadius, undefined, center);
-                geometry.rotate(currentAngle - initialAngle, center);
-                modifyGeometry.geometry = geometry;
-              }
-            }
-          }
-        });
-        return defaultStyle(feature);
-      },
-    });
-
-    modify.on('modifystart', function (event) {
-      event.features.forEach(function (feature) {
-        feature.set('modifyGeometry', { geometry: feature.getGeometry().clone() }, true);
-      });
-    });
-
-    modify.on('modifyend', function (event) {
-      event.features.forEach(function (feature) {
-        const modifyGeometry = feature.get('modifyGeometry');
-        if (modifyGeometry) {
-          feature.setGeometry(modifyGeometry.geometry);
-          feature.unset('modifyGeometry', true);
-          const geojson = geojsonFormat.writeFeature(feature);
-          geoJsonStore.set(geojson); // Add new GeoJSON to store
-
-        }
-      });
-    });
-
+    const modify = new Modify({ source: vectorSource });
     map.addInteraction(modify);
-    map.addInteraction(
-      new Translate({
-        condition: function (event) {
-          return primaryAction(event) && platformModifierKeyOnly(event);
-        },
-        layers: [vector],
-      }),
-    );
 
-    let draw; // global so we can remove it later
-    function addInteractions() {
-      draw = new Draw({
-        source: source,
-        type: 'Polygon',
-      });
-      
-      map.addInteraction(draw);
-    }
+    // Initialize draw interaction
+    draw = new Draw({
+      source: vectorSource,
+      type: 'Point',
+    });
 
-    addInteractions();
+    // Listen for drawend event
+    draw.on('drawend', function (event) {
+      // Clear the previous point if it exists
+      if (currentPoint) {
+        vectorSource.removeFeature(currentPoint);
+      }      
+      if (polygonFeature) {
+        vectorSource.removeFeature(polygonFeature);
+      }
+      // Get the coordinates of the drawn point
+      const pointGeometry = event.feature.getGeometry() as Point;
+      const coordinates = pointGeometry.getCoordinates();
+
+      // Create a square polygon around the point
+      const size = 100000; // size of the square (in degrees or suitable units)
+      const squareCoords = [
+        [coordinates[0] - size, coordinates[1] - size], // bottom left
+        [coordinates[0] + size, coordinates[1] - size], // bottom right
+        [coordinates[0] + size, coordinates[1] + size], // top right
+        [coordinates[0] - size, coordinates[1] + size], // top left
+        [coordinates[0] - size, coordinates[1] - size]  // closing the square
+      ];
+
+      const squarePolygon = new Polygon([squareCoords]);
+      polygonFeature = new Feature(squarePolygon);
+
+      // Add the polygon to the vector source
+      vectorSource.addFeature(polygonFeature);
+      const geojsonFormat = new GeoJSON();
+      const geometry = polygonFeature.getGeometry() as Geometry;
+      const geojson = geojsonFormat.writeGeometry(geometry,  { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'});
+      geoJsonStore.set(geojson)
+      currentPoint = event.feature;
+    });
+
+    // Add interactions to the map
+    map.addInteraction(draw);
+    const snap = new Snap({ source: vectorSource });
+    map.addInteraction(snap);
   });
 </script>
 
@@ -240,5 +95,4 @@
     width: 100%;
   }
 </style>
-
 <div id="map" class="w-full h-full"></div>
