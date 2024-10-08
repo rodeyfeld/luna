@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import { geoJsonStr } from '$lib/stores/archive_store';
+import { geoJsonStore, geoJsonStr } from '$lib/stores/archive_store';
 import { get } from 'svelte/store';
 
 function blankOrDate(input: FormDataEntryValue | null): string{
@@ -25,12 +25,10 @@ function convertDateString(input: string): string {
 export const actions = {
 	submit: async ({ request, fetch }) => {
 		const formData = await request.formData();
-
-		const geojson = get(geoJsonStr);
-		console.log(geojson)
 		const startDate =  blankOrDate(formData.get("startDate"))
 		const endDate =  blankOrDate(formData.get("endDate"))
 		const finderName =  formData.get("finderName")
+		const geojson =  formData.get("geojson")
 
 		const finderCreateData = {
 			 	'geometry': geojson,

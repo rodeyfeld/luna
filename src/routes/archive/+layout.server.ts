@@ -11,7 +11,7 @@ export const load: LayoutServerLoad = async ({ fetch }) => {
 	let data = await response.json();
 	const { images = [] } = await data;
 
-	response = await fetch('/api/feasibility_finder', {
+	response = await fetch('/api/archive_finder', {
 		method: 'POST',
 		body: JSON.stringify({ "user": "user_id" }),
 		headers: {

@@ -45,7 +45,7 @@
     <span>GEOJSON</span>
     <textarea
     class="input"
-    name="imageryGEOJSON"
+    name="geojson"
     title="Coordinates"
     rows="10"
     placeholder="Enter your GeoJSON here..."

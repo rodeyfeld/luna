@@ -13,13 +13,14 @@
     <table>
         <thead>
             <tr>
-                <Th {handler} orderBy="id">id</Th>
-                <Th {handler} orderBy="created">created</Th>
-                <Th {handler} orderBy="modified">modified</Th>
-                <Th {handler} orderBy="provider_integration">provider_integration</Th>
+                <Th {handler} orderBy="archive_finder_id">archive_finder_id</Th>
+                <Th {handler} orderBy="external_id">external_id</Th>
+                <Th {handler} orderBy="seeker_run_id">seeker_run_id</Th>
+                <Th {handler} orderBy="collection">collection</Th>
                 <Th {handler} orderBy="start_date">start_date</Th>
                 <Th {handler} orderBy="end_date">end_date</Th>
-                <Th {handler} orderBy="confidence_score">confidence_score</Th>
+                <Th {handler} orderBy="sensor_type">sensor_type</Th>
+                <Th {handler} orderBy="geometry">geometry</Th>
             </tr>
             <!-- <tr>
                 <ThFilter {handler} filterBy="id"/>
@@ -31,13 +32,15 @@
         <tbody>
             {#each $rows as row}
             <tr>
-                <td>{row.id}</td>
-                <td>{row.created}</td>
-                <td>{row.modified}</td>
-                <td>{row.provider_integration}</td>
+                <td>{row.archive_finder_id}</td>
+                <td>{row.external_id}</td>
+                <td>{row.seeker_run_id}</td>
+                <td>{row.collection}</td>
                 <td>{row.start_date}</td>
                 <td>{row.end_date}</td>
-                <td>{row.confidence_score}</td>
+                <td>{row.sensor_type}</td>
+                <td>{row.geometry}</td>
+
             </tr>
             {/each}
         </tbody>
@@ -60,24 +63,3 @@
     }
 </style>
 
-
-<table>
-    <thead>
-        <tr>
-        </tr>
-    </thead>
-    <tbody>
-        {#each $rows as row}
-            <tr>
-                <td>{row.id}</td>
-                <td>{row.created}</td>
-                <td>{row.modified}</td>
-                <td>{row.feasibility_finder}</td>
-                <td>{row.provider_integration}</td>
-                <td>{row.start_date}</td>
-                <td>{row.end_date}</td>
-                <td>{row.confidence_score}</td>
-            </tr>
-        {/each}
-    </tbody>
-</table>
