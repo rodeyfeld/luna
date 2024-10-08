@@ -14,6 +14,5 @@ export const POST: RequestHandler = async ({ request }) => {
 		},
 	});
 	const data = await response.json();
-	console.log(data)
 	return json({finder: data});
 };
