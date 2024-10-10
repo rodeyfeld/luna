@@ -9,7 +9,7 @@
 
 <ArchiveShell>
     <svelte:fragment slot="archiveSidebarLeft">
-        <DetailSideBar/>
+        <DetailSideBar finderData={data.finderData}/>
     </svelte:fragment>
     <slot /> 
 </ArchiveShell>

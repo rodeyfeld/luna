@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
     import DetailFinder from './DetailFinder.svelte';
-    export let finder;
+    export let finderData;
 
 </script>
 
@@ -16,7 +16,7 @@
                 </div>
             </div>
             <svelte:fragment slot="panel">
-                    <DetailFinder finder={finder}></DetailFinder>
+                    <DetailFinder finderData={finderData}></DetailFinder>
             </svelte:fragment>
         </TabGroup>
     </div>

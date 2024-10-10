@@ -1,8 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
 
-
-
-
 export const load: PageServerLoad = async ({ params, fetch }) => {
 	
 	let response = await fetch(`/api/archive_finder/finder_results/${params.slug}`, {
