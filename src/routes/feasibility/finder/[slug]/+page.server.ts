@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	});
 	let data = await response.json();
 	
-	let finder_results = data.results;
+	let finderResults = data.results;
 
     response = await fetch(`/api/feasibility_finder/finder_data/${params.slug}`, {
 		method: 'GET',
@@ -20,10 +20,10 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	});
 	data = await response.json();
 	
-	let finder_data = data.results;
+	let finderData = data.results;
 	return {
-		finder_results: finder_results,
-		finder_data: finder_data,
+		finderResults: finderResults,
+		finderData: finderData,
 	}
 };
 

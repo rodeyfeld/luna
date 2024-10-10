@@ -1,11 +1,11 @@
 <script lang="ts">
     
-    export let finder_results;
+    export let finderResults;
     import { DataHandler, Datatable, Th, ThFilter } from '@vincjo/datatables'
 
-    const handler = new DataHandler(finder_results, { rowsPerPage: 10 })
+    const handler = new DataHandler(finderResults, { rowsPerPage: 10 })
     const rows = handler.getRows()
-    $: finder_results, handler.setRows(finder_results)
+    $: finderResults, handler.setRows(finderResults)
 
 </script>
 

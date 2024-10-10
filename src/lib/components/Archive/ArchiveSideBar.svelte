@@ -3,8 +3,9 @@
     import ListFinders from '$lib/components/Archive/ListFinders.svelte';
 	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
 
-    export let slug;
+    export let slug: String;
     export let finders;
+
 </script>
 
 
@@ -13,16 +14,14 @@
             <TabGroup>
             <div class="w-full grid grid-cols-2 gap-1" >
                 <div>
-
                         <TabAnchor href="/archive/create">CREATE
                         </TabAnchor>
-
                 </div>
                 <div>
                         <TabAnchor href="/archive/finder">VIEW
                         </TabAnchor>
                 </div>
-            </div>        
+            </div>
             <svelte:fragment slot="panel">
                 {#if slug.includes('create')}
                 <form method="POST" action="create?/submit">
