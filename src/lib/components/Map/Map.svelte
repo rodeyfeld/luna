@@ -7,11 +7,10 @@
   import { Vector as VectorLayer } from 'ol/layer.js';
   import { Vector as VectorSource } from 'ol/source.js';
   import { Draw, Modify, Snap } from 'ol/interaction.js';
-    import { Point, Polygon, type Geometry } from 'ol/geom';
-    import { Feature } from 'ol';
-    import GeoJSON from 'ol/format/GeoJSON';
-    import { geoJsonStore } from '$lib/stores/archive_store';
-    import { fromLonLat, toLonLat } from 'ol/proj'; 
+  import { Point, Polygon, type Geometry } from 'ol/geom';
+  import { Feature } from 'ol';
+  import GeoJSON from 'ol/format/GeoJSON';
+  import { geoJsonStore } from '$lib/stores/archive_store';
     
   const tileLayer = new TileLayer({
     source: new OSM(),

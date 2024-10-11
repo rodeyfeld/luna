@@ -1,5 +1,5 @@
 <script lang="ts">
-    import DetailSideBar from '$lib/components/Archive/DetailSideBar.svelte';
+    import DetailSideBar from '$lib/components/Archive/Detail/DetailSideBar.svelte';
     import ArchiveShell from '$lib/components/Archive/ArchiveShell.svelte';
 	import type { LayoutData } from './$types';
 	export let data: LayoutData;
