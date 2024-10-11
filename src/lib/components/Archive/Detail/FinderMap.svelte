@@ -10,6 +10,7 @@
     import { Point, Polygon, type Geometry } from 'ol/geom';
     import { Feature } from 'ol';
     import GeoJSON from 'ol/format/GeoJSON';
+    import { transformExtent } from 'ol/proj';
 
 
     export let finderData;
@@ -48,8 +49,8 @@
         const extent = geometry.getExtent();
         console.log(extent)
     
-        // Fit the map view to the extent of the geometry
-        map.getView().fit(extent, {
+        const transformedExtent = transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
+        map.getView().fit(transformedExtent, {
             duration: 5000, // Optional: duration for the zoom animation
             maxZoom: 32,    // Optional: maximum zoom level
         });

@@ -6,10 +6,10 @@
     import OSM from 'ol/source/OSM.js';
     import { Vector as VectorLayer } from 'ol/layer.js';
     import { Vector as VectorSource } from 'ol/source.js';
-    import { Draw, Modify, Snap } from 'ol/interaction.js';
-    import { Point, Polygon, type Geometry } from 'ol/geom';
     import { Feature } from 'ol';
     import GeoJSON from 'ol/format/GeoJSON';
+    import { transformExtent } from 'ol/proj';
+    import { boundingExtent } from 'ol/extent';
 
 
     export let finderData;
@@ -43,9 +43,10 @@
         target: 'finderMajorMap',
         });
         const extent = geometry.getExtent();
-    
+        const transformedExtent = transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
+        console.log(extent)
         // Fit the map view to the extent of the geometry
-        map.getView().fit(extent, {
+        map.getView().fit(transformedExtent, {
             duration: 5000, // Optional: duration for the zoom animation
             maxZoom: 32,    // Optional: maximum zoom level
         });
