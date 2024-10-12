@@ -4,6 +4,7 @@
 	import type { LayoutData } from './$types';
 	export let data: LayoutData;
     import { page } from '$app/stores';  
+    import ArchiveFinderMap from '$lib/components/Archive/ArchiveFinderMap.svelte';
 
 </script>
 
@@ -11,5 +12,5 @@
     <svelte:fragment slot="archiveSidebarLeft">
         <ArchiveSideBar slug={$page.url.pathname} finders={data.finders} />
     </svelte:fragment>
-    <slot /> 
+    <ArchiveFinderMap finders={data.finders}></ArchiveFinderMap>
 </ArchiveShell>

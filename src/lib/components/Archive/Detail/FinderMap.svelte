@@ -42,17 +42,17 @@
         view: new View({
             center: [0, 0],
             zoom: 1,
+            projection: 'EPSG:4326',
         }),
         layers: [tileLayer, vectorLayer],
         target: 'finderMiniMap',
         });
+
+        const geometry = new GeoJSON().readGeometry(finderData.geometry);
         const extent = geometry.getExtent();
-        console.log(extent)
-    
-        const transformedExtent = transformExtent(extent, 'EPSG:4326', 'EPSG:3857');
-        map.getView().fit(transformedExtent, {
-            duration: 5000, // Optional: duration for the zoom animation
-            maxZoom: 32,    // Optional: maximum zoom level
+        map.getView().fit(extent, {
+            duration: 3000, 
+            maxZoom: 8,    
         });
     });
 </script>
