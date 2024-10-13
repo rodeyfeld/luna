@@ -12,6 +12,7 @@
     import { boundingExtent } from 'ol/extent';
 
     import {Circle, Fill, Stroke, Style} from 'ol/style.js';
+    import FinderResultHover from './Panel/FinderResultHover.svelte';
     const fill = new Fill({
    color: 'rgba(255,255,255,0.4)',
  });
@@ -85,17 +86,12 @@
     </div>
     <div class="col-span-2">
         <nav class="list-nav overflow-y-auto max-h-[68vh]">
-            <!-- (optionally you can provide a label here) -->
             <ul>
                 {#each finderResults as finderResult}
                 <li>
-                    
-                        <span class="badge bg-primary-500">{finderResult.sensor_type}</span>
-                        <span class="flex-auto">{finderResult.collection}</span>
-             
+                    <FinderResultHover finderResult={finderResult}></FinderResultHover>
                 </li>
                 {/each}
-                <!-- ... -->
             </ul>
         </nav>
     </div>

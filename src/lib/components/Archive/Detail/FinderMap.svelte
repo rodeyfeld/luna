@@ -57,8 +57,6 @@
     });
 </script>
 
-{finderData}
-
 
 <style>
     #finderMiniMap {
