@@ -18,7 +18,6 @@
 	import LunaSideBar from '$lib/components/LunaSideBar/LunaSideBar.svelte'
     import LunaFooterBar from '$lib/components/LunaFooterBar/LunaFooterBar.svelte';
 	import "../app.css";
-    import Map from '$lib/components/Map/Map.svelte';
 </script>
 
 

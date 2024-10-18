@@ -33,9 +33,6 @@
     });
 
     var map: Map;
-    let draw; // to keep track of the draw interaction
-    let currentPoint: Feature<Geometry>; // to store the currently drawn point
-    let polygonFeature: Feature<Geometry>; // to store the currently drawn point
 
     onMount(() => {
         map = new Map({

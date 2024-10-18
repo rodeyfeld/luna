@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import Map from 'ol/Map.js';
     import View from 'ol/View.js';
     import TileLayer from 'ol/layer/Tile.js';
@@ -13,6 +13,7 @@
 
     import {Circle, Fill, Stroke, Style} from 'ol/style.js';
     import FinderResultHover from './Panel/FinderResultHover.svelte';
+    import { selectedArchiveResultGeoJson } from '$lib/stores/archive_store';
     const fill = new Fill({
    color: 'rgba(255,255,255,0.4)',
  });
@@ -45,33 +46,62 @@
         }),
     });
 
+    const selectedFeatureStyle = new Style({
+        fill: new Fill({
+            color: 'rgba(0, 255, 0, .1)', // Fill color
+        }),
+        stroke: new Stroke({
+            color: '#FFFF00', // Stroke color
+            width: 4, // Stroke width
+        }),
+    });
+
     const vectorLayer = new VectorLayer({
         source: vectorSource,
         style: featureStyle,
     });
 
-    var map: Map;
+    var map: Map;    
+    let highlightedFeature: Feature | null = null; // To store the highlighted feature
+
     onMount(() => {
         map = new Map({
-        view: new View({
-            center: [0, 0],
-            zoom: 1,
-            projection: 'EPSG:4326',
-        }),
-        layers: [tileLayer, vectorLayer],
-        target: 'finderMajorMap',
+            view: new View({
+                center: [0, 0],
+                zoom: 1,
+                projection: 'EPSG:4326',
+            }),
+            layers: [tileLayer, vectorLayer],
+            target: 'finderMajorMap',
         });
 
         const geometry = new GeoJSON().readGeometry(finderData.geometry);
         const extent = geometry.getExtent();
-        map.getView().fit(extent, {
-            duration: 3000, 
-            maxZoom: 7,    
-        });
+        map.getView().fit(extent, { duration: 3000, maxZoom: 6 });
     });
+
+    const unsubscribe = selectedArchiveResultGeoJson.subscribe(value => {
+        if (value) {
+            // Clear the previously highlighted feature
+            if (highlightedFeature) {
+                vectorSource.removeFeature(highlightedFeature);
+            }
+
+            // Create and add the new highlighted feature
+            const geometry = new GeoJSON().readGeometry(value);
+            highlightedFeature = new Feature(geometry);
+            highlightedFeature.setStyle(selectedFeatureStyle);
+            console.log(geometry)
+            vectorSource.addFeature(highlightedFeature);
+        }
+    });
+
+    // Clean up the subscription on component destroy
+    onDestroy(() => {
+        unsubscribe();
+    });
+
 </script>
-
-
 
 <style>
     #finderMajorMap {

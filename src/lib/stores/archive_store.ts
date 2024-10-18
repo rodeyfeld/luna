@@ -4,3 +4,5 @@ export default writable({});
 export const geoJsonStore = writable<string>();
 export const finderMode = writable<string>();
 export const sidebarMode = writable<string>();
+export const selectedArchiveResultGeoJson = writable<string>();
+
