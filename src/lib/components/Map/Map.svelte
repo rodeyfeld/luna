@@ -32,6 +32,7 @@
       view: new View({
         center: [0, 0],
         zoom: 1,
+        projection: 'EPSG:4326',
       }),
       layers: [tileLayer, vectorLayer],
       target: 'map',
@@ -39,7 +40,19 @@
 
     const modify = new Modify({ source: vectorSource });
     map.addInteraction(modify);
+    // Listen for feature modifications
+    modify.on('modifyend', function (event) {
+        const geojsonFormat = new GeoJSON();
+        const modifiedFeatures = event.features;
 
+        modifiedFeatures.forEach((feature: Feature) => {
+            const geometry = feature.getGeometry() as Geometry;
+            const geojson = geojsonFormat.writeGeometry(geometry);
+            // Update the store with the modified feature's GeoJSON
+            console.log(feature)
+            geoJsonStore.set(geojson);
+        });
+    });
     // Initialize draw interaction
     draw = new Draw({
       source: vectorSource,
@@ -60,7 +73,7 @@
       const coordinates = pointGeometry.getCoordinates();
 
       // Create a square polygon around the point
-      const size = 100000; // size of the square (in degrees or suitable units)
+      const size = 2; // size of the square (in degrees or suitable units)
       const squareCoords = [
         [coordinates[0] - size, coordinates[1] - size], // bottom left
         [coordinates[0] + size, coordinates[1] - size], // bottom right
@@ -76,7 +89,7 @@
       vectorSource.addFeature(polygonFeature);
       const geojsonFormat = new GeoJSON();
       const geometry = polygonFeature.getGeometry() as Geometry;
-      const geojson = geojsonFormat.writeGeometry(geometry,  { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'});
+      const geojson = geojsonFormat.writeGeometry(geometry);
       geoJsonStore.set(geojson)
       currentPoint = event.feature;
     });

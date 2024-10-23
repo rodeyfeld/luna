@@ -117,7 +117,6 @@
     });
 </script>
 
-
 <style>
     #archiveFinderMap {
       height: 100%;
