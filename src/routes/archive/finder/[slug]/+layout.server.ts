@@ -1,7 +1,7 @@
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ params, fetch }) => {
-    const response = await fetch(`/api/archive_finder/finder_data/${params.slug}`, {
+    const response = await fetch(`/api/archive/finder_data/${params.slug}`, {
 		method: 'GET',
 		headers: {
 			'content-type': 'application/json',

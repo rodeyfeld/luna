@@ -4,7 +4,7 @@ import { json, type RequestHandler } from "@sveltejs/kit";
 
 export const POST: RequestHandler = async ({ request }) => {
 	const requestData = await request.json()
-	const url = "http://localhost:8000/api/archive/finders/create";
+	const url = "http://localhost:8000/api/archive/finder/create";
 	
 	const response = await fetch(url, {
 		method: 'POST',

@@ -1,46 +1,32 @@
 <script lang="ts">
     
-    export let finderResults;
+    export let finderData;
     import { DataHandler, Datatable, Th, ThFilter } from '@vincjo/datatables'
 
-    const handler = new DataHandler(finderResults, { rowsPerPage: 10 })
+    const handler = new DataHandler(finderData.studies, { rowsPerPage: 10 })
     const rows = handler.getRows()
-    $: finderResults, handler.setRows(finderResults)
+    $: finderData.studies, handler.setRows(finderData.studies)
 
 </script>
 
-<Datatable {handler}>
+<Datatable handler={handler}>
     <table>
         <thead>
             <tr>
-                <Th {handler} orderBy="archive_finder_id">archive_finder_id</Th>
-                <Th {handler} orderBy="external_id">external_id</Th>
-                <Th {handler} orderBy="seeker_run_id">seeker_run_id</Th>
-                <Th {handler} orderBy="collection">collection</Th>
-                <Th {handler} orderBy="start_date">start_date</Th>
-                <Th {handler} orderBy="end_date">end_date</Th>
-                <Th {handler} orderBy="sensor_type">sensor_type</Th>
-                <Th {handler} orderBy="geometry">geometry</Th>
+                <Th {handler} orderBy="id">id</Th>
+                <Th {handler} orderBy="study_name">study</Th>
+                <Th {handler} orderBy="status">status</Th>
             </tr>
-            <!-- <tr>
-                <ThFilter {handler} filterBy="id"/>
-                <ThFilter {handler} filterBy="start_date" />
-                <ThFilter {handler} filterBy="end_date"/>
-                <ThFilter {handler} filterBy="provider_integration"/>
-            </tr> -->
         </thead>
         <tbody>
             {#each $rows as row}
             <tr>
-                <td>{row.archive_finder_id}</td>
-                <td>{row.external_id}</td>
-                <td>{row.seeker_run_id}</td>
-                <td>{row.collection}</td>
-                <td>{row.start_date}</td>
-                <td>{row.end_date}</td>
-                <td>{row.sensor_type}</td>
-                <td>{row.geometry}</td>
+                
+                <td>{row.id}</td>
 
+                <td>{row.study_name}</td>
+
+                <td>{row.status}</td>
             </tr>
             {/each}
         </tbody>

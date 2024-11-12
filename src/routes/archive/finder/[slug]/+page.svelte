@@ -5,5 +5,5 @@
 </script>
 
 <div  class="bg-surface-500/30 p-4">
-    <Finder finderData={data.finderData} finderResults={data.finderResults}></Finder>        
+    <Finder finderData={data.finderData}></Finder>        
 </div>
