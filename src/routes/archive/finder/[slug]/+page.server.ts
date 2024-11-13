@@ -23,9 +23,10 @@ export const actions = {
 		const formData = await request.formData();
 		const finderExecuteData = {
 				'archive_finder_id': formData.get("archive_finder_id"),
+				'study_name': formData.get("study_name"),
 		};
 
-		const response = await fetch('/api/archive/finder/finder_execute', {
+		const response = await fetch('/api/archive/finder_execute', {
 			method: 'POST',
 			body: JSON.stringify(finderExecuteData),
 			headers: {

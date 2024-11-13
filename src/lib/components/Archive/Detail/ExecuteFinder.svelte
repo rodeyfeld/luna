@@ -11,7 +11,7 @@
             <form method="POST" action="?/execute">
                 <div class="w-full grid grid-cols-4 gap-2" >
                     <div class="col-span-2">
-                        <select class="w-full">
+                        <select name="study_name" class="w-full">
                         {#each finderData.study_options as study_option}
                             <option value={study_option["study_name"]}>
                                 {study_option["study_name"]}
@@ -21,7 +21,7 @@
                     </div>
                     <div class="col-span-1 flex items-center">
                         <input name="archive_finder_id" class="input disabled hidden" value={finderData.id} type="text" />
-                        <button class="btn variant-filled-primary">Execute Finder</button>
+                        <button class="btn variant-filled-primary">Execute Finder Study</button>
                     </div>
                 </div>
             </form>

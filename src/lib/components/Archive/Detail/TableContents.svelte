@@ -22,10 +22,8 @@
             {#each $rows as row}
             <tr>
                 
-                <td>{row.id}</td>
-
+                <td><a href="/study/{row.study_name}/{row.id}">{row.id}</a></td>
                 <td>{row.study_name}</td>
-
                 <td>{row.status}</td>
             </tr>
             {/each}
