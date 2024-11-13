@@ -8,6 +8,7 @@ import { Vector as VectorLayer } from 'ol/layer.js';
 import { Vector as VectorSource } from 'ol/source.js';
 import {Fill, Stroke, Style} from 'ol/style.js';
 import { Feature } from 'ol';
+import Overlay from 'ol-ext/control/Overlay';
 import GeoJSON from 'ol/format/GeoJSON';
 
 export let studyData;
@@ -18,7 +19,7 @@ const geoJSONGeometry =  new GeoJSON().readGeometry(archiveFinderGeometry);
 const archiveFinderFeature = new Feature({
         geometry: geoJSONGeometry,
     });
-const features = imageryResults.map((imageryResult: { geometry: any; }) => {
+const imageryResultFeatures = imageryResults.map((imageryResult: { geometry: any; }) => {
         const geometry = new GeoJSON().readGeometry(imageryResult.geometry);
         return new Feature(geometry)
     })
@@ -33,31 +34,61 @@ const archiveFinderFeatureStyle = new Style({
     }),
 });
 
-const selectedFeatureStyle = new Style({
+const imageryResultFeatureStyle = new Style({
     fill: new Fill({
-        color: 'rgba(0, 255, 0, .1)', // Fill color
+        color: 'rgba(0, 0, 0, 0)', // Fill color
     }),
     stroke: new Stroke({
-        color: '#FFFF00', // Stroke color
-        width: 4, // Stroke width
+        color: 'rgba(0, 255, 0, 1)', // Stroke color
+        width: 2, // Stroke width
     }),
 });
 
 const tileLayer = new TileLayer({
   source: new OSM(),
 });
-const vectorSource = new VectorSource({ 
+
+tileLayer.on('prerender', (evt) => {
+  // return
+  if (evt.context) {
+    const context = evt.context as CanvasRenderingContext2D;
+    context.filter = 'grayscale(80%) invert(100%) ';
+    context.globalCompositeOperation = 'source-over';
+  }
+});
+
+tileLayer.on('postrender', (evt) => {
+  if (evt.context) {
+    const context = evt.context as CanvasRenderingContext2D;
+    context.filter = 'none';
+  }
+});
+
+const finderVectorSource = new VectorSource({ 
   wrapX: false,
   features: [archiveFinderFeature]
  });
-const vectorLayer = new VectorLayer({
-  source: vectorSource,
+const finderVectorLayer = new VectorLayer({
+  source: finderVectorSource,
   style: archiveFinderFeatureStyle
+});
+
+const resultsVectorSource = new VectorSource({ 
+  wrapX: false,
+  features: imageryResultFeatures
+ });
+const resultsVectorLayer = new VectorLayer({
+  source: resultsVectorSource,
+  style: imageryResultFeatureStyle
 });
 
 var map: Map;
 
-
+// var menu = new Overlay ({ 
+//     closeBox : true, 
+//     className: "slide-left menu", 
+//     content: "test"
+//   });
 
 onMount(() => {
   map = new Map({
@@ -66,11 +97,12 @@ onMount(() => {
       zoom: 1,
       projection: 'EPSG:4326',
     }),
-    layers: [tileLayer, vectorLayer],
+    layers: [tileLayer, finderVectorLayer, resultsVectorLayer],
     target: 'map',
   });
   const extent = geoJSONGeometry.getExtent();
   map.getView().fit(extent, { duration: 3000, maxZoom: 6 });
+  // map.addControl(menu);
 });
 
 
@@ -83,4 +115,16 @@ onMount(() => {
     }
   </style>
   <div id="map" class="w-full h-full"></div>
-  
+  <!-- <div id="overlay-menu">
+    Woah
+    <nav class="list-nav">
+        <ul>
+            {#each imageryResults as imageryResult}
+            <li>
+              {imageryResult.sensor.name}
+                 <ImageryResultHover imageryResult={imageryResult}></ImageryResultHover> 
+            </li>
+            {/each}
+        </ul>
+    </nav>
+</div> -->
