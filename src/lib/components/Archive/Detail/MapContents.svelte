@@ -8,10 +8,8 @@
     import { Vector as VectorSource } from 'ol/source.js';
     import { Feature } from 'ol';
     import GeoJSON from 'ol/format/GeoJSON';
-    import { transformExtent } from 'ol/proj';
-    import { boundingExtent } from 'ol/extent';
 
-    import {Circle, Fill, Stroke, Style} from 'ol/style.js';
+    import { Fill, Stroke, Style } from 'ol/style.js';
     import FinderResultHover from './Panel/FinderResultHover.svelte';
     import { selectedArchiveResultGeoJson } from '$lib/stores/archive_store';
     const fill = new Fill({

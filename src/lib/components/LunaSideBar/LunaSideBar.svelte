@@ -31,11 +31,7 @@ let tabSet: number = 0;
 		<svelte:fragment slot="lead"><i class="fa-solid fa-hat-wizard text-2xl"></i></svelte:fragment>
 		<span>SOLVER</span>
 	</AppRailAnchor> -->
-	
-	<!-- <AppRailAnchor selected={$page.url.pathname === '/feasibility'} name="feasibility" href='/feasibility'>
-		<svelte:fragment slot="lead"><i class="fa-regular fa-eye text-2xl"></i></svelte:fragment>
-		<span>FEASIBIILTY</span>
-	</AppRailAnchor> -->
+
 	<hr class="opacity-30" />
 	<AppRailAnchor selected={$page.url.pathname === '/archive'} name="archive" href='/archive'>
 		<svelte:fragment slot="lead"><i class="fa-solid fa-photo-film text-2xl"></i></svelte:fragment>

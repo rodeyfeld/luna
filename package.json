@@ -30,6 +30,7 @@
 	"dependencies": {
 		"@types/openlayers": "^4.6.23",
 		"ol": "^10.2.1",
+		"ol-ext": "^4.0.24",
 		"svelte-add": "^2.7.3",
 		"swagger-client": "^3.29.4",
 		"tailwindcss": "^3.4.14"
