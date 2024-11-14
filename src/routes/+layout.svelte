@@ -11,7 +11,7 @@
 
 
 	
-    import { AppShell, Modal, Toast, initializeStores, prefersReducedMotionStore } from '@skeletonlabs/skeleton';
+    import { AppShell, Modal, Toast, Drawer, initializeStores, prefersReducedMotionStore } from '@skeletonlabs/skeleton';
 	initializeStores();
 
 	import LunaAppBar from '$lib/components/LunaAppBar/LunaAppBar.svelte'
@@ -19,6 +19,7 @@
     import LunaFooterBar from '$lib/components/LunaFooterBar/LunaFooterBar.svelte';
 	import "../app.css";
 </script>
+<Drawer />
 
 
 <AppShell>
