@@ -1,6 +1,4 @@
-import type { Actions, PageServerLoad } from './$types';
-import { geoJsonStore, geoJsonStr } from '$lib/stores/archive_store';
-import { get } from 'svelte/store';
+import type { Actions } from './$types';
 
 function blankOrDate(input: FormDataEntryValue | null): string{
 	if(input == null){
@@ -8,8 +6,6 @@ function blankOrDate(input: FormDataEntryValue | null): string{
 	}
 	return input.toString()
 }
-
-
 
 function convertDateString(input: string): string {
     // Parse the input string to create a Date object
@@ -20,7 +16,6 @@ function convertDateString(input: string): string {
     return formattedDate;
 
 }
-
 
 export const actions = {
 	submit: async ({ request, fetch }) => {
@@ -37,7 +32,7 @@ export const actions = {
 			 	'name': finderName,			
 		};
 
-		let response = await fetch('/api/archive_finder/finder_create', {
+		let response = await fetch('/api/archive/finder_create', {
 			method: 'POST',
 			body: JSON.stringify(finderCreateData),
 			headers: {

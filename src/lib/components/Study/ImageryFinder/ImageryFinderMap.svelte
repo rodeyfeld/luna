@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte';
-import Map from 'ol/Map.js';
+import OLMap from 'ol/Map.js';
 import View from 'ol/View.js';
 import TileLayer from 'ol/layer/Tile.js';
 import OSM from 'ol/source/OSM.js';
@@ -19,10 +19,7 @@ const geoJSONGeometry =  new GeoJSON().readGeometry(archiveFinderGeometry);
 const archiveFinderFeature = new Feature({
         geometry: geoJSONGeometry,
     });
-const imageryResultFeatures = imageryResults.map((imageryResult: { geometry: any; }) => {
-        const geometry = new GeoJSON().readGeometry(imageryResult.geometry);
-        return new Feature(geometry)
-    })
+
 
 const archiveFinderFeatureStyle = new Style({
     fill: new Fill({
@@ -34,15 +31,6 @@ const archiveFinderFeatureStyle = new Style({
     }),
 });
 
-const imageryResultFeatureStyle = new Style({
-    fill: new Fill({
-        color: 'rgba(0, 0, 0, 0)', // Fill color
-    }),
-    stroke: new Stroke({
-        color: 'rgba(0, 255, 0, 1)', // Stroke color
-        width: 2, // Stroke width
-    }),
-});
 
 const tileLayer = new TileLayer({
   source: new OSM(),
@@ -73,16 +61,9 @@ const finderVectorLayer = new VectorLayer({
   style: archiveFinderFeatureStyle
 });
 
-const resultsVectorSource = new VectorSource({ 
-  wrapX: false,
-  features: imageryResultFeatures
- });
-const resultsVectorLayer = new VectorLayer({
-  source: resultsVectorSource,
-  style: imageryResultFeatureStyle
-});
 
-var map: Map;
+
+var map: OLMap;
 
 // var menu = new Overlay ({ 
 //     closeBox : true, 
@@ -91,7 +72,63 @@ var map: Map;
 //   });
 
 onMount(() => {
-  map = new Map({
+
+
+  const featureDataMap = new Map();
+
+
+  imageryResults.forEach((imageryResult: any) => {
+    const coordStr = imageryResult.geometry.coordinates.toString();
+    const geometry = new GeoJSON().readGeometry(imageryResult.geometry);
+    let coordData = featureDataMap.get(coordStr);
+
+    if (coordData) {
+      coordData.count += 1;
+    } 
+    else {
+      coordData = {
+        geometry: geometry,
+        count: 1
+      };
+      featureDataMap.set(coordStr, coordData);
+    }
+    
+  });
+
+  const features: Feature<any>[] = []
+  featureDataMap.forEach((value, key) => {
+    const geometry = value.geometry
+    console.log(key)
+    const count = value.count
+    const feature = new Feature(geometry)
+
+    const strokeMulti = .05
+    const strokeStrength = strokeMulti * count 
+    const imageryResultFeatureStyle = new Style({
+      
+        // fill: new Fill({
+        //     color: 'rgba(0, 0, 0, .01)',
+        // }),
+        stroke: new Stroke({
+            color: `rgba(0, 255, 0, ${strokeStrength})`,
+            width: 2, 
+        }),
+    });
+
+    
+    feature.setStyle(imageryResultFeatureStyle)
+    console.log(feature)
+    features.push(feature)
+  });
+  const resultsVectorSource = new VectorSource({ 
+    wrapX: false,
+    features: features
+  });
+  const resultsVectorLayer = new VectorLayer({
+    source: resultsVectorSource,
+  });
+
+  map = new OLMap({
     view: new View({
       center: [0, 0],
       zoom: 1,
@@ -102,19 +139,21 @@ onMount(() => {
   });
   const extent = geoJSONGeometry.getExtent();
   map.getView().fit(extent, { duration: 3000, maxZoom: 6 });
+  
+  
+
   // map.addControl(menu);
 });
 
-
 </script>
   
-  <style>
-    #map {
-      height: 100%;
-      width: 100%;
-    }
-  </style>
-  <div id="map" class="w-full h-full"></div>
+<style>
+  #map {
+    height: 100%;
+    width: 100%;
+  }
+</style>
+<div id="map" class="w-full h-full"></div>
   <!-- <div id="overlay-menu">
     Woah
     <nav class="list-nav">
