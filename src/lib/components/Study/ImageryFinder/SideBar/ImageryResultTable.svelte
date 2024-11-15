@@ -47,6 +47,7 @@
 <style>
     thead {
         background: #2c3e50;
+        text-align: center;
     }
     tbody td {
         border: 1px solid #2c3e50;

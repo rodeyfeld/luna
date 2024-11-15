@@ -1,34 +1,20 @@
 <script>
-		// Dependency: Floating UI
-	import { storePopup } from '@skeletonlabs/skeleton';
-	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
-
-	// SvelteKit Imports
-	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
-	import { afterNavigate } from '$app/navigation';
-
-
-	
-    import { AppShell, Modal, Toast, Drawer, initializeStores, prefersReducedMotionStore } from '@skeletonlabs/skeleton';
+    import { initializeStores } from '@skeletonlabs/skeleton';
 	initializeStores();
-
+	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 	import LunaAppBar from '$lib/components/LunaAppBar/LunaAppBar.svelte'
 	import LunaSideBar from '$lib/components/LunaSideBar/LunaSideBar.svelte'
     import LunaFooterBar from '$lib/components/LunaFooterBar/LunaFooterBar.svelte';
 	import "../app.css";
+    import LunaShell from '$lib/components/LunaShell.svelte';
+
+	import { storePopup } from '@skeletonlabs/skeleton';
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 </script>
-<Drawer />
 
-
-<AppShell>
+<LunaShell>
 	<svelte:fragment slot="header"><LunaAppBar /></svelte:fragment>
-
-	<svelte:fragment slot="sidebarLeft"><LunaSideBar /></svelte:fragment>
-	
+	<svelte:fragment slot="sidebar"><LunaSideBar /></svelte:fragment>
 	<slot /> 
-
-	<svelte:fragment slot="pageFooter"><LunaFooterBar /></svelte:fragment>
-
-</AppShell>
+	<svelte:fragment slot="footer"><LunaFooterBar /></svelte:fragment>
+</LunaShell>
