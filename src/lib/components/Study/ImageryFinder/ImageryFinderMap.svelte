@@ -1,20 +1,19 @@
 <script lang="ts">
-import { getDrawerStore, Paginator, type DrawerSettings, type PaginationSettings } from "@skeletonlabs/skeleton";
 import { onDestroy, onMount } from 'svelte';
 import OLMap from 'ol/Map.js';
-import View from 'ol/View.js';
+import View from 'ol/View.js';    
+import Overlay from 'ol/Overlay.js';
 import TileLayer from 'ol/layer/Tile.js';
 import OSM from 'ol/source/OSM.js';
 import { Vector as VectorLayer } from 'ol/layer.js';
 import { Vector as VectorSource } from 'ol/source.js';
-import {Fill, Stroke, Style} from 'ol/style.js';
+import { Fill, Stroke, Style} from 'ol/style.js';
 import { Feature } from 'ol';
-import Overlay from 'ol-ext/control/Overlay';
 import GeoJSON from 'ol/format/GeoJSON';
-    import ImageryResultHover from "./ImageryResultHover.svelte";
-    import { selectedArchiveResultGeoJson } from "$lib/stores/archive_store";
+import { selectedArchiveResultGeoJson } from "$lib/stores/archive_store";
+import ImageryResultTable from "./SideBar/ImageryResultTable.svelte";
+import ImageryResultHover from "./SideBar/ImageryResultHover.svelte";
 
-const drawerStore = getDrawerStore();
 export let studyData;
 
 const imageryResults = studyData.results
@@ -23,7 +22,7 @@ const geoJSONGeometry =  new GeoJSON().readGeometry(archiveFinderGeometry);
 const archiveFinderFeature = new Feature({
         geometry: geoJSONGeometry,
     });
-
+    
 
 const archiveFinderFeatureStyle = new Style({
     fill: new Fill({
@@ -66,17 +65,19 @@ const finderVectorLayer = new VectorLayer({
 });
 
 
-
-var map: OLMap;
-
-// var menu = new Overlay ({ 
-//     closeBox : true, 
-//     className: "slide-left menu", 
-//     content: "test"
-//   });
+let overlay: Overlay
 
 onMount(() => {
-
+  
+  
+  var map: OLMap;
+  const container = document.querySelector('#image-popup') as HTMLElement;
+  overlay = new Overlay({
+      element: container,
+      autoPan: {
+          animation: { duration: 250 },
+      },
+  });
 
   const featureDataMap = new Map();
 
@@ -102,12 +103,12 @@ onMount(() => {
   const features: Feature<any>[] = []
   featureDataMap.forEach((value, key) => {
     const geometry = value.geometry
-    console.log(key)
     const count = value.count
     const feature = new Feature(geometry)
 
     const strokeMulti = .05
-    const strokeStrength = strokeMulti * count 
+    // const strokeStrength = strokeMulti * count 
+    const strokeStrength = .01
     const imageryResultFeatureStyle = new Style({
       
         // fill: new Fill({
@@ -138,6 +139,7 @@ onMount(() => {
       projection: 'EPSG:4326',
     }),
     layers: [tileLayer, finderVectorLayer, resultsVectorLayer],
+    overlays: [overlay],
     target: 'map',
   });
   const extent = geoJSONGeometry.getExtent();
@@ -146,31 +148,11 @@ onMount(() => {
 
   // map.addControl(menu);
 });
-function trigger(position: 'left' | 'top' | 'right' | 'bottom'): void {
-		const s: DrawerSettings = {
-       id: 'demo',
-        position,
-        width: 'w-[280px] md:w-[480px]',
-        
-      };
-		drawerStore.open(s);
-	}
-  let paginationSettings = {
-	page: 0,
-	limit: 5,
-	size: imageryResults.length,
-	amounts: [1,2,5,10],
-} satisfies PaginationSettings;
-$: paginatedSource = imageryResults.slice(
-	paginationSettings.page * paginationSettings.limit,
-	paginationSettings.page * paginationSettings.limit + paginationSettings.limit
-);
-
 let highlightedFeature: Feature | null = null; // To store the highlighted feature
 
 const selectedFeatureStyle = new Style({
         fill: new Fill({
-            color: 'rgba(255, 0, 255, 1)', // Fill color
+            color: 'rgba(255, 0, 255, .2)', // Fill color
         }),
         stroke: new Stroke({
             color: '#FFFF00', // Stroke color
@@ -178,7 +160,7 @@ const selectedFeatureStyle = new Style({
         }),
     });
 
-const unsubscribe = selectedArchiveResultGeoJson.subscribe(value => {
+const geoJsonUnsubscribe = selectedArchiveResultGeoJson.subscribe(value => {
         if (value) {
             // Clear the previously highlighted feature
             if (highlightedFeature) {
@@ -189,15 +171,14 @@ const unsubscribe = selectedArchiveResultGeoJson.subscribe(value => {
             const geometry = new GeoJSON().readGeometry(value);
             highlightedFeature = new Feature(geometry);
             highlightedFeature.setStyle(selectedFeatureStyle);
-            console.log(geometry)
             finderVectorSource.addFeature(highlightedFeature);
         }
     });
 
-    // Clean up the subscription on component destroy
-    onDestroy(() => {
-        unsubscribe();
-    });
+// Clean up the subscription on component destroy
+onDestroy(() => {
+    geoJsonUnsubscribe();
+});
 </script>
   
 <style>
@@ -207,24 +188,12 @@ const unsubscribe = selectedArchiveResultGeoJson.subscribe(value => {
   }
 </style>
 
-<Paginator
-bind:settings={paginationSettings}
-showFirstLastButtons="{true}"
-showPreviousNextButtons="{true}"
-/>
 <div class="w-full h-full grid grid-cols-10 gap-1" >
   <div class="col-span-8">
     <div id="map" class="w-full h-full"></div>
   </div>
   <div class="col-span-2">
-    <nav class="list-nav overflow-y-auto max-h-[68vh]">
-        <ul>
-            {#each paginatedSource as imageryResult}
-            <li>
-                <ImageryResultHover imageryResult={imageryResult}></ImageryResultHover>
-            </li>
-            {/each}
-        </ul>
-    </nav>
+    <ImageryResultTable imageryResults={imageryResults}></ImageryResultTable>
   </div>
 </div>
+<ImageryResultHover overlay={overlay}></ImageryResultHover>
