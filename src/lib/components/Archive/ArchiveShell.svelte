@@ -14,3 +14,10 @@
         <div id="archive-page-content" class="flex-auto w-full h-full flex overflow-hidden"><slot /></div>
     </div>
 </div>
+<style>
+        #archive-shell {
+		background-image:
+			radial-gradient(at 0% 99%, rgba(var(--color-primary-500) / 0.15) 0px, transparent 50%),
+			radial-gradient(at 0% 1%, rgba(var(--color-surface-500) / 0.33) 0px, transparent 50%);
+	}
+</style>
