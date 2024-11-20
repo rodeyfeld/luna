@@ -13,6 +13,6 @@
         <ArchiveSideBar slug={$page.url.pathname} finders={data.finders} />
     </svelte:fragment>
     <ArchiveFinderMap finders={data.finders}></ArchiveFinderMap>
-
+    <slot />
 </ArchiveShell>
 
