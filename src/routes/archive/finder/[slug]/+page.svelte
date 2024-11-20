@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Finder from "$lib/components/Archive/Finder.svelte";
+    import Finder from "$lib/components/Archive/Detail/Finder.svelte";
 	import type { PageData } from './$types';
     export let data: PageData;
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import CreateFinder from '$lib/components/Archive/CreateFinder.svelte';
-    import ListFinders from '$lib/components/Archive/ListFinders.svelte';
+    import CreateFinder from '$lib/components/Archive/SideBar/CreateFinder.svelte';
+    import ListFinders from '$lib/components/Archive/SideBar/ListFinders.svelte';
 	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 
     export let slug: String;
