@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { finderMode } from '$lib/stores/archive_store'; 
 	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
     import FinderContents from './FinderContents.svelte';
     export let finderData;
@@ -18,7 +17,7 @@
                 </div>
             </div>
         </TabGroup>
-        <TabGroup>
+        <!-- <TabGroup>
             <div class="w-full grid grid-cols-2 gap-1" >
                 <div>
                     <Tab bind:group={$finderMode} name="mapTab" value="map">MAP</Tab>
@@ -28,8 +27,8 @@
                 </div>
             </div>
             <svelte:fragment slot="panel">
-                    <FinderContents finderData={finderData}></FinderContents>
             </svelte:fragment>
-        </TabGroup>
+        </TabGroup> -->
+        <FinderContents finderData={finderData}></FinderContents>
     </div>
 </div>

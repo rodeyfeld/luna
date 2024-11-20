@@ -7,12 +7,15 @@
     export let slug: String;
     export let finders;
 
+
+    const getFinderMode = () => $page.url.pathname.includes('create') ? "create" : "list";
+
+
 </script>
 
 
 <div class="grid-rows-2">
     <div class="p-4">
-
             <TabGroup justify="justify-around" flex="auto">
                 <TabAnchor class="flex-1"  href="/archive/create" name="create" selected={$page.url.pathname.includes('create')}>CREATE
                 </TabAnchor>

@@ -14,7 +14,7 @@
 	
 	// @ts-ignore
 	function handleClick(row) {
-		window.location.href = `/study/${row.study_name}/${row.id}`
+		window.location.href = `${data.id}/study/${row.study_name}/${row.id}`
 
 	}
 

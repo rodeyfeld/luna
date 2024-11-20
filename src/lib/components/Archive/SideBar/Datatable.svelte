@@ -8,7 +8,7 @@
     import Pagination from '../../Table/Pagination.svelte';
     import GeoJSON from 'ol/format/GeoJSON';
 	
-    import { geoJsonStore, selectedFinderGeoJson } from '$lib/stores/archive_store';
+    import { selectedFinderGeoJson } from '$lib/stores/archive_store';
     export let data;
 	//Init data handler - CLIENT
 	const handler = new DataHandler(data, { rowsPerPage: 10});

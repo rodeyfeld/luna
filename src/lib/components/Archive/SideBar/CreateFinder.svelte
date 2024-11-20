@@ -1,6 +1,6 @@
 
 <script lang="ts">
-    import { geoJsonStore } from '$lib/stores/archive_store'; 
+    import { createFinderGeoJson } from '$lib/stores/archive_store'; 
 	import { onDestroy, onMount } from 'svelte';
 
     let geojson: string = "";
@@ -26,7 +26,7 @@
 		};
 	});
 
-    const unsubscribe = geoJsonStore.subscribe(value => {
+    const unsubscribe = createFinderGeoJson.subscribe(value => {
         geojson = value; // Update local variable whenever the store value changes
     });
 
