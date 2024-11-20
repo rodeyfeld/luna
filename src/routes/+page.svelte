@@ -6,8 +6,9 @@
         width: 500px;
         height: 500px;
     }
+
 </style>
-<div class="section-container w-full max-w-7xl mx-auto p-4 py-16 md:py-24">
+<div id="hero" class="section-container w-full mx-auto p-24 py-16 md:py-24">
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-10 items-center">
         <!-- Info -->
         <div class="flex flex-col items-center xl:items-start text-center xl:text-left space-y-4">

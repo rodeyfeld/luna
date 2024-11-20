@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { AppBar, popup } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
-    import LunaLogo from '../../LunaLogos/LunaLogo.svelte';
     import { derived } from 'svelte/store';
 
+    import LunaLogo from '$lib/components/Luna/LunaLogos/LunaLogo.svelte';
 	const breadcrumbs = derived(page, ($page) => {
 		const segments = $page.url.pathname.split('/'); // Filter out empty segments
 		return segments.map((slug, index) => {		
@@ -27,7 +27,7 @@
 			</div>
 			</a>
 		</div>
-		<div class="p-2">
+		<div>
 			
 			<ol class="breadcrumb">
 				{#each $breadcrumbs as  slugPath, i}
