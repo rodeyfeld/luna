@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { Feature } from 'ol';
     import GeoJSON from 'ol/format/GeoJSON';
-    import { baseFeatureLayer, newHighlightFeatureLayer, highlightFeature, lunaMap, newDrawFeatureLayer, newBaseDraw, newBaseModify } from '$lib/components/Map/MapUtils'
+    import { newBaseFeatureLayer, newHighlightFeatureLayer, highlightFeature, lunaMap, newDrawFeatureLayer, newBaseDraw, newBaseModify } from '$lib/components/Map/MapUtils'
     import { createFinderGeoJson, selectedFinderGeoJson } from '$lib/stores/archive_store';
 
     export let finders;
@@ -12,8 +12,9 @@
         const geometry = new GeoJSON().readGeometry(finderResult.geometry);
         return new Feature(geometry)
     })
+
+    const baseFeatureLayer = newBaseFeatureLayer(features)
     const highlightFeatureLayer = newHighlightFeatureLayer()
-    
     const drawFeatureLayer = newDrawFeatureLayer()
     
     const unsubscribe = selectedFinderGeoJson.subscribe(value => {
@@ -23,7 +24,7 @@
     let map;
     onMount(() => {
         map = lunaMap("archiveFinderMap")
-        map.addLayer(baseFeatureLayer(features))
+        map.addLayer(baseFeatureLayer)
         map.addLayer(highlightFeatureLayer)
         map.addLayer(drawFeatureLayer)
 

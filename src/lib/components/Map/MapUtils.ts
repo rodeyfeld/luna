@@ -28,7 +28,7 @@ export function lunaMap(htmlTarget: string): Map {
     });
 }
 
-export function baseFeatureLayer(features: Array<Feature>): VectorLayer {
+export function newBaseFeatureLayer(features: Array<Feature>): VectorLayer {
     return new VectorLayer({
         source: new VectorSource({
             features: features

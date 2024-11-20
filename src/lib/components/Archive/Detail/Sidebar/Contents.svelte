@@ -1,5 +1,5 @@
 <script>
-    import FinderMap from "./FinderMap.svelte";
+    import Map from "./Map.svelte";
     export let finderData;
 </script>
 
@@ -15,4 +15,4 @@
     <span>End Date</span>
     <input class="input" name="startDate" title="End Date" value={finderData.end_date} disabled />
 </label>
-<FinderMap finderData={finderData}></FinderMap>
+<Map finderData={finderData}></Map>
