@@ -6,10 +6,31 @@
     import RowsPerPage from './RowsPerPage.svelte';
     import RowCount from './RowCount.svelte';
     import Pagination from './Pagination.svelte';
+    import GeoJSON from 'ol/format/GeoJSON';
+	
+    import { geoJsonStore, selectedFinderGeoJson } from '$lib/stores/archive_store';
     export let data;
 	//Init data handler - CLIENT
-	const handler = new DataHandler(data, { rowsPerPage: 5 });
+	const handler = new DataHandler(data, { rowsPerPage: 10});
 	const rows = handler.getRows();
+
+	
+	// @ts-ignore
+	function handleClick(row) {
+		window.location.href = `/archive/finder/${row.id}`
+
+	}
+
+
+	// @ts-ignore
+	function handleHover(row) {
+		const geojsonFormat = new GeoJSON();
+		const geometry = new GeoJSON().readGeometry(row.geometry);
+		const geojson = geojsonFormat.writeGeometry(geometry)
+		selectedFinderGeoJson.set(geojson)
+	}
+	
+
 </script>
 
 <div class=" overflow-x-auto space-y-4">
@@ -26,17 +47,15 @@
 				<ThSort {handler} orderBy="name">Name</ThSort>
 				<ThSort {handler} orderBy="start_date">Start Date</ThSort>
 			</tr>
-			<tr>
-				<ThFilter {handler} filterBy="id" />
-				<ThFilter {handler} filterBy="name" />
-				<ThFilter {handler} filterBy="start_date" />
-			</tr>
 		</thead>
 		<tbody>
 			{#each $rows as row}
-				<tr>
-					<td>{row.id}</td>
-					<td>{row.name}</td>
+				<tr 
+					on:click={() => handleClick(row)}
+					on:mouseenter={() => handleHover(row)}
+				>
+					<td> {row.id}</td>
+					<td><i class="fa-solid fa-magnifying-glass"></i> | {row.name}</td>
 					<td>{row.start_date}</td>
 				</tr>
 			{/each}

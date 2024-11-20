@@ -10,16 +10,8 @@
     import { Point, Polygon, type Geometry } from 'ol/geom';
     import GeoJSON from 'ol/format/GeoJSON';
     import { Draw, Modify, Snap } from 'ol/interaction.js';
-
-    import { geoJsonStore } from '$lib/stores/archive_store';
+    import { geoJsonStore, selectedFinderGeoJson } from '$lib/stores/archive_store';
     import { Fill, Stroke, Style} from 'ol/style.js';
-    const fill = new Fill({
-        color: 'rgba(255,255,255,0.4)',
-    });
-    const stroke = new Stroke({
-        color: '#3399CC',
-        width: 1.25,
-    });
     export let finders;
     const features = finders.map((finderResult: { geometry: any; }) => {
         const geometry = new GeoJSON().readGeometry(finderResult.geometry);
@@ -115,6 +107,33 @@
     map.addInteraction(snap);
 
     });
+
+    let highlightedFeature: Feature | null = null;
+    const selectedFeatureStyle = new Style({
+        fill: new Fill({
+            color: 'rgba(0, 255, 0, .1)', // Fill color
+        }),
+        stroke: new Stroke({
+            color: '#FFFF00', // Stroke color
+            width: 4, // Stroke width
+        }),
+    });
+    const unsubscribe = selectedFinderGeoJson.subscribe(value => {
+        if (value) {
+            // Clear the previously highlighted feature
+            if (highlightedFeature) {
+                vectorSource.removeFeature(highlightedFeature);
+            }
+
+            // Create and add the new highlighted feature
+            const geometry = new GeoJSON().readGeometry(value);
+            highlightedFeature = new Feature(geometry);
+            highlightedFeature.setStyle(selectedFeatureStyle);
+            console.log(geometry)
+            vectorSource.addFeature(highlightedFeature);
+        }
+    });
+
 </script>
 
 <style>
