@@ -1,11 +1,11 @@
 <script>
 	import { DataHandler } from '@vincjo/datatables';
-    import Search from './Search.svelte';
-    import ThSort from './ThSort.svelte';
-    import ThFilter from './ThFilter.svelte';
-    import RowsPerPage from './RowsPerPage.svelte';
-    import RowCount from './RowCount.svelte';
-    import Pagination from './Pagination.svelte';
+    import Search from '../../Table/Search.svelte';
+    import ThSort from '../../Table/ThSort.svelte';
+    import ThFilter from '../../Table/ThFilter.svelte';
+    import RowsPerPage from '../../Table/RowsPerPage.svelte';
+    import RowCount from '../../Table/RowCount.svelte';
+    import Pagination from '../../Table/Pagination.svelte';
     import GeoJSON from 'ol/format/GeoJSON';
 	
     import { geoJsonStore, selectedFinderGeoJson } from '$lib/stores/archive_store';

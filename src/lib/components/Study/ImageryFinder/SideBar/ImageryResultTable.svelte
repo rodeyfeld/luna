@@ -44,20 +44,4 @@
     </table>
 </Datatable>
 
-<style>
-    thead {
-        background: #2c3e50;
-        text-align: center;
-    }
-    tbody td {
-        border: 1px solid #2c3e50;
-        padding: 4px 20px;
-    }
-    tbody tr {
-        transition: all, 0.2s;
-    }
-    tbody tr:hover {
-        background: #a9cce3;
-    }
-</style>
 

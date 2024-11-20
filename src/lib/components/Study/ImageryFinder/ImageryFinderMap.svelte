@@ -13,6 +13,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { selectedArchiveResultGeoJson } from "$lib/stores/archive_store";
 import ImageryResultTable from "./SideBar/ImageryResultTable.svelte";
 import ImageryResultHover from "./SideBar/ImageryResultHover.svelte";
+    import Datatable from './SideBar/Datatable.svelte';
 
 export let studyData;
 
@@ -37,22 +38,6 @@ const archiveFinderFeatureStyle = new Style({
 
 const tileLayer = new TileLayer({
   source: new OSM(),
-});
-
-tileLayer.on('prerender', (evt) => {
-  // return
-  if (evt.context) {
-    const context = evt.context as CanvasRenderingContext2D;
-    context.filter = 'grayscale(80%) invert(100%) ';
-    context.globalCompositeOperation = 'source-over';
-  }
-});
-
-tileLayer.on('postrender', (evt) => {
-  if (evt.context) {
-    const context = evt.context as CanvasRenderingContext2D;
-    context.filter = 'none';
-  }
 });
 
 const finderVectorSource = new VectorSource({ 
@@ -110,10 +95,6 @@ onMount(() => {
     // const strokeStrength = strokeMulti * count 
     const strokeStrength = .01
     const imageryResultFeatureStyle = new Style({
-      
-        // fill: new Fill({
-        //     color: 'rgba(0, 0, 0, .01)',
-        // }),
         stroke: new Stroke({
             color: `rgba(0, 255, 0, ${strokeStrength})`,
             width: 2, 
@@ -190,10 +171,10 @@ onDestroy(() => {
 
 <div class="w-full h-full grid grid-cols-10 gap-1" >
   <div class="col-span-8">
-    <div id="map" class="w-full h-full"></div>
+    <div id="map" class=""></div>
   </div>
   <div class="col-span-2">
-    <ImageryResultTable imageryResults={imageryResults}></ImageryResultTable>
+    <Datatable data={imageryResults}></Datatable>
   </div>
 </div>
 <ImageryResultHover overlay={overlay}></ImageryResultHover>

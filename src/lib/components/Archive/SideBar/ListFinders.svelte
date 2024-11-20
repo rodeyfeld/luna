@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Datatable from "./Table/Datatable.svelte";
+    import Datatable from "./Datatable.svelte";
 
 	export let finders;
 </script>
