@@ -12,8 +12,8 @@
     <svelte:fragment slot="archiveSidebarLeft">
         <ArchiveSideBar slug={$page.url.pathname} finders={data.finders} />
     </svelte:fragment>
-    <slot>
-        <ArchiveFinderMap finders={data.finders}></ArchiveFinderMap>
-    </slot>
+
+    <ArchiveFinderMap finders={data.finders}></ArchiveFinderMap>
+
 </ArchiveShell>
 

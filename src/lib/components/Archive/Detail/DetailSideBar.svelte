@@ -9,7 +9,7 @@
 
 
 <div class="grid-rows-2">
-    <div class="bg-surface-500/30 p-4">
+    <div class=" p-4">
         <TabGroup justify="justify-center" > 
             <div class="w-full grid grid-cols-1 gap-1 justify-center" >
                 <div>

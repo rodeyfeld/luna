@@ -19,7 +19,7 @@
 </script>
 
 <Datatable handler={handler}>
-    <table>
+    <table  class="table table-hover table-compact table-auto w-full ">
         <thead>
             <tr>
                 <Th {handler} orderBy="collection"><i class="fa-solid fa-satellite"></i></Th>

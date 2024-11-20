@@ -1,7 +1,8 @@
 <script lang="ts">
+    import { page } from '$app/stores';
     import CreateFinder from '$lib/components/Archive/CreateFinder.svelte';
     import ListFinders from '$lib/components/Archive/ListFinders.svelte';
-	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
+	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 
     export let slug: String;
     export let finders;
@@ -10,28 +11,26 @@
 
 
 <div class="grid-rows-2">
-    <div class="bg-surface-500/30 p-4">
-            <TabGroup>
-            <div class="w-full grid grid-cols-2 gap-1" >
-                <div>
-                        <TabAnchor href="/archive/create">CREATE
-                        </TabAnchor>
-                </div>
-                <div>
-                        <TabAnchor href="/archive/finder">VIEW
-                        </TabAnchor>
-                </div>
-            </div>
-            <svelte:fragment slot="panel">
-                {#if slug.includes('create')}
-                <form method="POST" action="create?/submit">
-                    <CreateFinder></CreateFinder>
-                </form>
-                {:else if slug.includes('finder')}
-                    <ListFinders finders={finders}></ListFinders>
-                {/if}
-            </svelte:fragment>
-        </TabGroup>
+    <div class="p-4">
+
+            <TabGroup justify="justify-around" flex="auto">
+                <TabAnchor class="flex-1"  href="/archive/create" name="create" selected={$page.url.pathname.includes('create')}>CREATE
+                </TabAnchor>
+    
+                <TabAnchor class="flex-1"  href="/archive/finder" name="finder" selected={$page.url.pathname.includes('finder')}>VIEW
+                </TabAnchor>            
+            </TabGroup>
+
     </div>
+        <div  class="p-4">
+            {#if slug.includes('create')}
+            <form method="POST" action="create?/submit">
+                <CreateFinder></CreateFinder>
+            </form>
+            {:else if slug.includes('finder')}
+                <ListFinders finders={finders}></ListFinders>
+            {/if}
+        </div>
+
 </div>
 

@@ -2,7 +2,7 @@
 
     export let finderData;
 </script>
-<div class="bg-surface-500/30 p-4">        
+<div class="p-4">        
     <div class="w-full grid grid-cols-10 gap-2" >
         <div class="col-span-6">
             <h1 class="h1">Archive Finder {finderData.id}</h1> 

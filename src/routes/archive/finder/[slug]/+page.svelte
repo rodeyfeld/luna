@@ -4,6 +4,6 @@
     export let data: PageData;
 </script>
 
-<div  class="bg-surface-500/30 p-4">
+<div  class="p-4">
     <Finder finderData={data.finderData}></Finder>        
 </div>

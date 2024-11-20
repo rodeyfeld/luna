@@ -8,7 +8,7 @@
 </script>
 
 
-<div class="bg-surface-500/30 p-4">
+<div class="p-4">
     <TabGroup>
         <div class="w-full grid grid-cols-2 gap-1" >
             <div>
