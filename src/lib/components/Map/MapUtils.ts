@@ -64,6 +64,8 @@ export function newBaseFeatureLayer(features: Array<Feature>): VectorLayer {
 }
 
 
+
+
 export function newHighlightFeatureLayer(): VectorLayer {
     return new VectorLayer({
         source: new VectorSource({

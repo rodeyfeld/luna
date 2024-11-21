@@ -70,4 +70,6 @@
     <span>End Date</span>
     <input class="input" name="endDate"  title="End Date" value={defaultEndTimeStr} type="datetime-local" />
 </label>
-<button class="btn variant-filled-primary" type="submit">Create Finder</button>
+<div class="py-4">
+    <button class="btn variant-filled-primary w-full p-4" type="submit">Create Finder</button>
+</div>

@@ -14,7 +14,7 @@
             <form method="POST" action="?/execute">
                 <div class="w-full grid grid-cols-4 gap-2" >
                     <div class="col-span-2 ">
-                        <select name="study_name " class="w-full bg-primary-600 text-black">
+                        <select name="study_name" class="w-full bg-primary-600 text-black">
                         {#each finderData.study_options as study_option}
                             <option value={study_option["study_name"]}>
                                 study: {study_option["study_name"]}

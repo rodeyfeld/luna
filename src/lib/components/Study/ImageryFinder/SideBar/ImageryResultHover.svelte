@@ -1,7 +1,6 @@
 <script lang="ts">
     import { selectedArchiveResultGeoJson, selectedArchiveResultThumbnail } from '$lib/stores/archive_store';	
 	import Overlay from 'ol/Overlay.js';
-    import { onDestroy, onMount } from 'svelte';
     import GeoJSON from 'ol/format/GeoJSON';
     let thumbnail: string = "";
 	let coords: number[];
@@ -9,6 +8,7 @@
 
 	const unsubscribe = selectedArchiveResultThumbnail.subscribe(value => {
 		thumbnail = value;
+        console.log("hey")
 		if (value) {
 			console.log(coords)
 			overlay.setPosition(coords);
@@ -22,14 +22,6 @@
 		}
 		
 	})
-	
-    onMount(() => {
-        
-    });
-	onDestroy(() => {
-		unsubscribe();
-		unsubscribeGeoJSON;
-	});
 </script>
 
 <!-- Popup HTML structure -->

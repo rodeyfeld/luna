@@ -1,11 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-    import ImageryFinderMap from '$lib/components/Study/ImageryFinder/ImageryFinderMap.svelte';
+    import Map from "$lib/components/Study/ImageryFinder/Map.svelte";
     export let data: PageData;
 </script>
-
-<!-- {data.studyResults.study_data} -->
-<ImageryFinderMap studyData={data.studyResults.study_data}>
-    
-</ImageryFinderMap>
+<Map study={data.study}>   
+</Map>
 

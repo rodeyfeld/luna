@@ -20,9 +20,7 @@
             duration: 1000, 
             maxZoom: 5,    
         });
-    })
-
-    
+    })    
 </script>
 
 

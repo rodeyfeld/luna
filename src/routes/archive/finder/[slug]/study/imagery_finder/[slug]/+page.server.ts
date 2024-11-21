@@ -9,8 +9,8 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		},
 	});
 	let data = await response.json();
-	let studyResults = data.results;
+	let study = data.results;
 	return {
-		studyResults: studyResults,
+		study: study,
 	}
 };
