@@ -4,11 +4,11 @@
     import GeoJSON from 'ol/format/GeoJSON';
     
     import Overlay from 'ol/Overlay.js';
-    import { newBaseFeatureLayer, newHighlightFeatureLayer, highlightFeature, lunaMap, newDrawFeatureLayer, newBaseDraw, newBaseModify } from '$lib/components/Map/MapUtils'
+    import { newBaseFeatureLayer, newHighlightFeatureLayer, highlightFeature, lunaMap, newDrawFeatureLayer, newBaseDraw, newBaseModify, newFilterFeatureLayer, newFilterDraw } from '$lib/components/Map/MapUtils'
     import { Stroke, Style } from 'ol/style';
     import ImageryResultHover from "./SideBar/ImageryResultHover.svelte";
     import Datatable from './SideBar/Datatable.svelte';
-    import { selectedArchiveResultGeoJson } from "$lib/stores/archive_store";
+    import { featureStore, selectedArchiveResultGeoJson } from "$lib/stores/archive_store";
 
     export let study;
 
@@ -38,6 +38,7 @@
         })
     )
     const highlightFeatureLayer = newHighlightFeatureLayer()
+    const filterFeatureLayer = newFilterFeatureLayer()
 
     const unsubscribe = selectedArchiveResultGeoJson.subscribe(value => {
         highlightFeature(highlightFeatureLayer, value)
@@ -47,15 +48,8 @@
     let overlay: Overlay;
     onMount(() => {
         map = lunaMap("map")
-        const geometry = new GeoJSON().readGeometry(study.study_data.archive_finder_geometry);
-        const extent = geometry.getExtent();
-        map.getView().fit(extent, {
-            duration: 1000, 
-            maxZoom: 5,    
-        });
         map.addLayer(baseFeatureLayer)
         map.addLayer(highlightFeatureLayer)
-
         const container = document.querySelector('#image-popup') as HTMLElement;
         overlay = new Overlay({
             element: container,
@@ -64,6 +58,15 @@
             },
         });
         map.addOverlay(overlay)
+        const geometry = new GeoJSON().readGeometry(study.study_data.archive_finder_geometry);
+        const extent = geometry.getExtent();
+        map.getView().fit(extent, {
+            duration: 1000, 
+            maxZoom: 5,    
+        });
+
+        const filterDraw = newFilterDraw(baseFeatureLayer, featureStore)
+        map.addInteraction(filterDraw)
     })
 </script>
 

@@ -1,18 +1,41 @@
-<script>
+<script lang="ts">
     import Pagination from '$lib/components/Table/Pagination.svelte';
     import RowCount from '$lib/components/Table/RowCount.svelte';
     import RowsPerPage from '$lib/components/Table/RowsPerPage.svelte';
     import Search from '$lib/components/Table/Search.svelte';
     import ThSort from '$lib/components/Table/ThSort.svelte';
 	import { DataHandler } from '@vincjo/datatables';
-	import { selectedArchiveResultGeoJson, selectedArchiveResultThumbnail } from '$lib/stores/archive_store';
+	import { featureStore, selectedArchiveResultGeoJson, selectedArchiveResultThumbnail } from '$lib/stores/archive_store';
     import GeoJSON from 'ol/format/GeoJSON';
+    import type { Feature } from 'ol';
     export let data;
 
 	const handler = new DataHandler(data, { rowsPerPage: 10});
 	const rows = handler.getRows();
 
-	
+	const unsubscribe = featureStore.subscribe(mapFeatures => {
+		const geojsonFormat = new GeoJSON();
+		if (mapFeatures){
+			const mapStrGeometries = mapFeatures.map((feature: Feature) => {
+				const geometry = feature.getGeometry()
+				if(!geometry){
+					throw new Error('bad geom')
+				}
+				return geojsonFormat.writeGeometry(geometry); // Returns GeoJSON string
+			});
+			// @ts-ignore
+			const rowFilteredGeometries = data.filter((row) => {
+				const geometry = geojsonFormat.readGeometry(row.geometry);
+				if(!geometry){
+					throw new Error('bad geom')
+				}
+				const strGeom = geojsonFormat.writeGeometry(geometry);
+				return mapStrGeometries.includes(strGeom)
+			})			
+			handler.setRows(rowFilteredGeometries)
+		}
+		
+    });
 	
 	// @ts-ignore
     function handleClick(row) {
@@ -69,4 +92,5 @@
 		<RowCount {handler} />
 		<Pagination {handler} />
 	</footer>
+	<button>RESET MAP FILTER</button>
 </div>

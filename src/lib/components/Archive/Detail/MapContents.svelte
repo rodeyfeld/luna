@@ -89,7 +89,6 @@
             const geometry = new GeoJSON().readGeometry(value);
             highlightedFeature = new Feature(geometry);
             highlightedFeature.setStyle(selectedFeatureStyle);
-            console.log(geometry)
             vectorSource.addFeature(highlightedFeature);
         }
     });

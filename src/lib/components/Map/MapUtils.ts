@@ -7,12 +7,10 @@ import Map from 'ol/Map.js';
 import OSM from 'ol/source/OSM.js';
 import { Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
-import { Draw, Extent, Modify, Snap } from 'ol/interaction.js';
+import { Draw, Modify} from 'ol/interaction.js';
 import { Polygon } from 'ol/geom';
 import type { Writable } from 'svelte/store';
-import {defaults as defaultInteractions} from 'ol/interaction.js';
 import Collection from 'ol/Collection'
-
 export function lunaMap(htmlTarget: string): Map {
     return new Map({
         view: new View({
@@ -98,6 +96,59 @@ export function newDrawFeatureLayer(): VectorLayer {
             }),
         })
     })
+}
+
+
+export function newFilterFeatureLayer(): VectorLayer {
+    return new VectorLayer({
+        source: new VectorSource({
+            features: new Array<Feature>()
+        }),
+        style: new Style({
+            fill: new Fill({
+                color: '#9777b850', 
+            }),
+            stroke: new Stroke({
+                color: '#9dff4d', 
+                width: 4, 
+            }),
+        })
+    })
+}
+
+
+export function newFilterDraw(layer: VectorLayer, featureStore: Writable<Array<Feature>>): Draw {
+    const source = layer.getSource()
+    if (!source) {
+        throw new Error('Layer source cannot be null.');
+    }
+    const draw = new Draw({
+        source: source,
+        type: 'Point',
+      });
+    draw.on('drawend', function (event) {
+       
+        const filterGeometry = event.feature.getGeometry()
+        const geojsonFormatter = new GeoJSON();
+        const filterFeatures = source.getFeatures().filter((feature: Feature) => {
+            if (!feature) {
+                throw new Error('feature cannot be null.');
+            }
+            const geometry = feature.getGeometry()
+            if (!geometry) {
+                throw new Error('feature cannot be null.');
+            }
+            
+            if (!filterGeometry) {
+                throw new Error('geometry cannot be null.');
+            }
+
+            return geometry.intersectsCoordinate(filterGeometry.getExtent())
+        })
+        featureStore.set(filterFeatures)
+      });
+      
+      return draw
 }
 
 export function highlightFeature(layer: VectorLayer, gejsonStr: string) {

@@ -8,9 +8,7 @@
 
 	const unsubscribe = selectedArchiveResultThumbnail.subscribe(value => {
 		thumbnail = value;
-        console.log("hey")
 		if (value) {
-			console.log(coords)
 			overlay.setPosition(coords);
 		}
 	});
@@ -20,7 +18,6 @@
 			const extent = geometry.getExtent();
 			coords = [extent[2], extent[3]]
 		}
-		
 	})
 </script>
 

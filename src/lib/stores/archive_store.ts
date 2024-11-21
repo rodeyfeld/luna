@@ -1,3 +1,4 @@
+import type { Feature } from 'ol';
 import { writable } from 'svelte/store';
 
 export default writable({});
@@ -7,3 +8,6 @@ export const finderMode = writable<string>();
 export const sidebarMode = writable<string>();
 export const selectedArchiveResultGeoJson = writable<string>();
 export const selectedArchiveResultThumbnail = writable<string>();
+
+
+export const featureStore = writable<Array<Feature>>();
