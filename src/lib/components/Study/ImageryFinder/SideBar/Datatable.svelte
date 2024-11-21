@@ -47,6 +47,11 @@
 	}
 
 	// @ts-ignore
+	function handleResetClick() {
+		handler.setRows(data)
+	}
+	
+	// @ts-ignore
 	function handleHover(row) {
 		const geojsonFormat = new GeoJSON();
 		const geometry = new GeoJSON().readGeometry(row.geometry);
@@ -57,11 +62,11 @@
 
 </script>
 
-<div class="overflow-scroll space-y-4">
+<div class="overflow-scroll space-y-4 p-4 ">
 	<!-- Header -->
 	<header class="flex justify-between gap-4">
 		<Search {handler} />
-		<RowsPerPage {handler} />
+		<!-- <RowsPerPage {handler} /> -->
 	</header>
 	<!-- Table -->
 	<table class="table table-hover table-compact w-full table-auto">
@@ -92,5 +97,5 @@
 		<RowCount {handler} />
 		<Pagination {handler} />
 	</footer>
-	<button>RESET MAP FILTER</button>
+	<button class="w-full btn variant-filled-primary py-4" on:click={() => handleResetClick()}>RESET MAP FILTER</button>
 </div>

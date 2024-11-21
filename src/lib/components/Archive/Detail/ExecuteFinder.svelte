@@ -24,7 +24,7 @@
                     </div>
                     <div class="col-span-1">
                         <input name="archive_finder_id" class="input disabled hidden" value={finderData.id} type="text" />
-                        <button class="btn variant-filled-primary">Execute Finder Study</button>
+                        <button class="btn variant-filled-primary">Execute Study</button>
                     </div>
                 </div>
             </form>
