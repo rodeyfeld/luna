@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { Feature } from 'ol';
     import GeoJSON from 'ol/format/GeoJSON';
-    import { newBaseFeatureLayer, lunaMap } from '$lib/components/Map/MapUtils'
+    import { newBaseFeatureLayer, lunaMap, lunaLockedMap } from '$lib/components/Map/MapUtils'
     
     export let finderData;
     const geometry = new GeoJSON().readGeometry(finderData.geometry);
@@ -13,7 +13,7 @@
     const baseFeatureLayer = newBaseFeatureLayer([feature])
     let map;
     onMount(() => {
-        map = lunaMap("archiveFinderMiniMap")
+        map = lunaLockedMap("archiveFinderMiniMap")
         map.addLayer(baseFeatureLayer)
         const extent = geometry.getExtent();
         map.getView().fit(extent, {

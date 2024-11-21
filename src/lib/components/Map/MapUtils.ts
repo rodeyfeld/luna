@@ -7,10 +7,11 @@ import Map from 'ol/Map.js';
 import OSM from 'ol/source/OSM.js';
 import { Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
-import { Draw, Modify, Snap } from 'ol/interaction.js';
+import { Draw, Extent, Modify, Snap } from 'ol/interaction.js';
 import { Polygon } from 'ol/geom';
 import type { Writable } from 'svelte/store';
-
+import {defaults as defaultInteractions} from 'ol/interaction.js';
+import Collection from 'ol/Collection'
 
 export function lunaMap(htmlTarget: string): Map {
     return new Map({
@@ -25,6 +26,23 @@ export function lunaMap(htmlTarget: string): Map {
             }),
         ],
         target: htmlTarget,
+    });
+}
+
+export function lunaLockedMap(htmlTarget: string): Map {
+    return new Map({
+        view: new View({
+            center: [0, 0],
+            zoom: 1.1,
+            projection: 'EPSG:4326',
+        }),
+        layers: [
+            new TileLayer({
+                source: new OSM(),
+            }),
+        ],
+        target: htmlTarget,
+        interactions: new Collection()
     });
 }
 
