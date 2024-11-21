@@ -11,12 +11,7 @@
 	const handler = new DataHandler(data.studies, { rowsPerPage: 10});
 	const rows = handler.getRows();
 
-	
-	// @ts-ignore
-	function handleClick(row) {
-		window.location.href = `${data.id}/study/${row.study_name}/${row.id}`
 
-	}
 
 </script>
 
@@ -37,11 +32,9 @@
 		</thead>
 		<tbody>
 			{#each $rows as row}
-				<tr 
-					on:click={() => handleClick(row)}
-				>
+				<tr>
 					<td> {row.id}</td>
-					<td><i class="fa-solid fa-magnifying-glass"></i> | {row.study_name}</td>
+					<td><a href="{data.id}/study/{row.study_name}/{row.id}"><button class="btn bg-tertiary-500"><i class="fa-solid fa-magnifying-glass"></i> | {row.study_name}</button></a></td>
 					<td>{row.status}</td>
 				</tr>
 			{/each}
