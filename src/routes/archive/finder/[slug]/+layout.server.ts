@@ -13,3 +13,4 @@ export const load: LayoutServerLoad = async ({ params, fetch }) => {
 		finderData: finderData,
 	}
 };
+ 

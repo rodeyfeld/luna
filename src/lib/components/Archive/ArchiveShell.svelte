@@ -18,6 +18,8 @@
         #archive-shell {
 		background-image:
 			radial-gradient(at 0% 99%, rgba(var(--color-primary-500) / 0.15) 0px, transparent 50%),
-			radial-gradient(at 0% 1%, rgba(var(--color-surface-500) / 0.33) 0px, transparent 50%);
+			radial-gradient(at 0% 1%, rgba(var(--color-surface-500) / 0.33) 0px, transparent 50%),
+			radial-gradient(at 99% 1%, rgba(var(--color-primary-500) / 0.15) 0px, transparent 50%),
+			radial-gradient(at 99% 99%, rgba(var(--color-surface-400) / 0.15) 0px, transparent 50%);
 	}
 </style>

@@ -5,7 +5,7 @@
 <div class="p-4">        
     <div class="w-full grid grid-cols-10" >
         <div class="col-span-1 flex">
-            <span class="badge variant-filled-tertiary justify-center"><i class="text-2xl fa-solid fa-book-atlas"></i> Archive Finder</span>
+            <span class="badge variant-glass-tertiary justify-center"><i class="text-2xl px-1 fa-solid fa-book-atlas"></i>Archive Finder</span>
         </div>
         <div class="col-span-5">
             <h1 class="h2"> {finderData.name}</h1>
