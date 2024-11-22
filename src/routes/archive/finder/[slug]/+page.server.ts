@@ -12,6 +12,10 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	let data = await response.json();
 	let finderData = data.results;
 
+	return {
+		finderData: finderData,
+	}
+	
 };
 
 
