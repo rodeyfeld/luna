@@ -2,17 +2,24 @@
     import ArchiveSideBar from '$lib/components/Archive/SideBar/ArchiveSideBar.svelte';
     import ArchiveShell from '$lib/components/Archive/ArchiveShell.svelte';
 	import type { LayoutData } from './$types';
-	export let data: LayoutData;
     import { page } from '$app/stores';  
     import ArchiveFinderMap from '$lib/components/Archive/ArchiveFinderMap.svelte';
+    interface Props {
+        data: LayoutData;
+        children?: import('svelte').Snippet;
+    }
+
+    let { data, children }: Props = $props();
 
 </script>
 
 <ArchiveShell>
-    <svelte:fragment slot="archiveSidebarLeft">
-        <ArchiveSideBar slug={$page.url.pathname} finders={data.finders} />
-    </svelte:fragment>
+    {#snippet archiveSidebarLeft()}
+    
+            <ArchiveSideBar slug={$page.url.pathname} finders={data.finders} />
+        
+    {/snippet}
     <ArchiveFinderMap finders={data.finders}></ArchiveFinderMap>
-    <slot />
+    {@render children?.()}
 </ArchiveShell>
 

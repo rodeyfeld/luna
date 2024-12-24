@@ -3,8 +3,8 @@
     import ListImagery from '$lib/components/Imagery/ListImagery.svelte';
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 
-    let tabSet: number = 0;
-    export let images;
+    let tabSet: number = $state(0);
+    let { images } = $props();
 </script>
 
 
@@ -20,14 +20,16 @@
                 </Tab>
             </div>
         </div>
-        <svelte:fragment slot="panel">
-            {#if tabSet === 0}
-            <form method="POST" action="?/submit">
-                <CreateImagery></CreateImagery>
-            </form>
-            {:else if tabSet === 1}
-                <ListImagery images={images}></ListImagery>
-            {/if}
-        </svelte:fragment>
+        {#snippet panel()}
+            
+                {#if tabSet === 0}
+                <form method="POST" action="?/submit">
+                    <CreateImagery></CreateImagery>
+                </form>
+                {:else if tabSet === 1}
+                    <ListImagery images={images}></ListImagery>
+                {/if}
+            
+            {/snippet}
     </TabGroup>
 </div>

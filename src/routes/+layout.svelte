@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { initializeStores } from '@skeletonlabs/skeleton';
 	initializeStores();
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
@@ -9,12 +9,23 @@
     import LunaShell from '$lib/components/LunaShell.svelte';
 
 	import { storePopup } from '@skeletonlabs/skeleton';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 </script>
 
 <LunaShell>
-	<svelte:fragment slot="header"><LunaAppBar /></svelte:fragment>
-	<svelte:fragment slot="sidebar"><LunaSideBar /></svelte:fragment>
-	<slot /> 
-	<svelte:fragment slot="footer"><LunaFooterBar /></svelte:fragment>
+	{#snippet header()}
+		<LunaAppBar />
+	{/snippet}
+	{#snippet sidebar()}
+		<LunaSideBar />
+	{/snippet}
+	{@render children?.()} 
+	{#snippet footer()}
+		<LunaFooterBar />
+	{/snippet}
 </LunaShell>

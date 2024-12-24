@@ -1,11 +1,20 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { onMount } from "svelte";
 
+	
 	/**
-	 * @type {{ status: string; study_name: string; id: any; }}
+	 * @typedef {Object} Props
+	 * @property {{ status: string; study_name: string; id: any; }} data
 	 */
-	export let data;
-	$: status = data.status;
+
+	/** @type {Props} */
+	let { data } = $props();
+	let status;
+	run(() => {
+		status = data.status;
+	});
 
 	async function pollStatus() {
 		const response = await fetch(

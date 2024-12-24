@@ -2,9 +2,13 @@
     import { selectedArchiveResultGeoJson, selectedArchiveResultThumbnail } from '$lib/stores/archive_store';	
 	import Overlay from 'ol/Overlay.js';
     import GeoJSON from 'ol/format/GeoJSON';
-    let thumbnail: string = "";
+    let thumbnail: string = $state("");
 	let coords: number[];
-    export let overlay: Overlay;
+    interface Props {
+        overlay: Overlay;
+    }
+
+    let { overlay }: Props = $props();
 
 	const unsubscribe = selectedArchiveResultThumbnail.subscribe(value => {
 		thumbnail = value;

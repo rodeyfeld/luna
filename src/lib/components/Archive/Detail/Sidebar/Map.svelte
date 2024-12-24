@@ -4,7 +4,7 @@
     import GeoJSON from 'ol/format/GeoJSON';
     import { newBaseFeatureLayer, lunaMap, lunaLockedMap } from '$lib/components/Map/MapUtils'
     
-    export let finderData;
+  let { finderData } = $props();
     const geometry = new GeoJSON().readGeometry(finderData.geometry);
     const feature = new Feature({
         geometry: geometry,

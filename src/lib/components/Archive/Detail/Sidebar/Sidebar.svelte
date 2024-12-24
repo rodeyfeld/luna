@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
     import FinderContents from './Contents.svelte';
-    export let finderData;
+    let { finderData } = $props();
 </script>
 
 <div class="grid-rows-2">

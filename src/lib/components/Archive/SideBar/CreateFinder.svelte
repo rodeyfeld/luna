@@ -3,7 +3,7 @@
     import { createFinderGeoJson } from '$lib/stores/archive_store'; 
 	import { onDestroy } from 'svelte';
 
-    let geojson: string = "";
+    let geojson: string = $state("");
     const unsubscribe = createFinderGeoJson.subscribe(value => {
         geojson = value;
     });
