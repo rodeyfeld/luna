@@ -10,7 +10,7 @@
     import Datatable from './SideBar/Datatable.svelte';
     import { featureStore, selectedArchiveResultGeoJson } from "$lib/stores/archive_store";
 
-    export let study;
+    let { study } = $props();
 
     const uniqueGeometries = new Set<string>();
     
@@ -45,7 +45,7 @@
     })
 
     let map;
-    let overlay: Overlay;
+    let overlay: Overlay = $state();
     onMount(() => {
         map = lunaMap("map")
         map.addLayer(baseFeatureLayer)

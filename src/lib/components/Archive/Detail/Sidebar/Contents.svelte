@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
     import Map from "./Map.svelte";
-    export let finderData;
+    let { finderData } = $props();
 </script>
 
 <label>    

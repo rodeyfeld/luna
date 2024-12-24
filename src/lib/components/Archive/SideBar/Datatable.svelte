@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { DataHandler } from '@vincjo/datatables';
     import Search from '../../Table/Search.svelte';
     import ThSort from '../../Table/ThSort.svelte';
@@ -9,7 +9,7 @@
     import GeoJSON from 'ol/format/GeoJSON';
 	
     import { selectedFinderGeoJson } from '$lib/stores/archive_store';
-    export let data;
+	let { data } = $props();
 	//Init data handler - CLIENT
 	const handler = new DataHandler(data, { rowsPerPage: 10});
 	const rows = handler.getRows();
@@ -51,8 +51,8 @@
 		<tbody>
 			{#each $rows as row}
 				<tr 
-					on:click={() => handleClick(row)}
-					on:mouseenter={() => handleHover(row)}
+					onclick={() => handleClick(row)}
+					onmouseenter={() => handleHover(row)}
 				>
 					<td> {row.id}</td>
 					<td><i class="fa-solid fa-magnifying-glass"></i> | {row.name}</td>

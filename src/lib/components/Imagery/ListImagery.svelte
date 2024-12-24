@@ -1,5 +1,5 @@
-<script>
-    export let images;
+<script lang="ts">
+	let { images } = $props();
 
     let images_count = images.length;
 </script>

@@ -4,8 +4,12 @@
     import ListFinders from '$lib/components/Archive/SideBar/ListFinders.svelte';
 	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 
-    export let slug: String;
-    export let finders;
+    interface Props {
+        slug: String;
+        finders: any;
+    }
+
+    let { slug, finders }: Props = $props();
 
 
     const getFinderMode = () => $page.url.pathname.includes('create') ? "create" : "list";

@@ -23,6 +23,6 @@
         ]
     }
     )}
-    />
+></textarea>
 </label>
 <button class="btn variant-filled-primary" type="submit">Create Imagery</button>

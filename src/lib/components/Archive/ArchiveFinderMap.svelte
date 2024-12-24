@@ -5,7 +5,7 @@
     import { newBaseFeatureLayer, newHighlightFeatureLayer, highlightFeature, lunaMap, newDrawFeatureLayer, newBaseDraw, newBaseModify } from '$lib/components/Map/MapUtils'
     import { createFinderGeoJson, selectedFinderGeoJson } from '$lib/stores/archive_store';
 
-    export let finders;
+    let { finders } = $props();
     
 
     const features = finders.map((finderResult: { geometry: any; }) => {

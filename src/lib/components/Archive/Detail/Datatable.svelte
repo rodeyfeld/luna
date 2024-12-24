@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { DataHandler } from "@vincjo/datatables";
 	import Search from "../../Table/Search.svelte";
 	import ThSort from "../../Table/ThSort.svelte";
@@ -7,7 +7,7 @@
 	import Pagination from "../../Table/Pagination.svelte";
 	import Status from "./Status.svelte";
 
-	export let data;
+	let { data } = $props();
 
 	const handler = new DataHandler(data.studies, { rowsPerPage: 10 });
 	const rows = handler.getRows();

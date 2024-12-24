@@ -8,7 +8,7 @@
 	import { featureStore, selectedArchiveResultGeoJson, selectedArchiveResultThumbnail } from '$lib/stores/archive_store';
     import GeoJSON from 'ol/format/GeoJSON';
     import type { Feature } from 'ol';
-    export let data;
+	let { data } = $props();
 
 	const handler = new DataHandler(data, { rowsPerPage: 10});
 	const rows = handler.getRows();
@@ -81,8 +81,8 @@
 		<tbody>
 			{#each $rows as row}
 				<tr 
-				on:click={() => handleClick(row)}
-				on:mouseenter={() => handleHover(row)}
+				onclick={() => handleClick(row)}
+				onmouseenter={() => handleHover(row)}
 				>
 					<td> {row.id}</td>
 					<td><i class="fa-solid fa-magnifying-glass"></i> | {row.collection}</td>
@@ -97,5 +97,5 @@
 		<RowCount {handler} />
 		<Pagination {handler} />
 	</footer>
-	<button class="w-full btn variant-filled-primary py-4" on:click={() => handleResetClick()}>RESET MAP FILTER</button>
+	<button class="w-full btn variant-filled-primary py-4" onclick={() => handleResetClick()}>RESET MAP FILTER</button>
 </div>

@@ -1,7 +1,7 @@
 <script lang="ts">
     import Datatable from "./Datatable.svelte";
 
-	export let finders;
+	let { finders } = $props();
 </script>
 
 

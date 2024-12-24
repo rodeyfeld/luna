@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
 
-    export let finderData;
+    let { finderData } = $props();
 </script>
 <div class="p-4">        
     <div class="w-full grid grid-cols-10" >
