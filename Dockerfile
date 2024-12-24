@@ -1,10 +1,14 @@
 FROM oven/bun:latest AS builder 
+RUN apt update && apt install python3 python3-pip make g++ -y
+WORKDIR /luna
 
-EXPOSE 5173
-WORKDIR /app
+COPY . .
 
-COPY . /app 
+RUN bun install --no-cache
+RUN bun run build
 
-RUN bun install
+FROM oven/bun:latest AS runner
 
-CMD ["bun", "run", "dev"]
+COPY --from=builder /luna/build .
+
+CMD ["bun", "run", "start"]

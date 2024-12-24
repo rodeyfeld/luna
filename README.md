@@ -9,7 +9,7 @@ docker compose up --build
 ```
 
 Currently serves on 5173:
-- http://localhost:5173/
+- ${LUNA_AUGUR_HOST}
 
 
 ## Install Bun
