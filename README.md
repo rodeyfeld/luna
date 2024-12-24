@@ -1,6 +1,8 @@
 # LUNA
 Frontend for accessing various aerospace services
 
+
+Make in Svelte/Kit 5
 To launch:
 ```
 docker compose up --build
