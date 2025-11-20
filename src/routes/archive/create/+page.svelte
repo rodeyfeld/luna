@@ -118,6 +118,7 @@
             start_date: new Date(startDate).toISOString(),
             end_date: new Date(endDate).toISOString(),
             geometry: JSON.stringify(geometry),
+            location_id: selectedGeometryId ? parseInt(selectedGeometryId) : undefined,
             rules: {
                 cloud_coverage_pct: cloudCoverage,
                 eo_resolution_max_cm: eoResolutionMax,
@@ -173,11 +174,16 @@
 
     const geometry = $derived.by<GeoJSONGeometry | null>(() => {
         if (!selectedGeometryRecord) return null;
-        const parsed =
-            typeof selectedGeometryRecord.geometry === 'string'
-                ? JSON.parse(selectedGeometryRecord.geometry)
-                : selectedGeometryRecord.geometry;
-        return normalizeGeometry(parsed);
+        try {
+            const parsed =
+                typeof selectedGeometryRecord.geometry === 'string'
+                    ? JSON.parse(selectedGeometryRecord.geometry)
+                    : selectedGeometryRecord.geometry;
+            return normalizeGeometry(parsed);
+        } catch (e) {
+            console.error('Failed to parse geometry:', e);
+            return null;
+        }
     });
 
     const geometrySummary = $derived(geometry?.type ?? 'Not defined');

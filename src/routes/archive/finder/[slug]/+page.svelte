@@ -61,15 +61,19 @@
     loading = true;
     error = null;
 
-    const response = await getImageryFinderById(finderId);
-
-    if (response.error) {
-      error = response.error;
-      loading = false;
-      return;
+    try {
+      const response = await fetch(`/api/archive/finder_data/${finderId}`);
+      if (!response.ok) {
+        error = `Failed to load finder: ${response.statusText}`;
+        loading = false;
+        return;
+      }
+      const data = await response.json();
+      finder = data.results;
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'Failed to load finder';
     }
-
-    finder = response.data;
+    
     loading = false;
 
     // Initialize map after data loads

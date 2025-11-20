@@ -44,8 +44,9 @@ export function normalizeGeometry(
 		return geometry;
 	}
 
-	// Unsupported type falls back to original geometry
-	return geometry;
+	// Unsupported type - return null for safety
+	console.warn('Unsupported geometry type:', geometry.type);
+	return null;
 }
 
 function pointToPolygon([lon, lat]: [number, number], size: number): GeoJSONGeometry {

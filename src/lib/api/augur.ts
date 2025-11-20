@@ -59,6 +59,7 @@ export interface CreateImageryFinderRequest {
     start_date: string;
     end_date: string;
     geometry: string; // GeoJSON string
+    location_id?: number;
     rules?: {
         is_resolution_max_cm?: number | null;
         ais_resolution_min_cm?: number | null;
