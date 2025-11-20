@@ -1,16 +1,16 @@
-<script>
+<script lang="ts">
 	import { run } from 'svelte/legacy';
-
 	import { onMount } from "svelte";
 
-	
-	/**
-	 * @typedef {Object} Props
-	 * @property {{ status: string; study_name: string; id: any; }} data
-	 */
+	interface Props {
+		data: {
+			status: string;
+			study_name: string;
+			id: any;
+		};
+	}
 
-	/** @type {Props} */
-	let { data } = $props();
+	let { data }: Props = $props();
 	let status;
 	run(() => {
 		status = data.status;

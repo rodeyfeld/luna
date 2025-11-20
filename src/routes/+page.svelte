@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import img from '$lib/static/lunalogo.png'
  </script>
 <style>
