@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { env } from "$env/dynamic/public";
+  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
 
   const pinwheel = "/pinwheel.svg";
   const apiDocsUrl =
@@ -75,7 +76,7 @@
 
 <div class="page-stack">
 <!-- Hero Section -->
-<section id="hero" class="section-panel section-hero w-full px-4 sm:px-8 py-16 md:py-24">
+<SectionPanel variant="hero" padding="px-4 sm:px-8 py-16 md:py-24" tag="section" id="hero">
   <div class="max-w-7xl mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <!-- Hero Content -->
@@ -159,10 +160,10 @@
       </div>
     </div>
   </div>
-</section>
+</SectionPanel>
 
 <!-- Features Section -->
-<section class="section-panel w-full px-4 sm:px-8 py-16">
+<SectionPanel padding="px-4 sm:px-8 py-16">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-12">
       <h2 class="text-3xl md:text-4xl font-bold mb-4">Powerful Features</h2>
@@ -183,10 +184,10 @@
       {/each}
     </div>
   </div>
-</section>
+</SectionPanel>
 
 <!-- Use Cases Section -->
-<section class="section-panel section-muted w-full px-4 sm:px-8 py-16">
+<SectionPanel variant="muted" padding="px-4 sm:px-8 py-16">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-12">
       <h2 class="text-3xl md:text-4xl font-bold mb-4">Use Cases</h2>
@@ -209,11 +210,12 @@
       {/each}
     </div>
   </div>
-</section>
+</SectionPanel>
 
 <!-- CTA Section -->
-<section
-  class="section-panel section-hero w-full px-4 sm:px-8 py-16"
+<SectionPanel
+  variant="hero"
+  padding="px-4 sm:px-8 py-16"
 >
   <div class="max-w-4xl mx-auto text-center text-white">
     <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
@@ -250,47 +252,5 @@
       </a>
     </div>
   </div>
-</section>
+</SectionPanel>
 </div>
-
-<style>
-  #hero-lunalogo {
-    width: 400px;
-    height: 400px;
-    filter: drop-shadow(0 0 60px rgba(200, 210, 230, 0.4));
-    animation: rotate-moon 120s linear infinite;
-    opacity: 0.9;
-  }
-  #hero-lunalogo:hover {
-    animation: rotate-moon-fast 20s linear infinite;
-    opacity: 1;
-  }
-  #hero {
-    background-image: radial-gradient(
-        at 59% 99%,
-        rgba(var(--color-surface-500) / 0.33) 0px,
-        transparent 50%
-      ),
-      radial-gradient(
-        at 0% 1%,
-        rgba(var(--color-primary-500) / 0.33) 0px,
-        transparent 50%
-      );
-  }
-  @keyframes rotate-moon {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  @keyframes rotate-moon-fast {
-    from {
-      transform: rotate(0deg) scale(1.05);
-    }
-    to {
-      transform: rotate(360deg) scale(1.05);
-    }
-  }
-</style>

@@ -77,7 +77,8 @@ main {
 	gap: 0.4rem;
 }
 
-.stat-card[data-variant='accent'] {
+.stat-card[data-variant='accent'],
+.stat-card.stat-card--accent {
 	background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(147, 51, 234, 0.2));
 	border-color: rgba(255, 255, 255, 0.12);
 }
@@ -181,4 +182,46 @@ main {
 /* Smooth transitions */
 .transition-smooth {
 	transition: all 0.2s ease;
+}
+
+#hero-lunalogo {
+	width: 400px;
+	height: 400px;
+	filter: drop-shadow(0 0 60px rgba(200, 210, 230, 0.4));
+	animation: rotate-moon 120s linear infinite;
+	opacity: 0.9;
+}
+
+#hero-lunalogo:hover {
+	animation: rotate-moon-fast 20s linear infinite;
+	opacity: 1;
+}
+
+#hero {
+	background-image: radial-gradient(
+			at 59% 99%,
+			rgba(var(--color-surface-500) / 0.33) 0px,
+			transparent 50%
+		),
+		radial-gradient(at 0% 1%, rgba(var(--color-primary-500) / 0.33) 0px, transparent 50%);
+}
+
+@keyframes rotate-moon {
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes rotate-moon-fast {
+	from {
+		transform: rotate(0deg) scale(1.05);
+	}
+
+	to {
+		transform: rotate(360deg) scale(1.05);
+	}
 }

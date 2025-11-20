@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { getArchiveFinders, getDreamDetails } from "$lib/api/augur";
+  import { getArchiveFinders } from "$lib/api/augur";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
+  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
+  import StatCard from "$lib/components/shared/StatCard.svelte";
 
   let archiveFinders = $state<any[]>([]);
   let recentStudies = $state<any[]>([]);
@@ -77,7 +79,7 @@
 </script>
 
 <div class="page-stack">
-    <section class="section-panel section-hero space-y-8">
+    <SectionPanel variant="hero" className="space-y-8">
       <div
         class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
       >
@@ -114,37 +116,36 @@
       </div>
 
       <div class="stat-grid">
-        <div class="stat-card" data-variant="accent">
-          <p class="text-sm text-surface-200/80">Active Finders</p>
-          <p class="text-3xl font-bold">
-            {archiveFinders.filter((f) => f.is_active).length}
-          </p>
-          <span class="text-sm text-surface-200/60">Currently ingesting</span>
-        </div>
-        <div class="stat-card">
-          <p class="text-sm text-surface-200/80">Running Studies</p>
-          <p class="text-3xl font-bold">
-            {recentStudies.filter((s) => s.status === "RUNNING").length}
-          </p>
-          <span class="text-sm text-surface-200/60">Processing imagery now</span>
-        </div>
-        <div class="stat-card">
-          <p class="text-sm text-surface-200/80">Completed</p>
-          <p class="text-3xl font-bold">
-            {recentStudies.filter((s) => s.status === "COMPLETED").length}
-          </p>
-          <span class="text-sm text-surface-200/60">Last 30 days</span>
-        </div>
-        <div class="stat-card">
-          <p class="text-sm text-surface-200/80">Total Searches</p>
-          <p class="text-3xl font-bold">{archiveFinders.length}</p>
-          <span class="text-sm text-surface-200/60">All time</span>
-        </div>
+        <StatCard
+          label="Active Finders"
+          value={archiveFinders.filter((f) => f.is_active).length}
+          hint="Currently ingesting"
+          icon="🗺️"
+          accent
+        />
+        <StatCard
+          label="Running Studies"
+          value={recentStudies.filter((s) => s.status === "RUNNING").length}
+          hint="Processing imagery now"
+          icon="⚡"
+        />
+        <StatCard
+          label="Completed"
+          value={recentStudies.filter((s) => s.status === "COMPLETED").length}
+          hint="Last 30 days"
+          icon="✓"
+        />
+        <StatCard
+          label="Total Searches"
+          value={archiveFinders.length}
+          hint="All time"
+          icon="📊"
+        />
       </div>
-    </section>
+    </SectionPanel>
 
     <!-- Recent Studies -->
-    <section class="section-panel">
+    <SectionPanel>
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Recent Studies</h2>
         <button class="btn btn-sm variant-ghost-surface">View All</button>
@@ -191,10 +192,10 @@
           {/each}
         </div>
       {/if}
-    </section>
+    </SectionPanel>
 
     <!-- Archive Finders -->
-    <section class="section-panel">
+    <SectionPanel>
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Archive Finders</h2>
         <div class="flex gap-2">
@@ -333,10 +334,10 @@
           {/each}
         </div>
       {/if}
-    </section>
+    </SectionPanel>
 
     <!-- Quick Actions -->
-    <section class="section-panel section-muted">
+    <SectionPanel variant="muted">
       <h2 class="text-2xl font-bold mb-4">Quick Actions</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <button
@@ -397,5 +398,5 @@
           <span>Browse Imagery</span>
         </button>
       </div>
-    </section>
+    </SectionPanel>
 </div>
