@@ -7,29 +7,26 @@
     let { images } = $props();
 </script>
 
-
-<div class="p-4">
+<div class="p-4 animate-fadeIn">
     <TabGroup>
-        <div class="w-full grid grid-cols-2 gap-1" >
-            <div>
-                <Tab bind:group={tabSet} name="create" value={0}>CREATE
-                </Tab>
-            </div>
-            <div>
-                <Tab bind:group={tabSet} name="view" value={1}>VIEW
-                </Tab>
-            </div>
+        <div class="w-full grid grid-cols-2 gap-2">
+            <Tab bind:group={tabSet} name="create" value={0} class="transition-smooth hover:scale-105">
+                CREATE
+            </Tab>
+            <Tab bind:group={tabSet} name="view" value={1} class="transition-smooth hover:scale-105">
+                VIEW
+            </Tab>
         </div>
         {#snippet panel()}
-            
-                {#if tabSet === 0}
-                <form method="POST" action="?/submit">
+            {#if tabSet === 0}
+                <form method="POST" action="?/submit" class="mt-4">
                     <CreateImagery></CreateImagery>
                 </form>
-                {:else if tabSet === 1}
+            {:else if tabSet === 1}
+                <div class="mt-4">
                     <ListImagery images={images}></ListImagery>
-                {/if}
-            
-            {/snippet}
+                </div>
+            {/if}
+        {/snippet}
     </TabGroup>
 </div>

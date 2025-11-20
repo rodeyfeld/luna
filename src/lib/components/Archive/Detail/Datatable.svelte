@@ -13,46 +13,40 @@
 	const rows = handler.getRows();
 </script>
 
-<div class=" overflow-x-auto space-y-4">
+<div class="overflow-x-auto space-y-4 animate-fadeIn">
 	<!-- Header -->
-	<header class="flex justify-between gap-4">
+	<header class="flex justify-between gap-4 p-4 bg-surface-100 rounded-lg">
 		<Search {handler} />
 		<RowsPerPage {handler} />
 	</header>
 	<!-- Table -->
 	<table class="table table-hover table-compact w-full table-auto">
 		<thead>
-			<tr>
+			<tr class="bg-surface-200">
 				<ThSort {handler} orderBy="id">ID</ThSort>
 				<ThSort {handler} orderBy="name">Type</ThSort>
-				<ThSort {handler} orderBy="start_date"
-					>Status</ThSort
-				>
+				<ThSort {handler} orderBy="start_date">Status</ThSort>
 			</tr>
 		</thead>
 		<tbody>
 			{#each $rows as row}
-				<tr>
-					<td> {row.id}</td>
-					<td
-						><a
-							href="{data.id}/study/{row.study_name}/{row.id}"
-							><button
-								class="btn bg-tertiary-500"
-								><i
-									class="fa-solid fa-magnifying-glass"
-								></i>
-								| {row.study_name}</button
-							></a
-						></td
-					>
+				<tr class="hover-lift transition-smooth hover:bg-surface-100">
+					<td class="font-mono">{row.id}</td>
+					<td>
+						<a href="{data.id}/study/{row.study_name}/{row.id}">
+							<button class="btn variant-filled-tertiary transition-smooth hover:scale-105 hover:shadow-lg">
+								<i class="fa-solid fa-magnifying-glass mr-2"></i>
+								{row.study_name}
+							</button>
+						</a>
+					</td>
 					<td><Status data={row}></Status></td>
 				</tr>
 			{/each}
 		</tbody>
 	</table>
 	<!-- Footer -->
-	<footer class="flex justify-between">
+	<footer class="flex justify-between p-4 bg-surface-100 rounded-lg">
 		<RowCount {handler} />
 		<Pagination {handler} />
 	</footer>

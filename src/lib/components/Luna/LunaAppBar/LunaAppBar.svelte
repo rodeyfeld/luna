@@ -16,13 +16,13 @@
 	});
 </script>
 
-<AppBar shadow="shadow-2xl" slotTrail="!space-x-2">
+<AppBar shadow="shadow-2xl" slotTrail="!space-x-2" class="backdrop-blur-sm bg-opacity-95 sticky top-0 z-50 animate-fadeIn border-b border-surface-300">
 	{#snippet lead()}
 		<div class="grid grid-cols-2 md:grid-cols-[auto_1fr]">
-			<a href="/">
+			<a href="/" class="transition-smooth hover:scale-105">
 				<div class="flex items-center space-x-4">
 					<LunaLogo></LunaLogo>
-					<span><b>LUNA</b></span>
+					<span class="font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">LUNA</span>
 				</div>
 			</a>
 		</div>

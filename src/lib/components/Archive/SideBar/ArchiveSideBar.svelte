@@ -10,34 +10,37 @@
     }
 
     let { slug, finders }: Props = $props();
-
-
-    const getFinderMode = () => $page.url.pathname.includes('create') ? "create" : "list";
-
-
 </script>
 
-
-<div class="grid-rows-2">
+<div class="grid-rows-2 animate-fadeIn">
     <div class="p-4">
-            <TabGroup justify="justify-around" flex="auto">
-                <TabAnchor class="flex-1"  href="/archive/create" name="create" selected={$page.url.pathname.includes('create')}>CREATE
-                </TabAnchor>
-    
-                <TabAnchor class="flex-1"  href="/archive/finder" name="finder" selected={$page.url.pathname.includes('finder')}>VIEW
-                </TabAnchor>            
-            </TabGroup>
-
+        <TabGroup justify="justify-around" flex="auto">
+            <TabAnchor 
+                class="flex-1 transition-smooth hover:scale-105" 
+                href="/archive/create" 
+                name="create" 
+                selected={$page.url.pathname.includes('create')}
+            >
+                CREATE
+            </TabAnchor>
+            <TabAnchor 
+                class="flex-1 transition-smooth hover:scale-105" 
+                href="/archive/finder" 
+                name="finder" 
+                selected={$page.url.pathname.includes('finder')}
+            >
+                VIEW
+            </TabAnchor>
+        </TabGroup>
     </div>
-        <div  class="p-4">
-            {#if slug.includes('create')}
+    <div class="p-4">
+        {#if slug.includes('create')}
             <form method="POST" action="create?/submit">
                 <CreateFinder></CreateFinder>
             </form>
-            {:else if slug.includes('finder')}
-                <ListFinders finders={finders}></ListFinders>
-            {/if}
-        </div>
-
+        {:else if slug.includes('finder')}
+            <ListFinders finders={finders}></ListFinders>
+        {/if}
+    </div>
 </div>
 
