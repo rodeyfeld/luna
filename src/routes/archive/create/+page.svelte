@@ -3,8 +3,8 @@
     import { goto } from '$app/navigation';
     import { get } from 'svelte/store';
     import { page } from '$app/stores';
-    import { createArchiveFinder, executeStudy, getImagery } from '$lib/api/augur';
-    import type { CreateArchiveFinderRequest } from '$lib/api/augur';
+    import { createImageryFinder, executeStudy, getImagery } from '$lib/api/augur';
+    import type { CreateImageryFinderRequest } from '$lib/api/augur';
     import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 import { normalizeGeometry, type GeoJSONGeometry } from '$lib/utils/geometry';
 
@@ -79,7 +79,7 @@ let autoExecute = $state(true);
         creating = true;
         error = null;
 
-        const request: CreateArchiveFinderRequest = {
+        const request: CreateImageryFinderRequest = {
             name,
             start_date: new Date(startDate).toISOString(),
             end_date: new Date(endDate).toISOString(),
@@ -93,10 +93,10 @@ let autoExecute = $state(true);
             },
         };
 
-        const response = await createArchiveFinder(request);
+        const response = await createImageryFinder(request);
 
         if (response.error) {
-            error = `Unable to create archive finder: ${response.error}. Please ensure the Augur backend is running.`;
+            error = `Unable to create imagery finder: ${response.error}. Please ensure the Augur backend is running.`;
             creating = false;
             return;
         }
@@ -104,9 +104,9 @@ let autoExecute = $state(true);
         creating = false;
 
         if (autoExecute && response.data) {
-            await handleExecuteStudy(response.data.archive_finder_id);
+            await handleExecuteStudy(response.data.imagery_finder_id);
         } else if (response.data) {
-            goto(`/archive/finder/${response.data.archive_finder_id}`);
+            goto(`/archive/finder/${response.data.imagery_finder_id}`);
         }
     }
 
@@ -114,7 +114,7 @@ let autoExecute = $state(true);
         executing = true;
         error = null;
 
-        const response = await executeStudy(finderId, 'imagery_finder');
+        const response = await executeStudy(finderId, 'archive_lookup');
 
         executing = false;
 
@@ -158,7 +158,10 @@ let autoExecute = $state(true);
     });
 
     const geometrySummary = $derived(() => geometry?.type ?? 'Not defined');
-    const lastUpdated = $derived(() => savedGeometries[0]?.updated ? new Date(savedGeometries[0].updated).toLocaleDateString() : '—');
+    const lastUpdated = $derived(() => {
+        const latest = savedGeometries[0]?.modified ?? savedGeometries[0]?.updated;
+        return latest ? new Date(latest).toLocaleDateString() : '—';
+    });
 
     const isStepValid = $derived(() => {
         if (step === 1) return geometry !== null;
@@ -166,7 +169,7 @@ let autoExecute = $state(true);
         return true;
     });
 
-    function startArchiveFinder() {
+    function startImageryFinder() {
         if (!geometry) {
             error = 'Select a geometry from the library before launching a study.';
             step = 1;
@@ -191,7 +194,7 @@ let autoExecute = $state(true);
                 </svg>
             </button>
             <div>
-                <h1 class="text-3xl font-bold">Create Archive Finder</h1>
+                <h1 class="text-3xl font-bold">Create Imagery Finder</h1>
                 <p class="text-surface-600-300-token">Define an area and search for satellite imagery</p>
             </div>
         </div>
@@ -254,7 +257,7 @@ let autoExecute = $state(true);
                     </span>
                 {:else}
                     <span class="text-xs text-surface-500">
-                        Select a geometry to enable Archive Finder.
+                        Select a geometry to enable Imagery Finder.
                     </span>
                 {/if}
             </div>
@@ -262,17 +265,17 @@ let autoExecute = $state(true);
                 <div class="tile space-y-3">
                     <div>
                         <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Available</p>
-                        <h4 class="text-lg font-semibold">Archive Finder</h4>
+                        <h4 class="text-lg font-semibold">Imagery Finder</h4>
                         <p class="text-sm text-surface-500">
                             Configure search parameters and run imagery ingestion on the selected geometry.
                         </p>
                     </div>
                     <button
                         class="btn variant-filled-primary w-full"
-                        onclick={startArchiveFinder}
+                        onclick={startImageryFinder}
                         disabled={!geometry}
                     >
-                        {geometry ? 'Configure Archive Finder' : 'Select a Geometry First'}
+                        {geometry ? 'Configure Imagery Finder' : 'Select a Geometry First'}
                     </button>
                 </div>
                 <div class="tile space-y-3 opacity-70">
@@ -590,14 +593,14 @@ let autoExecute = $state(true);
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>Create Archive Finder</span>
+                        <span>Create Imagery Finder</span>
                     {/if}
                 </button>
             {/if}
         </div>
 
         {#if creating || executing}
-            <LoadingSpinner message={creating ? 'Creating archive finder...' : 'Executing study...'} />
+            <LoadingSpinner message={creating ? 'Creating imagery finder...' : 'Executing study...'} />
         {/if}
     </div>
 </div>

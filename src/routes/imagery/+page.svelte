@@ -12,7 +12,9 @@ import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
     name: string;
     geometry: any;
     created?: string;
+    modified?: string;
     updated?: string;
+    user_id?: number;
   };
 
   let loading = $state(true);
@@ -92,13 +94,18 @@ function setSelectedGeometry(record: StoredGeometry) {
   selectedGeometryId = String(record.id);
 }
 
-function runArchiveFinder(record: StoredGeometry) {
+function runImageryFinder(record: StoredGeometry) {
   goto(`/archive/create?geometryId=${record.id}`);
 }
 
 const selectedGeometry = $derived(() =>
   geometries.find((item) => String(item.id) === String(selectedGeometryId)) ?? null
 );
+
+const latestGeometryUpdated = $derived(() => {
+  const latest = geometries[0]?.modified ?? geometries[0]?.updated;
+  return latest ? new Date(latest).toLocaleDateString() : "—";
+});
 </script>
 
 <div class="page-stack">
@@ -145,11 +152,7 @@ const selectedGeometry = $derived(() =>
         </div>
         <div class="stat-card">
           <p class="text-sm text-surface-300/80">Last Updated</p>
-          <p class="text-lg font-semibold">
-            {geometries[0]?.updated
-              ? new Date(geometries[0].updated).toLocaleDateString()
-              : "—"}
-          </p>
+          <p class="text-lg font-semibold">{latestGeometryUpdated}</p>
           <span class="text-xs text-surface-300/70">Newest entry</span>
         </div>
       </div>
@@ -272,8 +275,8 @@ const selectedGeometry = $derived(() =>
                 <button class="btn btn-sm variant-ghost-surface" onclick={() => viewGeometry(geometryItem)}>
                   View in Editor
                 </button>
-                <button class="btn btn-sm variant-filled-primary" onclick={() => runArchiveFinder(geometryItem)}>
-                  Run Archive Finder
+                <button class="btn btn-sm variant-filled-primary" onclick={() => runImageryFinder(geometryItem)}>
+                  Run Imagery Finder
                 </button>
               </div>
             </div>
@@ -299,13 +302,13 @@ const selectedGeometry = $derived(() =>
           <div class="tile space-y-3">
             <div>
               <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Available</p>
-              <h3 class="text-xl font-semibold">Archive Finder</h3>
+              <h3 class="text-xl font-semibold">Imagery Finder</h3>
               <p class="text-sm text-surface-500">
                 Execute an archive search using {selectedGeometry.name}.
               </p>
             </div>
-            <button class="btn variant-filled-primary w-full" onclick={() => runArchiveFinder(selectedGeometry)}>
-              Open Archive Finder
+            <button class="btn variant-filled-primary w-full" onclick={() => runImageryFinder(selectedGeometry)}>
+              Open Imagery Finder
             </button>
           </div>
 

@@ -7,7 +7,7 @@
         <div class="col-span-1 flex">
             <span class="badge variant-glass-tertiary justify-center animate-scaleIn">
                 <i class="text-2xl px-1 fa-solid fa-book-atlas"></i>
-                Archive Finder
+                Imagery Finder
             </span>
         </div>
         <div class="col-span-5">
@@ -26,7 +26,7 @@
                         </select>
                     </div>
                     <div class="col-span-2">
-                        <input name="archive_finder_id" class="input disabled hidden" value={finderData.id} type="text" />
+                        <input name="imagery_finder_id" class="input disabled hidden" value={finderData.id} type="text" />
                         <button class="btn variant-filled-primary w-full transition-smooth hover:scale-105 hover:shadow-xl">
                             <i class="fa-solid fa-play mr-2"></i>
                             Execute Study

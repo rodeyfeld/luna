@@ -45,16 +45,16 @@ export async function getProviderIntegrations() {
     return fetchApi('/api/providers/integrations');
 }
 
-// Archive Finders
-export async function getArchiveFinders() {
-    return fetchApi('/api/archive/finder');
+// Imagery Finders
+export async function getImageryFinders() {
+    return fetchApi('/api/imagery/finder');
 }
 
-export async function getArchiveFinderById(finderId: string) {
-    return fetchApi(`/api/archive/finder/id/${finderId}`);
+export async function getImageryFinderById(finderId: string) {
+    return fetchApi(`/api/imagery/finder/id/${finderId}`);
 }
 
-export interface CreateArchiveFinderRequest {
+export interface CreateImageryFinderRequest {
     name: string;
     start_date: string;
     end_date: string;
@@ -74,30 +74,30 @@ export interface CreateArchiveFinderRequest {
     };
 }
 
-export async function createArchiveFinder(request: CreateArchiveFinderRequest) {
-    return fetchApi('/api/archive/finder/create', {
+export async function createImageryFinder(request: CreateImageryFinderRequest) {
+    return fetchApi('/api/imagery/finder/create', {
         method: 'POST',
         body: JSON.stringify(request),
     });
 }
 
 // Studies
-export async function executeStudy(archiveFinderId: number, studyName: string) {
-    return fetchApi('/api/archive/study/execute', {
+export async function executeStudy(imageryFinderId: number, studyName: string) {
+    return fetchApi('/api/imagery/study/execute', {
         method: 'POST',
         body: JSON.stringify({
-            archive_finder_id: archiveFinderId,
+            imagery_finder_id: imageryFinderId,
             study_name: studyName,
         }),
     });
 }
 
 export async function getStudyResults(studyName: string, studyId: string) {
-    return fetchApi(`/api/archive/study/${studyName}/${studyId}/results`);
+    return fetchApi(`/api/imagery/study/${studyName}/${studyId}/results`);
 }
 
 export async function getStudyStatus(studyName: string, studyId: string) {
-    return fetchApi(`/api/archive/study/${studyName}/${studyId}/status`);
+    return fetchApi(`/api/imagery/study/${studyName}/${studyId}/status`);
 }
 
 // Augury (Dream system)
@@ -122,15 +122,15 @@ export async function processDiviner(dreamId: number) {
 
 // Imagery
 export async function getImagery() {
-    return fetchApi('/api/core/imagery');
+    return fetchApi('/api/core/location');
 }
 
 export async function getImageryById(imageryId: string) {
-    return fetchApi(`/api/core/imagery/id/${imageryId}`);
+    return fetchApi(`/api/core/location/id/${imageryId}`);
 }
 
 export async function createImagery(geometry: string, name: string) {
-    return fetchApi('/api/core/imagery/create', {
+    return fetchApi('/api/core/location/create', {
         method: 'POST',
         body: JSON.stringify({ geometry, name }),
     });

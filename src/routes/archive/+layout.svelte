@@ -3,7 +3,7 @@
     import ArchiveShell from '$lib/components/Archive/ArchiveShell.svelte';
 	import type { LayoutData } from './$types';
     import { page } from '$app/stores';  
-    import ArchiveFinderMap from '$lib/components/Archive/ArchiveFinderMap.svelte';
+    import ImageryFinderMap from '$lib/components/Archive/ImageryFinderMap.svelte';
     interface Props {
         data: LayoutData;
         children?: import('svelte').Snippet;
@@ -19,7 +19,7 @@
             <ArchiveSideBar slug={$page.url.pathname} finders={data.finders} />
         
     {/snippet}
-    <ArchiveFinderMap finders={data.finders}></ArchiveFinderMap>
+    <ImageryFinderMap finders={data.finders}></ImageryFinderMap>
     {@render children?.()}
 </ArchiveShell>
 

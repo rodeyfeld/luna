@@ -23,7 +23,7 @@
 
     let map;
     onMount(() => {
-        map = lunaMap("archiveFinderMap")
+        map = lunaMap("imageryFinderMap")
         map.addLayer(baseFeatureLayer)
         map.addLayer(highlightFeatureLayer)
         map.addLayer(drawFeatureLayer)
@@ -39,11 +39,11 @@
 </script>
 
 <style>
-    #archiveFinderMap {
+    #imageryFinderMap {
       height: 100%;
       width: 100%;
     }
 </style>
 
-<div id="archiveFinderMap" class="w-full h-full"></div>
+<div id="imageryFinderMap" class="w-full h-full"></div>
 

@@ -5,7 +5,7 @@ import { json, type RequestHandler } from "@sveltejs/kit";
 
 export const POST: RequestHandler = async ({ request }) => {
 	const requestData = await request.json()
-	const url = `${env.LUNA_AUGUR_HOST}/api/core/imagery/create`;
+	const url = `${env.LUNA_AUGUR_HOST}/api/core/location/create`;
 
 	const response = await fetch(url, {
 		method: 'POST',

@@ -58,7 +58,7 @@
             },
         });
         map.addOverlay(overlay)
-        const geometry = new GeoJSON().readGeometry(study.study_data.archive_finder_geometry);
+        const geometry = new GeoJSON().readGeometry(study.study_data.imagery_finder_geometry);
         const extent = geometry.getExtent();
         map.getView().fit(extent, {
             duration: 1000, 

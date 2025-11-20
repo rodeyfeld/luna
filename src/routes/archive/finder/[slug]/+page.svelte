@@ -3,7 +3,7 @@
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
   import {
-    getArchiveFinderById,
+    getImageryFinderById,
     executeStudy,
     getStudyResults,
     getStudyStatus,
@@ -56,7 +56,7 @@
     loading = true;
     error = null;
 
-    const response = await getArchiveFinderById(finderId);
+    const response = await getImageryFinderById(finderId);
 
     if (response.error) {
       error = response.error;
@@ -135,11 +135,11 @@
 
     const vectorSource = new VectorSource();
 
-    // Add the archive finder area
-    if (studyData.archive_finder_geometry) {
+    // Add the imagery finder area
+    if (studyData.imagery_finder_geometry) {
       const geoJSON = new GeoJSON();
       const finderFeature = geoJSON.readFeature(
-        studyData.archive_finder_geometry,
+        studyData.imagery_finder_geometry,
         {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
@@ -282,7 +282,7 @@
 <div class="w-full h-full overflow-y-auto">
   <div class="max-w-7xl mx-auto p-4 sm:p-8 space-y-6">
     {#if loading}
-      <LoadingSpinner message="Loading archive finder..." />
+      <LoadingSpinner message="Loading imagery finder..." />
     {:else if error && !finder}
       <div class="card p-8">
         <EmptyState icon="⚠️" title="Error Loading Finder" description={error}>
@@ -330,7 +330,7 @@
         </div>
 
         <button
-          onclick={() => handleExecuteStudy("imagery_finder")}
+          onclick={() => handleExecuteStudy("archive_lookup")}
           disabled={executing}
           class="btn variant-filled-primary"
         >
@@ -527,7 +527,7 @@
             >
               {#snippet action()}
                 <button
-                  onclick={() => handleExecuteStudy("imagery_finder")}
+                  onclick={() => handleExecuteStudy("archive_lookup")}
                   disabled={executing}
                   class="btn variant-filled-primary"
                 >

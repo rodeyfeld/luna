@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { getArchiveFinders } from "$lib/api/augur";
+  import { getImageryFinders } from "$lib/api/augur";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import StatCard from "$lib/components/shared/StatCard.svelte";
 
-  let archiveFinders = $state<any[]>([]);
+  let imageryFinders = $state<any[]>([]);
   let recentStudies = $state<any[]>([]);
   let loading = $state(true);
   let error = $state<string | null>(null);
@@ -20,13 +20,13 @@
     error = null;
 
     try {
-      // Fetch archive finders
-      const findersResponse = await getArchiveFinders();
+      // Fetch imagery finders
+      const findersResponse = await getImageryFinders();
       if (findersResponse.error) {
         error = findersResponse.error;
       } else if (findersResponse.data) {
         const finders = findersResponse.data as any[];
-        archiveFinders = finders;
+        imageryFinders = finders;
 
         // Extract all studies from finders
         const allStudies: any[] = [];
@@ -35,8 +35,8 @@
             finder.studies.forEach((study: any) => {
               allStudies.push({
                 ...study,
-                archive_finder_id: finder.id,
-                archive_finder_name: finder.name,
+                imagery_finder_id: finder.id,
+                imagery_finder_name: finder.name,
               });
             });
           }
@@ -89,7 +89,7 @@
           </p>
         <h1 class="text-4xl font-bold">Dashboard</h1>
           <p class="text-surface-200/80 mt-2">
-            Manage archive searches, study runs, and provider activity.
+            Manage imagery finders, study runs, and provider activity.
         </p>
       </div>
         <div class="flex flex-wrap gap-3">
@@ -110,7 +110,7 @@
             d="M12 4v16m8-8H4"
           />
         </svg>
-        <span>New Archive Search</span>
+        <span>New Imagery Finder</span>
       </button>
         </div>
       </div>
@@ -118,7 +118,7 @@
       <div class="stat-grid">
         <StatCard
           label="Active Finders"
-          value={archiveFinders.filter((f) => f.is_active).length}
+          value={imageryFinders.filter((f) => f.is_active).length}
           hint="Currently ingesting"
           icon="🗺️"
           accent
@@ -137,7 +137,7 @@
         />
         <StatCard
           label="Total Searches"
-          value={archiveFinders.length}
+          value={imageryFinders.length}
           hint="All time"
           icon="📊"
         />
@@ -161,14 +161,14 @@
             onclick={() => goto("/archive/create")}
             class="btn variant-soft-primary"
           >
-            Create your first archive search
+            Create your first imagery finder
           </button>
         </div>
       {:else}
         <div class="tile-list">
           {#each recentStudies.slice(0, 5) as study}
             <button
-              onclick={() => goto(`/archive/finder/${study.archive_finder_id}`)}
+              onclick={() => goto(`/archive/finder/${study.imagery_finder_id}`)}
               class="tile text-left w-full"
             >
               <div class="flex items-center justify-between gap-4">
@@ -180,8 +180,8 @@
                     <span class="font-semibold">{study.study_name}</span>
                   </div>
                   <p class="text-sm text-surface-400">
-                    {study.archive_finder_name ||
-                      `Finder #${study.archive_finder_id}`}
+                    {study.imagery_finder_name ||
+                      `Finder #${study.imagery_finder_id}`}
                   </p>
                 </div>
                 <div class="text-right text-sm text-surface-400">
@@ -194,10 +194,10 @@
       {/if}
     </SectionPanel>
 
-    <!-- Archive Finders -->
+    <!-- Imagery Finders -->
     <SectionPanel>
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold">Archive Finders</h2>
+        <h2 class="text-2xl font-bold">Imagery Finders</h2>
         <div class="flex gap-2">
           <button class="btn btn-sm variant-ghost-surface">
             <svg
@@ -250,21 +250,21 @@
             API Connection Unavailable
           </p>
           <p class="text-sm text-surface-500 mb-6 max-w-md mx-auto">
-            Unable to load archive finders. Please check that the Augur backend
+            Unable to load imagery finders. Please check that the Augur backend
             is running.
           </p>
           <button onclick={loadData} class="btn variant-soft-primary">
             Retry Connection
           </button>
         </div>
-      {:else if archiveFinders.length === 0}
+      {:else if imageryFinders.length === 0}
         <div class="text-center py-12">
           <div class="text-6xl mb-4 opacity-30">🗺️</div>
           <p class="text-lg text-surface-400 mb-4">
-            No archive finders yet
+            No imagery finders yet
           </p>
           <p class="text-sm text-surface-500 mb-6 max-w-md mx-auto">
-            Archive finders let you define areas of interest and search for
+            Imagery finders let you define areas of interest and search for
             satellite imagery within specific time periods.
           </p>
           <button
@@ -284,12 +284,12 @@
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span>Create Archive Finder</span>
+            <span>Create Imagery Finder</span>
           </button>
         </div>
       {:else}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {#each archiveFinders.slice(0, 6) as finder}
+          {#each imageryFinders.slice(0, 6) as finder}
             <button
               onclick={() => goto(`/archive/finder/${finder.id}`)}
               class="tile text-left"
@@ -357,7 +357,7 @@
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>New Archive Search</span>
+          <span>New Imagery Finder</span>
         </button>
         <button
           onclick={() => goto("/providers")}
