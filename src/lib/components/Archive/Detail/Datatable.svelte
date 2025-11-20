@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DataHandler } from "@vincjo/datatables";
+	import { TableHandler } from '$lib/utils/tableHandler';
 	import Search from "../../Table/Search.svelte";
 	import ThSort from "../../Table/ThSort.svelte";
 	import RowsPerPage from "../../Table/RowsPerPage.svelte";
@@ -9,8 +9,8 @@
 
 	let { data } = $props();
 
-	const handler = new DataHandler(data.studies, { rowsPerPage: 10 });
-	const rows = handler.getRows();
+	const handler = new TableHandler(data.studies, { rowsPerPage: 10 });
+	const rows = $derived(handler.rows);
 </script>
 
 <div class="overflow-x-auto space-y-4 animate-fadeIn">

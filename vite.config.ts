@@ -1,10 +1,25 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-    plugins: [sveltekit()],
+    plugins: [sveltekit(), tailwindcss()],
     server: {
         host: true,
         port: 5173
+    },
+    optimizeDeps: {
+        exclude: [
+            '@skeletonlabs/skeleton',
+            '@skeletonlabs/skeleton-svelte',
+            '@skeletonlabs/skeleton-svelte/components',
+            '@skeletonlabs/skeleton-svelte/utilities'
+        ]
+    },
+    ssr: {
+        noExternal: ['@skeletonlabs/skeleton-svelte']
+    },
+    build: {
+        target: 'esnext'
     }
 });

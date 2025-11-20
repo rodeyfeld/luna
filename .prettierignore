@@ -1,0 +1,19 @@
+# Build outputs
+build/
+.svelte-kit/
+dist/
+
+# Dependencies
+node_modules/
+
+# Lock files
+bun.lockb
+package-lock.json
+
+# Documentation
+*.md
+
+# Config files
+*.config.js
+*.config.ts
+

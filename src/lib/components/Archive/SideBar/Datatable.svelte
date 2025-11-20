@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DataHandler } from '@vincjo/datatables';
+import { TableHandler } from '$lib/utils/tableHandler';
     import Search from '../../Table/Search.svelte';
     import ThSort from '../../Table/ThSort.svelte';
     import ThFilter from '../../Table/ThFilter.svelte';
@@ -11,8 +11,8 @@
     import { selectedFinderGeoJson } from '$lib/stores/archive_store';
 	let { data } = $props();
 	//Init data handler - CLIENT
-	const handler = new DataHandler(data, { rowsPerPage: 10});
-	const rows = handler.getRows();
+	const handler = new TableHandler(data, { rowsPerPage: 10});
+	const rows = $derived(handler.rows);
 
 	
 	// @ts-ignore

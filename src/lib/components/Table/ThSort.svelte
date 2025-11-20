@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { DataHandler } from '@vincjo/datatables';
+import type { TableHandler } from '$lib/utils/tableHandler';
 
 	interface Props {
-		handler: DataHandler;
+		handler: TableHandler;
 		orderBy: string;
 		children?: import('svelte').Snippet;
 	}

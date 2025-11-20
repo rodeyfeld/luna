@@ -2,7 +2,6 @@
     import { page } from '$app/stores';
     import CreateFinder from '$lib/components/Archive/SideBar/CreateFinder.svelte';
     import ListFinders from '$lib/components/Archive/SideBar/ListFinders.svelte';
-	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 
     interface Props {
         slug: String;
@@ -14,24 +13,20 @@
 
 <div class="grid-rows-2 animate-fadeIn">
     <div class="p-4">
-        <TabGroup justify="justify-around" flex="auto">
-            <TabAnchor 
-                class="flex-1 transition-smooth hover:scale-105" 
-                href="/archive/create" 
-                name="create" 
-                selected={$page.url.pathname.includes('create')}
+        <div class="flex justify-around gap-2">
+            <a 
+                href="/archive/create"
+                class="btn flex-1 transition-smooth hover:scale-105 {$page.url.pathname.includes('create') ? 'variant-filled-primary' : 'variant-soft'}"
             >
                 CREATE
-            </TabAnchor>
-            <TabAnchor 
-                class="flex-1 transition-smooth hover:scale-105" 
-                href="/archive/finder" 
-                name="finder" 
-                selected={$page.url.pathname.includes('finder')}
+            </a>
+            <a 
+                href="/archive/finder"
+                class="btn flex-1 transition-smooth hover:scale-105 {$page.url.pathname.includes('finder') ? 'variant-filled-primary' : 'variant-soft'}"
             >
                 VIEW
-            </TabAnchor>
-        </TabGroup>
+            </a>
+        </div>
     </div>
     <div class="p-4">
         {#if slug.includes('create')}

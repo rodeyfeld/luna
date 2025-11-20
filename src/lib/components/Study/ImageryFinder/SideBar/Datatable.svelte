@@ -4,14 +4,14 @@
     import RowsPerPage from '$lib/components/Table/RowsPerPage.svelte';
     import Search from '$lib/components/Table/Search.svelte';
     import ThSort from '$lib/components/Table/ThSort.svelte';
-	import { DataHandler } from '@vincjo/datatables';
+import { TableHandler } from '$lib/utils/tableHandler';
 	import { featureStore, selectedArchiveResultGeoJson, selectedArchiveResultThumbnail } from '$lib/stores/archive_store';
     import GeoJSON from 'ol/format/GeoJSON';
     import type { Feature } from 'ol';
 	let { data } = $props();
 
-	const handler = new DataHandler(data, { rowsPerPage: 10});
-	const rows = handler.getRows();
+	const handler = new TableHandler(data, { rowsPerPage: 10});
+	const rows = $derived(handler.rows);
 
 	const unsubscribe = featureStore.subscribe(mapFeatures => {
 		const geojsonFormat = new GeoJSON();
