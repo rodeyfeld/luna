@@ -188,13 +188,28 @@ main {
 	width: 400px;
 	height: 400px;
 	filter: drop-shadow(0 0 60px rgba(200, 210, 230, 0.4));
-	animation: rotate-moon 120s linear infinite;
+	transform-origin: center;
+	will-change: transform;
+	animation: rotate-moon 80s linear infinite;
 	opacity: 0.9;
+	transition: opacity 0.3s ease;
 }
 
-#hero-lunalogo:hover {
-	animation: rotate-moon-fast 20s linear infinite;
+#hero-lunalogo:hover,
+#hero-lunalogo:focus-visible {
 	opacity: 1;
+}
+
+.nav-pinwheel {
+	display: inline-block;
+	transform-origin: center;
+	filter: drop-shadow(0 0 6px rgba(140, 160, 190, 0.35));
+	transition: filter 0.2s ease;
+}
+
+.nav-pinwheel:hover {
+	animation: rotate-moon 1.4s linear infinite;
+	filter: drop-shadow(0 0 10px rgba(180, 200, 230, 0.6));
 }
 
 #hero {
@@ -213,15 +228,5 @@ main {
 
 	to {
 		transform: rotate(360deg);
-	}
-}
-
-@keyframes rotate-moon-fast {
-	from {
-		transform: rotate(0deg) scale(1.05);
-	}
-
-	to {
-		transform: rotate(360deg) scale(1.05);
 	}
 }
