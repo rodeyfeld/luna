@@ -5,19 +5,17 @@
     import { page } from '$app/stores';
     import { createImageryFinder, executeStudy, getImagery } from '$lib/api/augur';
     import type { CreateImageryFinderRequest } from '$lib/api/augur';
+    import SectionPanel from '$lib/components/shared/SectionPanel.svelte';
     import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
-import { normalizeGeometry, type GeoJSONGeometry } from '$lib/utils/geometry';
+    import { normalizeGeometry, type GeoJSONGeometry } from '$lib/utils/geometry';
 
-    // Form state
-    let step = $state<1 | 2 | 3>(1);
     let name = $state('');
     let startDate = $state('');
     let endDate = $state('');
     let savedGeometries = $state<any[]>([]);
     let savedLoading = $state(true);
     let selectedGeometryId = $state<string>('');
-    
-    // Advanced filters
+
     let showAdvanced = $state(false);
     let cloudCoverage = $state<number | null>(null);
     let eoResolutionMax = $state<number | null>(null);
@@ -25,14 +23,12 @@ import { normalizeGeometry, type GeoJSONGeometry } from '$lib/utils/geometry';
     let sarResolutionMax = $state<number | null>(null);
     let sarResolutionMin = $state<number | null>(null);
 
-    // Execution state
     let creating = $state(false);
     let executing = $state(false);
     let error = $state<string | null>(null);
-let autoExecute = $state(true);
+    let autoExecute = $state(true);
 
     onMount(async () => {
-        // Set default dates (last 30 days)
         const today = new Date();
         const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
         endDate = today.toISOString().split('T')[0];
@@ -42,6 +38,7 @@ let autoExecute = $state(true);
         if (geometryParam) {
             selectedGeometryId = geometryParam;
         }
+
         await loadSavedGeometries();
 
         return () => {};
@@ -61,18 +58,22 @@ let autoExecute = $state(true);
 
     function selectGeometry(id: string | number) {
         selectedGeometryId = String(id);
-        step = 1;
         error = null;
     }
 
     async function handleCreate() {
         if (!geometry) {
-            error = 'Please draw an area on the map';
+            error = 'Select a geometry from the library before launching an imagery finder.';
             return;
         }
 
-        if (!name || !startDate || !endDate) {
-            error = 'Please fill in all required fields';
+        if (!name.trim() || !startDate || !endDate) {
+            error = 'Provide a name plus start and end dates.';
+            return;
+        }
+
+        if (new Date(startDate) >= new Date(endDate)) {
+            error = 'End date must be later than the start date.';
             return;
         }
 
@@ -80,7 +81,7 @@ let autoExecute = $state(true);
         error = null;
 
         const request: CreateImageryFinderRequest = {
-            name,
+            name: name.trim(),
             start_date: new Date(startDate).toISOString(),
             end_date: new Date(endDate).toISOString(),
             geometry: JSON.stringify(geometry),
@@ -89,8 +90,8 @@ let autoExecute = $state(true);
                 eo_resolution_max_cm: eoResolutionMax,
                 eo_resolution_min_cm: eoResolutionMin,
                 sar_resolution_max_cm: sarResolutionMax,
-                sar_resolution_min_cm: sarResolutionMin,
-            },
+                sar_resolution_min_cm: sarResolutionMin
+            }
         };
 
         const response = await createImageryFinder(request);
@@ -120,7 +121,6 @@ let autoExecute = $state(true);
 
         if (response.error) {
             error = response.error;
-            // Still navigate to the finder page
             goto(`/archive/finder/${finderId}`);
             return;
         }
@@ -128,20 +128,8 @@ let autoExecute = $state(true);
         goto(`/archive/finder/${finderId}`);
     }
 
-    function nextStep() {
-        if (step === 1) {
-            if (!geometry) {
-                error = 'Please select a geometry from the library';
-                return;
-            }
-            error = null;
-        }
-        if (step < 3) step++;
-    }
-
-    function prevStep() {
-        if (step > 1) step--;
-        error = null;
+    function hasFilterValue(value: number | null): value is number {
+        return value !== null && value !== undefined;
     }
 
     const selectedGeometryRecord = $derived(() => {
@@ -151,9 +139,10 @@ let autoExecute = $state(true);
 
     const geometry = $derived<GeoJSONGeometry | null>(() => {
         if (!selectedGeometryRecord) return null;
-        const parsed = typeof selectedGeometryRecord.geometry === 'string'
-            ? JSON.parse(selectedGeometryRecord.geometry)
-            : selectedGeometryRecord.geometry;
+        const parsed =
+            typeof selectedGeometryRecord.geometry === 'string'
+                ? JSON.parse(selectedGeometryRecord.geometry)
+                : selectedGeometryRecord.geometry;
         return normalizeGeometry(parsed);
     });
 
@@ -163,444 +152,346 @@ let autoExecute = $state(true);
         return latest ? new Date(latest).toLocaleDateString() : '—';
     });
 
-    const isStepValid = $derived(() => {
-        if (step === 1) return geometry !== null;
-        if (step === 2) return name && startDate && endDate && new Date(startDate) < new Date(endDate);
-        return true;
+    const dateRangeSummary = $derived(() => {
+        if (!startDate || !endDate) return 'Dates pending';
+        return `${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`;
     });
 
-    function startImageryFinder() {
-        if (!geometry) {
-            error = 'Select a geometry from the library before launching a study.';
-            step = 1;
-            return;
+    const activeFilters = $derived(() => {
+        const filters: { label: string; value: string }[] = [];
+        if (hasFilterValue(cloudCoverage)) {
+            filters.push({ label: 'Cloud coverage', value: `<= ${cloudCoverage}%` });
         }
-        error = null;
-        step = 2;
-    }
+        if (hasFilterValue(eoResolutionMax)) {
+            filters.push({ label: 'EO resolution max', value: `${eoResolutionMax} cm` });
+        }
+        if (hasFilterValue(eoResolutionMin)) {
+            filters.push({ label: 'EO resolution min', value: `${eoResolutionMin} cm` });
+        }
+        if (hasFilterValue(sarResolutionMax)) {
+            filters.push({ label: 'SAR resolution max', value: `${sarResolutionMax} cm` });
+        }
+        if (hasFilterValue(sarResolutionMin)) {
+            filters.push({ label: 'SAR resolution min', value: `${sarResolutionMin} cm` });
+        }
+        return filters;
+    });
+
+    const hasAdvancedFilters = $derived(() => activeFilters.length > 0);
+
+    const isLaunchReady = $derived(() => {
+        if (!geometry) return false;
+        if (!name.trim() || !startDate || !endDate) return false;
+        return new Date(startDate) < new Date(endDate);
+    });
+
+    const launchStatusMessage = $derived(() => {
+        if (!geometry) return 'Select a saved geometry to unlock the imagery finder.';
+        if (!name.trim()) return 'Provide a name so you can recognize the finder later.';
+        if (!startDate || !endDate) return 'Choose start and end dates for the archive lookup.';
+        if (new Date(startDate) >= new Date(endDate)) return 'End date must be after the start date.';
+        return autoExecute
+            ? 'Finder will run the archive_lookup study immediately after creation.'
+            : 'Finder will be created and can be executed later from its detail page.';
+    });
 </script>
 
-<div class="w-full h-full overflow-y-auto">
-    <div class="max-w-6xl mx-auto p-4 sm:p-8 space-y-6">
-        <!-- Header -->
-        <div class="flex items-center gap-4">
-            <button 
-                onclick={() => goto('/dashboard')}
-                class="btn btn-sm variant-ghost-surface"
-                aria-label="Back to dashboard"
-            >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </button>
-            <div>
-                <h1 class="text-3xl font-bold">Create Imagery Finder</h1>
-                <p class="text-surface-600-300-token">Define an area and search for satellite imagery</p>
+<div class="page-stack">
+    <SectionPanel variant="hero">
+        <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+            <div class="space-y-4 flex-1">
+                <p class="uppercase tracking-[0.3em] text-xs text-surface-300/70">Workflow handoff</p>
+                <h1 class="text-4xl font-bold">Imagery Finder Launchpad</h1>
+                <p class="text-surface-200/80 max-w-2xl">
+                    This screen is the second half of the new workflow: confirm the AOI you just built, shape the archive window,
+                    dial in filters, and hand the package directly to the archive_lookup study.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <button class="btn variant-filled-primary" onclick={() => goto('/areas-of-interest')}>
+                        Edit Geometries
+                    </button>
+                    <button class="btn variant-ghost-surface" onclick={loadSavedGeometries} disabled={savedLoading}>
+                        {savedLoading ? 'Syncing...' : 'Sync Library'}
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 w-full lg:max-w-lg">
+                <div class="stat-card" data-variant="accent">
+                    <p class="text-sm text-surface-300/80">Active AOI</p>
+                    <p class="text-lg font-semibold truncate">
+                        {selectedGeometryRecord ? selectedGeometryRecord.name : 'None selected'}
+                    </p>
+                    <span class="text-xs text-surface-300/70">{geometrySummary}</span>
+                </div>
+                <div class="stat-card">
+                    <p class="text-sm text-surface-300/80">Archive window</p>
+                    <p class="text-lg font-semibold">{dateRangeSummary}</p>
+                    <span class="text-xs text-surface-300/70">Search window</span>
+                </div>
+                <div class="stat-card">
+                    <p class="text-sm text-surface-300/80">Library size</p>
+                    <p class="text-3xl font-bold">{savedGeometries.length}</p>
+                    <span class="text-xs text-surface-300/70">Last sync {lastUpdated}</span>
+                </div>
+                <div class="stat-card">
+                    <p class="text-sm text-surface-300/80">Execution plan</p>
+                    <p class="text-lg font-semibold">{autoExecute ? 'Create + run' : 'Create only'}</p>
+                    <span class="text-xs text-surface-300/70">archive_lookup study</span>
+                </div>
             </div>
         </div>
+    </SectionPanel>
 
-        <!-- Progress Steps -->
-        <div class="card p-6">
-            <ol class="flex items-center w-full">
-                <li class="flex items-center {step >= 1 ? 'text-primary-500' : 'text-surface-400-600-token'} space-x-2.5">
-                    <span class="flex items-center justify-center w-8 h-8 border-2 rounded-full shrink-0 {step >= 1 ? 'border-primary-500 bg-primary-500 text-white' : 'border-surface-400-600-token'}">
-                        {step > 1 ? '✓' : '1'}
-                    </span>
-                    <span class="hidden sm:inline-block">
-                        <span class="font-medium">Select Geometry</span>
-                    </span>
-                </li>
-                <div class="flex-1 h-0.5 mx-4 {step >= 2 ? 'bg-primary-500' : 'bg-surface-300-700-token'}"></div>
-                <li class="flex items-center {step >= 2 ? 'text-primary-500' : 'text-surface-400-600-token'} space-x-2.5">
-                    <span class="flex items-center justify-center w-8 h-8 border-2 rounded-full shrink-0 {step >= 2 ? 'border-primary-500 bg-primary-500 text-white' : 'border-surface-400-600-token'}">
-                        {step > 2 ? '✓' : '2'}
-                    </span>
-                    <span class="hidden sm:inline-block">
-                        <span class="font-medium">Configure</span>
-                    </span>
-                </li>
-                <div class="flex-1 h-0.5 mx-4 {step >= 3 ? 'bg-primary-500' : 'bg-surface-300-700-token'}"></div>
-                <li class="flex items-center {step >= 3 ? 'text-primary-500' : 'text-surface-400-600-token'} space-x-2.5">
-                    <span class="flex items-center justify-center w-8 h-8 border-2 rounded-full shrink-0 {step >= 3 ? 'border-primary-500 bg-primary-500 text-white' : 'border-surface-400-600-token'}">
-                        3
-                    </span>
-                    <span class="hidden sm:inline-block">
-                        <span class="font-medium">Review</span>
-                    </span>
-                </li>
-            </ol>
-        </div>
-
-        {#if error}
+    {#if error}
+        <SectionPanel variant="muted">
             <aside class="alert variant-filled-error">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="alert-message">
-                    <h3 class="font-bold">Error</h3>
                     <p>{error}</p>
                 </div>
             </aside>
-        {/if}
+        </SectionPanel>
+    {/if}
 
-        <div class="card p-6 space-y-4">
-            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h3 class="text-xl font-semibold">Available Studies</h3>
-                    <p class="text-sm text-surface-500">
-                        Choose a study to run with the selected geometry. More capabilities are on the way.
+    <SectionPanel className="space-y-6">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Step 1</p>
+                <h2 class="text-2xl font-bold">Attach a saved geometry</h2>
+                <p class="text-sm text-surface-500">
+                    The new workflow begins in the geometry workspace and finishes here. Pick the AOI you just authored
+                    (or any saved record) and we will carry it through the finder configuration.
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button class="btn btn-sm variant-ghost-surface" onclick={loadSavedGeometries} disabled={savedLoading}>
+                    {savedLoading ? 'Syncing...' : 'Sync library'}
+                </button>
+                <button class="btn btn-sm variant-filled-primary" onclick={() => goto('/areas-of-interest')}>
+                    Create / Edit Geometry
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="stat-card" data-variant="accent">
+                <p class="text-sm text-surface-300/80">Library entries</p>
+                <p class="text-3xl font-bold">{savedGeometries.length}</p>
+                <span class="text-xs text-surface-300/70">Eligible for finder launches</span>
+            </div>
+            <div class="stat-card">
+                <p class="text-sm text-surface-300/80">Newest update</p>
+                <p class="text-lg font-semibold">{lastUpdated}</p>
+                <span class="text-xs text-surface-300/70">Based on library order</span>
+            </div>
+        </div>
+
+        {#if savedLoading}
+            <LoadingSpinner message="Fetching saved geometries..." />
+        {:else if savedGeometries.length === 0}
+            <div class="text-center py-12">
+                <div class="text-5xl mb-4 opacity-30">🗺️</div>
+                <p class="text-lg text-surface-400 mb-2">No reusable geometries yet</p>
+                <p class="text-sm text-surface-500 mb-4">
+                    Jump back to the geometry workspace to author your first AOI before launching a finder.
+                </p>
+                <button class="btn variant-filled-primary" onclick={() => goto('/areas-of-interest')}>
+                    Open Geometry Workspace
+                </button>
+            </div>
+        {:else}
+            <div class="tile-list">
+                {#each savedGeometries as saved}
+                    <div
+                        class={`tile flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
+                            selectedGeometryId === String(saved.id) ? 'border-primary-500 bg-primary-500/10' : ''
+                        }`}
+                    >
+                        <div>
+                            <p class="font-semibold">{saved.name}</p>
+                            <p class="text-sm text-surface-500">
+                                Saved {saved.created ? new Date(saved.created).toLocaleDateString() : '—'}
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                class={`btn btn-sm ${
+                                    selectedGeometryId === String(saved.id) ? 'variant-filled-primary' : 'variant-soft-surface'
+                                }`}
+                                onclick={() => selectGeometry(saved.id)}
+                            >
+                                {selectedGeometryId === String(saved.id) ? 'Selected' : 'Select'}
+                            </button>
+                            <button class="btn btn-sm variant-ghost-surface" onclick={() => goto('/areas-of-interest')}>
+                                Open in Geometry Workspace
+                            </button>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+
+            {#if selectedGeometryRecord}
+                <div class="rounded-2xl border border-surface-800/60 bg-surface-900/50 p-4 space-y-1">
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div>
+                            <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Using</p>
+                            <p class="text-lg font-semibold">{selectedGeometryRecord.name}</p>
+                        </div>
+                        <span class="badge variant-soft">{geometrySummary}</span>
+                    </div>
+                    <p class="text-xs text-surface-500">Geometry ID: {selectedGeometryRecord.id}</p>
+                    <p class="text-sm text-surface-400">
+                        This AOI becomes the source of truth for the finder run you are about to configure.
                     </p>
                 </div>
-                {#if selectedGeometryRecord}
-                    <span class="badge variant-soft-primary text-xs">
-                        Geometry: {selectedGeometryRecord.name}
-                    </span>
-                {:else}
-                    <span class="text-xs text-surface-500">
-                        Select a geometry to enable Imagery Finder.
-                    </span>
-                {/if}
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="tile space-y-3">
-                    <div>
-                        <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Available</p>
-                        <h4 class="text-lg font-semibold">Imagery Finder</h4>
-                        <p class="text-sm text-surface-500">
-                            Configure search parameters and run imagery ingestion on the selected geometry.
-                        </p>
-                    </div>
-                    <button
-                        class="btn variant-filled-primary w-full"
-                        onclick={startImageryFinder}
-                        disabled={!geometry}
-                    >
-                        {geometry ? 'Configure Imagery Finder' : 'Select a Geometry First'}
-                    </button>
-                </div>
-                <div class="tile space-y-3 opacity-70">
-                    <div>
-                        <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Coming Soon</p>
-                        <h4 class="text-lg font-semibold">Wind Study</h4>
-                        <p class="text-sm text-surface-500">
-                            Analyze wind characteristics for the chosen area of interest.
-                        </p>
-                    </div>
-                    <button class="btn variant-soft-surface w-full" disabled>
-                        Wind Study (Coming Soon)
-                    </button>
-                </div>
-            </div>
+            {/if}
+        {/if}
+    </SectionPanel>
+
+    <SectionPanel className="space-y-6">
+        <div>
+            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Step 2</p>
+            <h2 class="text-2xl font-bold">Tune the archive lookup</h2>
+            <p class="text-sm text-surface-500">
+                Give the finder a memorable name, lock in the archive window, and add precision rules that match your downstream tasking.
+            </p>
         </div>
 
-        <!-- Step 1: Draw Area -->
-        {#if step === 1}
-            <div class="card p-6 space-y-6">
-                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                        <h2 class="text-2xl font-bold">Step 1: Select a Geometry</h2>
-                        <p class="text-sm text-surface-500">
-                            Use a geometry from the Imagery Requests library. Need a new AOI? Create it there first, then return to launch a study.
-                        </p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button
-                            class="btn btn-sm variant-ghost-surface"
-                            onclick={loadSavedGeometries}
-                            disabled={savedLoading}
-                        >
-                            {savedLoading ? 'Refreshing...' : 'Refresh List'}
-                        </button>
-                        <button
-                            class="btn btn-sm variant-filled-primary"
-                            onclick={() => goto('/imagery')}
-                        >
-                            Create Geometry
-                        </button>
-                    </div>
-                </div>
+        <label class="label">
+            <span>Finder name <span class="text-error-500">*</span></span>
+            <input
+                class="input"
+                type="text"
+                placeholder="e.g., Midtown canopy audit · Spring 2024"
+                bind:value={name}
+            />
+        </label>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="stat-card" data-variant="accent">
-                        <p class="text-sm text-surface-300/80">Saved Geometries</p>
-                        <p class="text-3xl font-bold">{savedGeometries.length}</p>
-                        <span class="text-xs text-surface-300/70">Available for studies</span>
-                    </div>
-                    <div class="stat-card">
-                        <p class="text-sm text-surface-300/80">Last Updated</p>
-                        <p class="text-lg font-semibold">{lastUpdated}</p>
-                        <span class="text-xs text-surface-300/70">Newest entry</span>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="label">
+                <span>Archive start <span class="text-error-500">*</span></span>
+                <input class="input" type="date" bind:value={startDate} />
+            </label>
 
-                {#if savedLoading}
-                    <LoadingSpinner message="Fetching saved geometries..." />
-                {:else if savedGeometries.length === 0}
-                    <div class="text-center py-12">
-                        <div class="text-5xl mb-4 opacity-30">🗺️</div>
-                        <p class="text-lg text-surface-400 mb-2">No saved geometries yet</p>
-                        <p class="text-sm text-surface-500 mb-4">
-                            Open the Imagery Requests page to define your first reusable area.
-                        </p>
-                        <button class="btn variant-filled-primary" onclick={() => goto('/imagery')}>
-                            Create Geometry
-                        </button>
-                    </div>
-                {:else}
-                    <div class="space-y-4">
-                        {#each savedGeometries as saved}
-                            <div class="tile flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <p class="font-semibold">{saved.name}</p>
-                                    <p class="text-sm text-surface-500">
-                                        Saved {saved.created ? new Date(saved.created).toLocaleDateString() : '—'}
-                                    </p>
-                                </div>
-                                <div class="flex flex-wrap gap-2">
-                                    <button
-                                        class={`btn btn-sm ${selectedGeometryId === String(saved.id) ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-                                        onclick={() => selectGeometry(saved.id)}
-                                    >
-                                        {selectedGeometryId === String(saved.id) ? 'Selected' : 'Select'}
-                                    </button>
-                                    <button
-                                        class="btn btn-sm variant-ghost-surface"
-                                        onclick={() => goto('/imagery')}
-                                    >
-                                        Open in Imagery
-                                    </button>
-                                </div>
-                            </div>
-                        {/each}
+            <label class="label">
+                <span>Archive end <span class="text-error-500">*</span></span>
+                <input class="input" type="date" bind:value={endDate} />
+            </label>
+        </div>
 
-                        {#if selectedGeometryRecord}
-                            <div class="tile space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="font-semibold">{selectedGeometryRecord.name}</p>
-                                        <p class="text-xs text-surface-500">
-                                            Geometry ID: {selectedGeometryRecord.id}
-                                        </p>
-                                    </div>
-                                    <span class="badge variant-soft">
-                                        {geometrySummary}
-                                    </span>
-                                </div>
-                                <p class="text-sm text-surface-400">
-                                    This geometry will feed into every study configured below.
-                                </p>
-                            </div>
-                        {/if}
-                    </div>
-                {/if}
-            </div>
-        {/if}
-
-        <!-- Step 2: Configure Search -->
-        {#if step === 2}
-            <div class="card p-6 space-y-6">
-                <h2 class="text-2xl font-bold">Step 2: Configure Search Parameters</h2>
-
-                <label class="label">
-                    <span>Search Name <span class="text-error-500">*</span></span>
-                    <input 
-                        class="input" 
-                        type="text" 
-                        placeholder="e.g., Downtown Forest Coverage Q1 2024"
-                        bind:value={name}
-                    />
-                </label>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label class="label">
-                        <span>Start Date <span class="text-error-500">*</span></span>
-                        <input 
-                            class="input" 
-                            type="date" 
-                            bind:value={startDate}
-                        />
-                    </label>
-
-                    <label class="label">
-                        <span>End Date <span class="text-error-500">*</span></span>
-                        <input 
-                            class="input" 
-                            type="date" 
-                            bind:value={endDate}
-                        />
-                    </label>
-                </div>
-
-                <!-- Advanced Filters -->
-                <div>
-                    <button 
-                        onclick={() => showAdvanced = !showAdvanced}
-                        class="btn variant-ghost-surface w-full justify-between"
-                    >
-                        <span>Advanced Filters (Optional)</span>
-                        <svg class="w-5 h-5 transition-transform {showAdvanced ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    {#if showAdvanced}
-                        <div class="mt-4 p-4 space-y-4 bg-surface-100-800-token rounded-lg">
-                            <label class="label">
-                                <span>Maximum Cloud Coverage (%)</span>
-                                <input 
-                                    class="input" 
-                                    type="number" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="e.g., 20"
-                                    bind:value={cloudCoverage}
-                                />
-                            </label>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <label class="label">
-                                    <span>EO Resolution Max (cm)</span>
-                                    <input 
-                                        class="input" 
-                                        type="number" 
-                                        placeholder="e.g., 50"
-                                        bind:value={eoResolutionMax}
-                                    />
-                                </label>
-
-                                <label class="label">
-                                    <span>EO Resolution Min (cm)</span>
-                                    <input 
-                                        class="input" 
-                                        type="number" 
-                                        placeholder="e.g., 10"
-                                        bind:value={eoResolutionMin}
-                                    />
-                                </label>
-
-                                <label class="label">
-                                    <span>SAR Resolution Max (cm)</span>
-                                    <input 
-                                        class="input" 
-                                        type="number" 
-                                        placeholder="e.g., 100"
-                                        bind:value={sarResolutionMax}
-                                    />
-                                </label>
-
-                                <label class="label">
-                                    <span>SAR Resolution Min (cm)</span>
-                                    <input 
-                                        class="input" 
-                                        type="number" 
-                                        placeholder="e.g., 25"
-                                        bind:value={sarResolutionMin}
-                                    />
-                                </label>
-                            </div>
-                        </div>
-                    {/if}
-                </div>
-            </div>
-        {/if}
-
-        <!-- Step 3: Review and Create -->
-        {#if step === 3}
-            <div class="card p-6 space-y-6">
-                <h2 class="text-2xl font-bold">Step 3: Review and Create</h2>
-
-                <div class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="p-4 bg-surface-100-800-token rounded-lg">
-                            <h3 class="font-semibold mb-2">Search Name</h3>
-                            <p>{name}</p>
-                        </div>
-
-                        <div class="p-4 bg-surface-100-800-token rounded-lg">
-                            <h3 class="font-semibold mb-2">Geometry Type</h3>
-                            <p>{geometrySummary}</p>
-                        </div>
-
-                        <div class="p-4 bg-surface-100-800-token rounded-lg">
-                            <h3 class="font-semibold mb-2">Start Date</h3>
-                            <p>{new Date(startDate).toLocaleDateString()}</p>
-                        </div>
-
-                        <div class="p-4 bg-surface-100-800-token rounded-lg">
-                            <h3 class="font-semibold mb-2">End Date</h3>
-                            <p>{new Date(endDate).toLocaleDateString()}</p>
-                        </div>
-                    </div>
-
-                    {#if cloudCoverage || eoResolutionMax || eoResolutionMin || sarResolutionMax || sarResolutionMin}
-                        <div class="p-4 bg-surface-100-800-token rounded-lg">
-                            <h3 class="font-semibold mb-3">Advanced Filters</h3>
-                            <div class="grid grid-cols-2 gap-2 text-sm">
-                                {#if cloudCoverage}<p>Cloud Coverage: ≤{cloudCoverage}%</p>{/if}
-                                {#if eoResolutionMax}<p>EO Resolution Max: {eoResolutionMax}cm</p>{/if}
-                                {#if eoResolutionMin}<p>EO Resolution Min: {eoResolutionMin}cm</p>{/if}
-                                {#if sarResolutionMax}<p>SAR Resolution Max: {sarResolutionMax}cm</p>{/if}
-                                {#if sarResolutionMin}<p>SAR Resolution Min: {sarResolutionMin}cm</p>{/if}
-                            </div>
-                        </div>
-                    {/if}
-
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input 
-                            class="checkbox" 
-                            type="checkbox" 
-                            bind:checked={autoExecute}
-                        />
-                        <span>Automatically execute imagery finder study after creation</span>
-                    </label>
-                </div>
-            </div>
-        {/if}
-
-        <!-- Navigation Buttons -->
-        <div class="flex justify-between">
-            <button 
-                onclick={prevStep}
-                disabled={step === 1}
-                class="btn variant-ghost-surface"
-            >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        <div class="space-y-4">
+            <button class="btn variant-ghost-surface w-full justify-between" onclick={() => (showAdvanced = !showAdvanced)}>
+                <span>Refine results (optional)</span>
+                <svg
+                    class={`w-5 h-5 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
-                <span>Previous</span>
             </button>
 
-            {#if step < 3}
-                <button 
-                    onclick={nextStep}
-                    disabled={!isStepValid()}
-                    class="btn variant-filled-primary"
-                >
-                    <span>Next</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            {:else}
-                <button 
-                    onclick={handleCreate}
-                    disabled={creating || executing}
-                    class="btn variant-filled-primary"
-                >
-                    {#if creating || executing}
-                        <span>Creating...</span>
-                    {:else}
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Create Imagery Finder</span>
-                    {/if}
-                </button>
+            {#if showAdvanced}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface-100-800-token rounded-xl p-4">
+                    <label class="label">
+                        <span>Maximum cloud coverage (%)</span>
+                        <input
+                            class="input"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="e.g., 20"
+                            bind:value={cloudCoverage}
+                        />
+                    </label>
+                    <label class="label">
+                        <span>EO resolution max (cm)</span>
+                        <input class="input" type="number" placeholder="e.g., 50" bind:value={eoResolutionMax} />
+                    </label>
+                    <label class="label">
+                        <span>EO resolution min (cm)</span>
+                        <input class="input" type="number" placeholder="e.g., 10" bind:value={eoResolutionMin} />
+                    </label>
+                    <label class="label">
+                        <span>SAR resolution max (cm)</span>
+                        <input class="input" type="number" placeholder="e.g., 100" bind:value={sarResolutionMax} />
+                    </label>
+                    <label class="label">
+                        <span>SAR resolution min (cm)</span>
+                        <input class="input" type="number" placeholder="e.g., 25" bind:value={sarResolutionMin} />
+                    </label>
+                </div>
             {/if}
         </div>
+    </SectionPanel>
 
-        {#if creating || executing}
-            <LoadingSpinner message={creating ? 'Creating imagery finder...' : 'Executing study...'} />
+    <SectionPanel variant="muted" className="space-y-6">
+        <div>
+            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Step 3</p>
+            <h2 class="text-2xl font-bold">Review handoff & launch</h2>
+            <p class="text-sm text-surface-500">
+                Verify the payload that will flow into Augur and decide whether we should auto-run or pause after creation.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="tile space-y-2">
+                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Finder name</p>
+                <p class="text-lg font-semibold">{name || 'Pending name'}</p>
+                <p class="text-sm text-surface-500">
+                    {selectedGeometryRecord ? selectedGeometryRecord.name : 'Awaiting geometry selection'}
+                </p>
+            </div>
+            <div class="tile space-y-2">
+                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Archive window</p>
+                <p class="text-lg font-semibold">{dateRangeSummary}</p>
+                <p class="text-sm text-surface-500">UTC</p>
+            </div>
+            <div class="tile space-y-2">
+                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Geometry type</p>
+                <p class="text-lg font-semibold">{geometrySummary}</p>
+                <p class="text-sm text-surface-500">Normalized GeoJSON</p>
+            </div>
+        </div>
+
+        {#if hasAdvancedFilters}
+            <div class="tile space-y-2">
+                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Filter stack</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-surface-300">
+                    {#each activeFilters as filter}
+                        <p><span class="text-surface-500">{filter.label}:</span> {filter.value}</p>
+                    {/each}
+                </div>
+            </div>
         {/if}
-    </div>
+
+        <label class="flex items-center gap-3 cursor-pointer">
+            <input class="checkbox" type="checkbox" bind:checked={autoExecute} />
+            <div>
+                <p class="font-semibold">Auto-run archive_lookup after creation</p>
+                <p class="text-xs text-surface-500">
+                    Leave this on for zero-touch launches, or disable it if you prefer to review the finder page before execution.
+                </p>
+            </div>
+        </label>
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-surface-500">{launchStatusMessage}</p>
+            <button
+                class="btn variant-filled-primary min-w-[220px]"
+                onclick={handleCreate}
+                disabled={!isLaunchReady || creating || executing}
+            >
+                {creating || executing ? 'Working...' : 'Launch Finder'}
+            </button>
+        </div>
+    </SectionPanel>
+
+    {#if creating || executing}
+        <LoadingSpinner message={creating ? 'Creating imagery finder...' : 'Executing archive lookup...'} />
+    {/if}
 </div>
+

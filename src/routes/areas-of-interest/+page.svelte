@@ -1,21 +1,11 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { createImagery, getImagery } from "$lib/api/augur";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
 import GeometryEditor from "$lib/components/shared/GeometryEditor.svelte";
 import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
 import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
-
-  type StoredGeometry = {
-    id: string | number;
-    name: string;
-    geometry: any;
-    created?: string;
-    modified?: string;
-    updated?: string;
-    user_id?: number;
-  };
+  import type { StoredGeometry } from "$lib/types/imagery";
 
   let loading = $state(true);
   let saving = $state(false);
@@ -23,9 +13,7 @@ import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
   let success = $state<string | null>(null);
 
 let geometries = $state<StoredGeometry[]>([]);
-let mode = $state<"create" | "library">("create");
-let selectedGeometryId = $state<string>('');
-
+let mode = $state<"create" | "library">("library");
 let geometryDraft = $state<GeoJSONGeometry | null>(null);
   let drawMode = $state<"polygon" | "point">("polygon");
   let geometryName = $state("");
@@ -50,11 +38,11 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
   async function handleSave() {
     const normalized = normalizeGeometry(geometryDraft);
     if (!normalized) {
-      error = "Draw or select a geometry before saving.";
+      error = "Draw or select an area of interest before saving.";
       return;
     }
     if (!geometryName.trim()) {
-      error = "Name your geometry to reuse it later.";
+      error = "Name your area of interest to reuse it later.";
       return;
     }
     saving = true;
@@ -72,7 +60,7 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
     }
     geometryName = "";
     geometryDraft = null;
-    success = "Saved geometry for reuse.";
+    success = "Saved area of interest for reuse.";
     await loadGeometries();
   }
 
@@ -81,55 +69,42 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
     if (success) success = null;
   }
 
-function viewGeometry(record: StoredGeometry) {
-  const parsed =
-    typeof record.geometry === "string"
-      ? JSON.parse(record.geometry)
-      : record.geometry;
-  geometryDraft = normalizeGeometry(parsed);
-  mode = "create";
-}
-
-function setSelectedGeometry(record: StoredGeometry) {
-  selectedGeometryId = String(record.id);
-}
-
-function runImageryFinder(record: StoredGeometry) {
-  goto(`/archive/create?geometryId=${record.id}`);
-}
-
-const selectedGeometry = $derived(() =>
-  geometries.find((item) => String(item.id) === String(selectedGeometryId)) ?? null
-);
-
-const latestGeometryUpdated = $derived(() => {
-  const latest = geometries[0]?.modified ?? geometries[0]?.updated;
-  return latest ? new Date(latest).toLocaleDateString() : "—";
-});
 </script>
 
 <div class="page-stack">
-  <SectionPanel variant="hero" padding="px-4 sm:px-8 py-12">
-    <div class="flex flex-col gap-6">
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <p class="uppercase tracking-[0.3em] text-xs text-surface-300/70 mb-2">
-            Imagery Requests
-          </p>
-          <h1 class="text-4xl font-bold">Create or Reuse Geometries</h1>
-          <p class="text-surface-200/80 mt-2 max-w-2xl">
-            Start by defining a new area of interest or jump into your existing geometry library.
-            Every geometry can kick off archive finders and future studies instantly.
-          </p>
+  <SectionPanel variant="hero" padding="px-4 sm:px-12 py-16">
+    <div class="flex flex-col gap-12">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-14">
+        <div class="space-y-6 max-w-3xl">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="badge variant-soft-primary text-[0.65rem] uppercase tracking-[0.4em]">
+              Areas of Interest
+            </span>
+            <span class="text-xs text-surface-400/90">AOI workflows for archive + tasking</span>
+          </div>
+          <div class="space-y-4">
+            <h1 class="text-4xl lg:text-5xl font-semibold leading-tight">
+              Create or Reuse Areas of Interest
+            </h1>
+            <p class="text-surface-200/80 text-base lg:text-lg">
+              Start by defining a new area of interest or instantly jump into your saved library.
+              Every AOI can kick off archive finders, new collections, and future studies.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs sm:text-sm text-surface-200/80">
+            <span class="badge variant-soft">Precision AOIs</span>
+            <span class="badge variant-soft">Archive Finder Ready</span>
+            <span class="badge variant-soft">Shared Team Library</span>
+          </div>
         </div>
-        <div class="grid sm:grid-cols-2 gap-3 w-full sm:max-w-xl">
+        <div class="grid sm:grid-cols-2 gap-4 sm:gap-6 w-full sm:max-w-2xl">
           <button
             type="button"
             class={`tile text-left transition-smooth ${mode === 'create' ? 'border-primary-500 bg-primary-500/10' : ''}`}
             onclick={() => (mode = 'create')}
           >
             <p class="text-sm text-primary-200 mb-1">Create</p>
-            <p class="text-lg font-semibold">New Geometry</p>
+            <p class="text-lg font-semibold">New AOI</p>
             <p class="text-xs text-surface-400 mt-1">Draw on the map and save for reuse.</p>
           </button>
           <button
@@ -138,22 +113,32 @@ const latestGeometryUpdated = $derived(() => {
             onclick={() => (mode = 'library')}
           >
             <p class="text-sm text-primary-200 mb-1">Library</p>
-            <p class="text-lg font-semibold">Saved Geometries</p>
-            <p class="text-xs text-surface-400 mt-1">Launch archive finders on stored AOIs.</p>
+            <p class="text-lg font-semibold">Saved AOIs</p>
+            <p class="text-xs text-surface-400 mt-1">Launch archive finders on stored areas.</p>
           </button>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div class="stat-card" data-variant="accent">
-          <p class="text-sm text-surface-300/80">Saved Geometries</p>
-          <p class="text-3xl font-bold">{geometries.length}</p>
-          <span class="text-xs text-surface-300/70">Ready for reuse</span>
+          <span class="text-xs uppercase tracking-[0.35em] text-primary-50/70">Library Size</span>
+          <p class="text-4xl lg:text-5xl font-bold">{geometries.length}</p>
+          <span class="text-sm text-surface-50/80">
+            {geometries.length
+              ? `${geometries.length === 1 ? "AOI" : "AOIs"} ready for reuse`
+              : "Save your first AOI to unlock archive finders."}
+          </span>
         </div>
         <div class="stat-card">
-          <p class="text-sm text-surface-300/80">Last Updated</p>
-          <p class="text-lg font-semibold">{latestGeometryUpdated}</p>
-          <span class="text-xs text-surface-300/70">Newest entry</span>
+          <span class="text-xs uppercase tracking-[0.35em] text-surface-300/80">Workflow Focus</span>
+          <p class="text-lg font-semibold">
+            {mode === "create" ? "Sketch & Save" : "Launch from Library"}
+          </p>
+          <span class="text-sm text-surface-300/75">
+            {mode === "create"
+              ? "Draw a fresh AOI or import GeoJSON, then keep it ready for future orders."
+              : "Select a saved AOI, run archive finders, or kick off new studies instantly."}
+          </span>
         </div>
       </div>
     </div>
@@ -161,7 +146,7 @@ const latestGeometryUpdated = $derived(() => {
 
   {#if mode === "create"}
     <SectionPanel className="space-y-6">
-      <h2 class="text-xl font-semibold">Define Geometry</h2>
+      <h2 class="text-xl font-semibold">Define Area of Interest</h2>
       <GeometryEditor
         bind:geometry={geometryDraft}
         bind:drawMode
@@ -174,7 +159,7 @@ const latestGeometryUpdated = $derived(() => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
           <div class="alert-message">
-            <p>Geometry ready ({geometryDraft.type}).</p>
+            <p>AOI ready ({geometryDraft.type}).</p>
           </div>
         </div>
       {/if}
@@ -182,7 +167,7 @@ const latestGeometryUpdated = $derived(() => {
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <div class="space-y-4">
           <label class="label">
-            <span>Geometry Name</span>
+            <span>AOI Name</span>
             <input
               class="input"
               placeholder="e.g., Downtown Forestry Zone"
@@ -208,12 +193,12 @@ const latestGeometryUpdated = $derived(() => {
             onclick={handleSave}
             disabled={saving}
           >
-            {saving ? "Saving..." : "Save Geometry"}
+            {saving ? "Saving..." : "Save AOI"}
           </button>
         </div>
         <div class="space-y-3">
           <p class="text-sm text-surface-500">
-            Saved geometries appear in the library and archive finder creation flows. Use Quick Point to auto-build a small square AOI or switch to polygon for precise drawing.
+            Saved AOIs appear in the library and archive finder creation flows. Use Quick Point to auto-build a small square AOI or switch to polygon for precise drawing.
           </p>
           <div class="btn-group">
             <button
@@ -239,20 +224,20 @@ const latestGeometryUpdated = $derived(() => {
   {#if mode === "library"}
     <SectionPanel variant="muted">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold">Geometry Library</h2>
+        <h2 class="text-2xl font-bold">AOI Library</h2>
         <button class="btn btn-sm variant-ghost-surface" onclick={loadGeometries}>
           Refresh
         </button>
       </div>
 
       {#if loading}
-        <LoadingSpinner message="Loading geometries..." />
+        <LoadingSpinner message="Loading areas of interest..." />
       {:else if geometries.length === 0}
         <div class="text-center py-12">
           <div class="text-5xl mb-4 opacity-30">🗺️</div>
-          <p class="text-lg text-surface-400 mb-4">No geometries stored yet.</p>
+          <p class="text-lg text-surface-400 mb-4">No AOIs stored yet.</p>
           <p class="text-sm text-surface-500">
-            Use the Create flow to define your first reusable area.
+            Use the Create flow to define your first reusable AOI.
           </p>
         </div>
       {:else}
@@ -265,19 +250,13 @@ const latestGeometryUpdated = $derived(() => {
                   Saved {geometryItem.created ? new Date(geometryItem.created).toLocaleDateString() : "—"}
                 </p>
               </div>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  class={`btn btn-sm ${selectedGeometryId === String(geometryItem.id) ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-                  onclick={() => setSelectedGeometry(geometryItem)}
+              <div>
+                <a
+                  class="btn btn-sm variant-filled-primary"
+                  href={`/areas-of-interest/${encodeURIComponent(String(geometryItem.id))}`}
                 >
-                  {selectedGeometryId === String(geometryItem.id) ? 'Selected' : 'Select'}
-                </button>
-                <button class="btn btn-sm variant-ghost-surface" onclick={() => viewGeometry(geometryItem)}>
-                  View in Editor
-                </button>
-                <button class="btn btn-sm variant-filled-primary" onclick={() => runImageryFinder(geometryItem)}>
-                  Run Imagery Finder
-                </button>
+                  Select
+                </a>
               </div>
             </div>
           {/each}
@@ -286,50 +265,4 @@ const latestGeometryUpdated = $derived(() => {
     </SectionPanel>
   {/if}
 
-  <SectionPanel>
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold">Launch Studies</h2>
-        {#if selectedGeometry}
-          <span class="badge variant-soft-primary text-sm">Geometry: {selectedGeometry.name}</span>
-        {:else}
-          <span class="text-xs text-surface-500">Select a geometry from the library to enable studies.</span>
-        {/if}
-      </div>
-
-      {#if selectedGeometry}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="tile space-y-3">
-            <div>
-              <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Available</p>
-              <h3 class="text-xl font-semibold">Imagery Finder</h3>
-              <p class="text-sm text-surface-500">
-                Execute an archive search using {selectedGeometry.name}.
-              </p>
-            </div>
-            <button class="btn variant-filled-primary w-full" onclick={() => runImageryFinder(selectedGeometry)}>
-              Open Imagery Finder
-            </button>
-          </div>
-
-          <div class="tile space-y-3 opacity-70">
-            <div>
-              <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Coming Soon</p>
-              <h3 class="text-xl font-semibold">Wind Study</h3>
-              <p class="text-sm text-surface-500">
-                Analyze wind characteristics for the selected geometry.
-              </p>
-            </div>
-            <button class="btn variant-soft-surface w-full" disabled>
-              Wind Study (Coming Soon)
-            </button>
-          </div>
-        </div>
-      {:else}
-        <div class="tile text-sm text-surface-400">
-          No geometry selected. Choose one from the library to unlock studies.
-        </div>
-      {/if}
-    </div>
-  </SectionPanel>
 </div>

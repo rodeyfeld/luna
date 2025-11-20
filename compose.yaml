@@ -8,9 +8,15 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    environment:
+      - LUNA_AUGUR_HOST=http://augur-django-web-1:8000
     networks:
       - luna-net
+      - augur-net
 
 networks:
   luna-net:
     driver: bridge
+  augur-net:
+    external: true
+    name: augur_augur-net
