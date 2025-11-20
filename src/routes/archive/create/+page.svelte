@@ -1,32 +1,21 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { createArchiveFinder, executeStudy } from '$lib/api/augur';
+    import { get } from 'svelte/store';
+    import { page } from '$app/stores';
+    import { createArchiveFinder, executeStudy, getImagery } from '$lib/api/augur';
     import type { CreateArchiveFinderRequest } from '$lib/api/augur';
     import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
-    import Map from 'ol/Map';
-    import View from 'ol/View';
-    import TileLayer from 'ol/layer/Tile';
-    import OSM from 'ol/source/OSM';
-    import VectorLayer from 'ol/layer/Vector';
-    import VectorSource from 'ol/source/Vector';
-    import Draw from 'ol/interaction/Draw';
-    import { fromLonLat } from 'ol/proj';
-    import GeoJSON from 'ol/format/GeoJSON';
-    import 'ol/ol.css';
-
-    let mapElement: HTMLDivElement;
-    let map: Map;
-    let vectorSource: VectorSource;
-    let drawInteraction: Draw;
+import { normalizeGeometry, type GeoJSONGeometry } from '$lib/utils/geometry';
 
     // Form state
     let step = $state<1 | 2 | 3>(1);
     let name = $state('');
     let startDate = $state('');
     let endDate = $state('');
-    let geometry = $state<any>(null);
-    let geometryType = $state<'Point' | 'Polygon'>('Polygon');
+    let savedGeometries = $state<any[]>([]);
+    let savedLoading = $state(true);
+    let selectedGeometryId = $state<string>('');
     
     // Advanced filters
     let showAdvanced = $state(false);
@@ -40,89 +29,40 @@
     let creating = $state(false);
     let executing = $state(false);
     let error = $state<string | null>(null);
-    let autoExecute = $state(true);
+let autoExecute = $state(true);
 
-    onMount(() => {
-        initMap();
-        
+    onMount(async () => {
         // Set default dates (last 30 days)
         const today = new Date();
         const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
         endDate = today.toISOString().split('T')[0];
         startDate = thirtyDaysAgo.toISOString().split('T')[0];
-        
-        return () => {
-            map?.dispose();
-        };
+
+        const geometryParam = get(page).url.searchParams.get('geometryId');
+        if (geometryParam) {
+            selectedGeometryId = geometryParam;
+        }
+        await loadSavedGeometries();
+
+        return () => {};
     });
 
-    function initMap() {
-        vectorSource = new VectorSource();
-        
-        const vectorLayer = new VectorLayer({
-            source: vectorSource,
-        });
-
-        map = new Map({
-            target: mapElement,
-            layers: [
-                new TileLayer({
-                    source: new OSM(),
-                }),
-                vectorLayer,
-            ],
-            view: new View({
-                center: fromLonLat([0, 20]),
-                zoom: 2,
-            }),
-        });
-
-        enableDrawing();
-    }
-
-    function enableDrawing() {
-        if (drawInteraction) {
-            map.removeInteraction(drawInteraction);
-        }
-
-        drawInteraction = new Draw({
-            source: vectorSource,
-            type: geometryType,
-        });
-
-        drawInteraction.on('drawend', (event) => {
-            const feature = event.feature;
-            const geom = feature.getGeometry();
-            if (geom) {
-                const geoJSON = new GeoJSON();
-                const geoJSONGeom = geoJSON.writeGeometryObject(geom, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:3857',
-                });
-                geometry = geoJSONGeom;
+    async function loadSavedGeometries() {
+        savedLoading = true;
+        const response = await getImagery();
+        if (!response.error) {
+            savedGeometries = (response.data as any[]) ?? [];
+            if (selectedGeometryId && !savedGeometries.find((item) => String(item.id) === String(selectedGeometryId))) {
+                selectedGeometryId = '';
             }
-            
-            // Clear previous features
-            setTimeout(() => {
-                const features = vectorSource.getFeatures();
-                if (features.length > 1) {
-                    vectorSource.removeFeature(features[0]);
-                }
-            }, 100);
-        });
-
-        map.addInteraction(drawInteraction);
+        }
+        savedLoading = false;
     }
 
-    function clearDrawing() {
-        vectorSource.clear();
-        geometry = null;
-    }
-
-    function changeGeometryType(type: 'Point' | 'Polygon') {
-        geometryType = type;
-        clearDrawing();
-        enableDrawing();
+    function selectGeometry(id: string | number) {
+        selectedGeometryId = String(id);
+        step = 1;
+        error = null;
     }
 
     async function handleCreate() {
@@ -191,7 +131,7 @@
     function nextStep() {
         if (step === 1) {
             if (!geometry) {
-                error = 'Please draw an area on the map';
+                error = 'Please select a geometry from the library';
                 return;
             }
             error = null;
@@ -204,21 +144,38 @@
         error = null;
     }
 
+    const selectedGeometryRecord = $derived(() => {
+        if (!selectedGeometryId) return null;
+        return savedGeometries.find((item) => String(item.id) === String(selectedGeometryId)) ?? null;
+    });
+
+    const geometry = $derived<GeoJSONGeometry | null>(() => {
+        if (!selectedGeometryRecord) return null;
+        const parsed = typeof selectedGeometryRecord.geometry === 'string'
+            ? JSON.parse(selectedGeometryRecord.geometry)
+            : selectedGeometryRecord.geometry;
+        return normalizeGeometry(parsed);
+    });
+
+    const geometrySummary = $derived(() => geometry?.type ?? 'Not defined');
+    const lastUpdated = $derived(() => savedGeometries[0]?.updated ? new Date(savedGeometries[0].updated).toLocaleDateString() : '—');
+
     const isStepValid = $derived(() => {
         if (step === 1) return geometry !== null;
         if (step === 2) return name && startDate && endDate && new Date(startDate) < new Date(endDate);
         return true;
     });
-</script>
 
-<style>
-    .map-container {
-        height: 500px;
-        width: 100%;
-        border-radius: 0.5rem;
-        overflow: hidden;
+    function startArchiveFinder() {
+        if (!geometry) {
+            error = 'Select a geometry from the library before launching a study.';
+            step = 1;
+            return;
+        }
+        error = null;
+        step = 2;
     }
-</style>
+</script>
 
 <div class="w-full h-full overflow-y-auto">
     <div class="max-w-6xl mx-auto p-4 sm:p-8 space-y-6">
@@ -227,6 +184,7 @@
             <button 
                 onclick={() => goto('/dashboard')}
                 class="btn btn-sm variant-ghost-surface"
+                aria-label="Back to dashboard"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -246,7 +204,7 @@
                         {step > 1 ? '✓' : '1'}
                     </span>
                     <span class="hidden sm:inline-block">
-                        <span class="font-medium">Draw Area</span>
+                        <span class="font-medium">Select Geometry</span>
                     </span>
                 </li>
                 <div class="flex-1 h-0.5 mx-4 {step >= 2 ? 'bg-primary-500' : 'bg-surface-300-700-token'}"></div>
@@ -282,47 +240,154 @@
             </aside>
         {/if}
 
+        <div class="card p-6 space-y-4">
+            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold">Available Studies</h3>
+                    <p class="text-sm text-surface-500">
+                        Choose a study to run with the selected geometry. More capabilities are on the way.
+                    </p>
+                </div>
+                {#if selectedGeometryRecord}
+                    <span class="badge variant-soft-primary text-xs">
+                        Geometry: {selectedGeometryRecord.name}
+                    </span>
+                {:else}
+                    <span class="text-xs text-surface-500">
+                        Select a geometry to enable Archive Finder.
+                    </span>
+                {/if}
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="tile space-y-3">
+                    <div>
+                        <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Available</p>
+                        <h4 class="text-lg font-semibold">Archive Finder</h4>
+                        <p class="text-sm text-surface-500">
+                            Configure search parameters and run imagery ingestion on the selected geometry.
+                        </p>
+                    </div>
+                    <button
+                        class="btn variant-filled-primary w-full"
+                        onclick={startArchiveFinder}
+                        disabled={!geometry}
+                    >
+                        {geometry ? 'Configure Archive Finder' : 'Select a Geometry First'}
+                    </button>
+                </div>
+                <div class="tile space-y-3 opacity-70">
+                    <div>
+                        <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Coming Soon</p>
+                        <h4 class="text-lg font-semibold">Wind Study</h4>
+                        <p class="text-sm text-surface-500">
+                            Analyze wind characteristics for the chosen area of interest.
+                        </p>
+                    </div>
+                    <button class="btn variant-soft-surface w-full" disabled>
+                        Wind Study (Coming Soon)
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Step 1: Draw Area -->
         {#if step === 1}
-            <div class="card p-6 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-2xl font-bold">Step 1: Define Area of Interest</h2>
-                    <div class="flex gap-2">
-                        <button 
-                            onclick={() => changeGeometryType('Polygon')}
-                            class="btn btn-sm {geometryType === 'Polygon' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+            <div class="card p-6 space-y-6">
+                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold">Step 1: Select a Geometry</h2>
+                        <p class="text-sm text-surface-500">
+                            Use a geometry from the Imagery Requests library. Need a new AOI? Create it there first, then return to launch a study.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            class="btn btn-sm variant-ghost-surface"
+                            onclick={loadSavedGeometries}
+                            disabled={savedLoading}
                         >
-                            Polygon
+                            {savedLoading ? 'Refreshing...' : 'Refresh List'}
                         </button>
-                        <button 
-                            onclick={() => changeGeometryType('Point')}
-                            class="btn btn-sm {geometryType === 'Point' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+                        <button
+                            class="btn btn-sm variant-filled-primary"
+                            onclick={() => goto('/imagery')}
                         >
-                            Point
-                        </button>
-                        <button 
-                            onclick={clearDrawing}
-                            class="btn btn-sm variant-ghost-error"
-                        >
-                            Clear
+                            Create Geometry
                         </button>
                     </div>
                 </div>
 
-                <p class="text-surface-600-300-token">
-                    Click on the map to draw your area of interest. For polygons, click multiple points and double-click to finish.
-                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="stat-card" data-variant="accent">
+                        <p class="text-sm text-surface-300/80">Saved Geometries</p>
+                        <p class="text-3xl font-bold">{savedGeometries.length}</p>
+                        <span class="text-xs text-surface-300/70">Available for studies</span>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-sm text-surface-300/80">Last Updated</p>
+                        <p class="text-lg font-semibold">{lastUpdated}</p>
+                        <span class="text-xs text-surface-300/70">Newest entry</span>
+                    </div>
+                </div>
 
-                <div class="map-container" bind:this={mapElement}></div>
+                {#if savedLoading}
+                    <LoadingSpinner message="Fetching saved geometries..." />
+                {:else if savedGeometries.length === 0}
+                    <div class="text-center py-12">
+                        <div class="text-5xl mb-4 opacity-30">🗺️</div>
+                        <p class="text-lg text-surface-400 mb-2">No saved geometries yet</p>
+                        <p class="text-sm text-surface-500 mb-4">
+                            Open the Imagery Requests page to define your first reusable area.
+                        </p>
+                        <button class="btn variant-filled-primary" onclick={() => goto('/imagery')}>
+                            Create Geometry
+                        </button>
+                    </div>
+                {:else}
+                    <div class="space-y-4">
+                        {#each savedGeometries as saved}
+                            <div class="tile flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <p class="font-semibold">{saved.name}</p>
+                                    <p class="text-sm text-surface-500">
+                                        Saved {saved.created ? new Date(saved.created).toLocaleDateString() : '—'}
+                                    </p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        class={`btn btn-sm ${selectedGeometryId === String(saved.id) ? 'variant-filled-primary' : 'variant-soft-surface'}`}
+                                        onclick={() => selectGeometry(saved.id)}
+                                    >
+                                        {selectedGeometryId === String(saved.id) ? 'Selected' : 'Select'}
+                                    </button>
+                                    <button
+                                        class="btn btn-sm variant-ghost-surface"
+                                        onclick={() => goto('/imagery')}
+                                    >
+                                        Open in Imagery
+                                    </button>
+                                </div>
+                            </div>
+                        {/each}
 
-                {#if geometry}
-                    <div class="alert variant-filled-success">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <div class="alert-message">
-                            <p>Area defined successfully! ({geometry.type})</p>
-                        </div>
+                        {#if selectedGeometryRecord}
+                            <div class="tile space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-semibold">{selectedGeometryRecord.name}</p>
+                                        <p class="text-xs text-surface-500">
+                                            Geometry ID: {selectedGeometryRecord.id}
+                                        </p>
+                                    </div>
+                                    <span class="badge variant-soft">
+                                        {geometrySummary}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-surface-400">
+                                    This geometry will feed into every study configured below.
+                                </p>
+                            </div>
+                        {/if}
                     </div>
                 {/if}
             </div>
@@ -450,7 +515,7 @@
 
                         <div class="p-4 bg-surface-100-800-token rounded-lg">
                             <h3 class="font-semibold mb-2">Geometry Type</h3>
-                            <p>{geometry?.type || 'Not defined'}</p>
+                            <p>{geometrySummary}</p>
                         </div>
 
                         <div class="p-4 bg-surface-100-800-token rounded-lg">

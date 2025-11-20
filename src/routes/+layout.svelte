@@ -11,7 +11,7 @@
 		{ href: '/', label: 'Home' },
 		{ href: '/dashboard', label: 'Dashboard' },
 		{ href: '/providers', label: 'Providers' },
-		{ href: '/archive/create', label: 'New Search' }
+		{ href: '/imagery', label: 'New Search' }
 	] as const;
 
 	const apiBase = env.PUBLIC_AUGUR_URL || 'http://localhost:8000';
