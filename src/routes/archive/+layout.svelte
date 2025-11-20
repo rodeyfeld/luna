@@ -11,7 +11,7 @@
 
     let { data, children }: Props = $props();
 	const shelllessRoutes = ['/archive/create'];
-	const showArchiveShell = $derived(() => !shelllessRoutes.some((path) => $page.url.pathname.startsWith(path)));
+	const showArchiveShell = $derived(!shelllessRoutes.some((path) => $page.url.pathname.startsWith(path)));
 
 </script>
 

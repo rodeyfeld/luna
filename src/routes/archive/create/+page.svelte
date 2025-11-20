@@ -3,7 +3,7 @@
     import { goto } from '$app/navigation';
     import { get } from 'svelte/store';
     import { page } from '$app/stores';
-    import { createImageryFinder, executeStudy, getImagery } from '$lib/api/augur';
+    import { createImageryFinder, executeStudy, getImagery, getProviders } from '$lib/api/augur';
     import type { CreateImageryFinderRequest } from '$lib/api/augur';
     import SectionPanel from '$lib/components/shared/SectionPanel.svelte';
     import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
@@ -15,6 +15,8 @@
     let savedGeometries = $state<any[]>([]);
     let savedLoading = $state(true);
     let selectedGeometryId = $state<string>('');
+    let providers = $state<any[]>([]);
+    let selectedProviders = $state<Set<string>>(new Set());
 
     let showAdvanced = $state(false);
     let cloudCoverage = $state<number | null>(null);
@@ -39,7 +41,7 @@
             selectedGeometryId = geometryParam;
         }
 
-        await loadSavedGeometries();
+        await Promise.all([loadSavedGeometries(), loadProviders()]);
 
         return () => {};
     });
@@ -52,13 +54,44 @@
             if (selectedGeometryId && !savedGeometries.find((item) => String(item.id) === String(selectedGeometryId))) {
                 selectedGeometryId = '';
             }
+            // Set default name based on selected geometry
+            if (selectedGeometryId) {
+                const selected = savedGeometries.find((item) => String(item.id) === String(selectedGeometryId));
+                if (selected && !name) {
+                    name = `${selected.name} - ${new Date().toLocaleString()}`;
+                }
+            }
         }
         savedLoading = false;
+    }
+
+    async function loadProviders() {
+        const response = await getProviders();
+        if (!response.error && response.data) {
+            providers = Array.isArray(response.data) ? response.data : [];
+            // Select all providers by default
+            selectedProviders = new Set(providers.map((p) => p.id || p.name));
+        }
+    }
+
+    function toggleProvider(providerId: string) {
+        const newSet = new Set(selectedProviders);
+        if (newSet.has(providerId)) {
+            newSet.delete(providerId);
+        } else {
+            newSet.add(providerId);
+        }
+        selectedProviders = newSet;
     }
 
     function selectGeometry(id: string | number) {
         selectedGeometryId = String(id);
         error = null;
+        // Set default name based on selected geometry
+        const selected = savedGeometries.find((item) => String(item.id) === String(id));
+        if (selected && !name) {
+            name = `${selected.name} - ${new Date().toLocaleString()}`;
+        }
     }
 
     async function handleCreate() {
@@ -132,12 +165,13 @@
         return value !== null && value !== undefined;
     }
 
-    const selectedGeometryRecord = $derived(() => {
-        if (!selectedGeometryId) return null;
-        return savedGeometries.find((item) => String(item.id) === String(selectedGeometryId)) ?? null;
-    });
+    const selectedGeometryRecord = $derived(
+        selectedGeometryId
+            ? savedGeometries.find((item) => String(item.id) === String(selectedGeometryId)) ?? null
+            : null
+    );
 
-    const geometry = $derived<GeoJSONGeometry | null>(() => {
+    const geometry = $derived.by<GeoJSONGeometry | null>(() => {
         if (!selectedGeometryRecord) return null;
         const parsed =
             typeof selectedGeometryRecord.geometry === 'string'
@@ -146,18 +180,19 @@
         return normalizeGeometry(parsed);
     });
 
-    const geometrySummary = $derived(() => geometry?.type ?? 'Not defined');
-    const lastUpdated = $derived(() => {
+    const geometrySummary = $derived(geometry?.type ?? 'Not defined');
+    
+    const lastUpdated = $derived.by(() => {
         const latest = savedGeometries[0]?.modified ?? savedGeometries[0]?.updated;
         return latest ? new Date(latest).toLocaleDateString() : '—';
     });
 
-    const dateRangeSummary = $derived(() => {
+    const dateRangeSummary = $derived.by(() => {
         if (!startDate || !endDate) return 'Dates pending';
         return `${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`;
     });
 
-    const activeFilters = $derived(() => {
+    const activeFilters = $derived.by(() => {
         const filters: { label: string; value: string }[] = [];
         if (hasFilterValue(cloudCoverage)) {
             filters.push({ label: 'Cloud coverage', value: `<= ${cloudCoverage}%` });
@@ -177,15 +212,15 @@
         return filters;
     });
 
-    const hasAdvancedFilters = $derived(() => activeFilters.length > 0);
+    const hasAdvancedFilters = $derived(activeFilters.length > 0);
 
-    const isLaunchReady = $derived(() => {
+    const isLaunchReady = $derived.by(() => {
         if (!geometry) return false;
         if (!name.trim() || !startDate || !endDate) return false;
         return new Date(startDate) < new Date(endDate);
     });
 
-    const launchStatusMessage = $derived(() => {
+    const launchStatusMessage = $derived.by(() => {
         if (!geometry) return 'Select a saved geometry to unlock the imagery finder.';
         if (!name.trim()) return 'Provide a name so you can recognize the finder later.';
         if (!startDate || !endDate) return 'Choose start and end dates for the archive lookup.';
@@ -256,107 +291,45 @@
     {/if}
 
     <SectionPanel className="space-y-6">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-                <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Step 1</p>
-                <h2 class="text-2xl font-bold">Attach a saved geometry</h2>
-                <p class="text-sm text-surface-500">
-                    The new workflow begins in the geometry workspace and finishes here. Pick the AOI you just authored
-                    (or any saved record) and we will carry it through the finder configuration.
-                </p>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <button class="btn btn-sm variant-ghost-surface" onclick={loadSavedGeometries} disabled={savedLoading}>
-                    {savedLoading ? 'Syncing...' : 'Sync library'}
-                </button>
-                <button class="btn btn-sm variant-filled-primary" onclick={() => goto('/areas-of-interest')}>
-                    Create / Edit Geometry
-                </button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="stat-card" data-variant="accent">
-                <p class="text-sm text-surface-300/80">Library entries</p>
-                <p class="text-3xl font-bold">{savedGeometries.length}</p>
-                <span class="text-xs text-surface-300/70">Eligible for finder launches</span>
-            </div>
-            <div class="stat-card">
-                <p class="text-sm text-surface-300/80">Newest update</p>
-                <p class="text-lg font-semibold">{lastUpdated}</p>
-                <span class="text-xs text-surface-300/70">Based on library order</span>
-            </div>
-        </div>
-
-        {#if savedLoading}
-            <LoadingSpinner message="Fetching saved geometries..." />
-        {:else if savedGeometries.length === 0}
-            <div class="text-center py-12">
-                <div class="text-5xl mb-4 opacity-30">🗺️</div>
-                <p class="text-lg text-surface-400 mb-2">No reusable geometries yet</p>
-                <p class="text-sm text-surface-500 mb-4">
-                    Jump back to the geometry workspace to author your first AOI before launching a finder.
-                </p>
-                <button class="btn variant-filled-primary" onclick={() => goto('/areas-of-interest')}>
-                    Open Geometry Workspace
-                </button>
-            </div>
-        {:else}
-            <div class="tile-list">
-                {#each savedGeometries as saved}
-                    <div
-                        class={`tile flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
-                            selectedGeometryId === String(saved.id) ? 'border-primary-500 bg-primary-500/10' : ''
-                        }`}
-                    >
-                        <div>
-                            <p class="font-semibold">{saved.name}</p>
-                            <p class="text-sm text-surface-500">
-                                Saved {saved.created ? new Date(saved.created).toLocaleDateString() : '—'}
-                            </p>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button
-                                class={`btn btn-sm ${
-                                    selectedGeometryId === String(saved.id) ? 'variant-filled-primary' : 'variant-soft-surface'
-                                }`}
-                                onclick={() => selectGeometry(saved.id)}
-                            >
-                                {selectedGeometryId === String(saved.id) ? 'Selected' : 'Select'}
-                            </button>
-                            <button class="btn btn-sm variant-ghost-surface" onclick={() => goto('/areas-of-interest')}>
-                                Open in Geometry Workspace
-                            </button>
-                        </div>
-                    </div>
-                {/each}
-            </div>
-
-            {#if selectedGeometryRecord}
-                <div class="rounded-2xl border border-surface-800/60 bg-surface-900/50 p-4 space-y-1">
-                    <div class="flex items-center justify-between gap-3 flex-wrap">
-                        <div>
-                            <p class="text-sm text-surface-400 uppercase tracking-[0.3em]">Using</p>
-                            <p class="text-lg font-semibold">{selectedGeometryRecord.name}</p>
-                        </div>
-                        <span class="badge variant-soft">{geometrySummary}</span>
-                    </div>
-                    <p class="text-xs text-surface-500">Geometry ID: {selectedGeometryRecord.id}</p>
-                    <p class="text-sm text-surface-400">
-                        This AOI becomes the source of truth for the finder run you are about to configure.
-                    </p>
-                </div>
-            {/if}
-        {/if}
-    </SectionPanel>
-
-    <SectionPanel className="space-y-6">
         <div>
-            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Step 2</p>
-            <h2 class="text-2xl font-bold">Tune the archive lookup</h2>
+            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Configuration</p>
+            <h2 class="text-2xl font-bold">Archive Search Settings</h2>
             <p class="text-sm text-surface-500">
-                Give the finder a memorable name, lock in the archive window, and add precision rules that match your downstream tasking.
+                Configure your multi-provider satellite archive search. Select providers, set time windows, and apply filters to find imagery matching your requirements.
             </p>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Satellite Providers</h3>
+                <p class="text-sm text-surface-500 mb-3">
+                    Select which satellite imagery providers to search. Multiple providers will be queried simultaneously for comprehensive coverage.
+                </p>
+                {#if providers.length > 0}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {#each providers as provider}
+                            <label class="tile flex items-center gap-3 cursor-pointer hover-lift">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox"
+                                    checked={selectedProviders.has(provider.id || provider.name)}
+                                    onchange={() => toggleProvider(provider.id || provider.name)}
+                                />
+                                <div class="flex-1">
+                                    <p class="font-semibold">{provider.name}</p>
+                                    {#if provider.description}
+                                        <p class="text-xs text-surface-500">{provider.description}</p>
+                                    {/if}
+                                </div>
+                            </label>
+                        {/each}
+                    </div>
+                {:else}
+                    <div class="tile text-sm text-surface-500">
+                        <LoadingSpinner message="Loading providers..." />
+                    </div>
+                {/if}
+            </div>
         </div>
 
         <label class="label">
@@ -430,10 +403,10 @@
 
     <SectionPanel variant="muted" className="space-y-6">
         <div>
-            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Step 3</p>
-            <h2 class="text-2xl font-bold">Review handoff & launch</h2>
+            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Review & Launch</p>
+            <h2 class="text-2xl font-bold">Confirm Configuration</h2>
             <p class="text-sm text-surface-500">
-                Verify the payload that will flow into Augur and decide whether we should auto-run or pause after creation.
+                Review your archive search settings and launch the multi-provider imagery finder.
             </p>
         </div>
 

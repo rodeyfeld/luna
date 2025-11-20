@@ -247,7 +247,7 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
               <div>
                 <p class="font-semibold">{geometryItem.name}</p>
                 <p class="text-sm text-surface-500">
-                  Saved {geometryItem.created ? new Date(geometryItem.created).toLocaleDateString() : "—"}
+                  Saved {geometryItem.created ? new Date(geometryItem.created).toLocaleString() : "—"}
                 </p>
               </div>
               <div>

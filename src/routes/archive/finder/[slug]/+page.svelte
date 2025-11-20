@@ -1,7 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/stores";
-  import { goto } from "$app/navigation";
   import {
     getImageryFinderById,
     executeStudy,
@@ -23,8 +21,14 @@
   import { Style, Fill, Stroke } from "ol/style";
   import "ol/ol.css";
 
-  let mapElement: HTMLDivElement;
-  let resultsMapElement: HTMLDivElement;
+  interface Props {
+    data: { finderId: string };
+  }
+
+  let { data }: Props = $props();
+
+  let mapElement = $state<HTMLDivElement | undefined>(undefined);
+  let resultsMapElement = $state<HTMLDivElement | undefined>(undefined);
   let map: Map;
   let resultsMap: Map;
 
@@ -38,8 +42,9 @@
   let selectedStudy = $state<any>(null);
   let studyResults = $state<any>(null);
   let loadingResults = $state(false);
+  let resultsView = $state<"grid" | "table">("grid");
 
-  const finderId = $derived($page.params.slug);
+  const finderId = $derived(data.finderId);
 
   onMount(() => {
     loadFinder();
@@ -287,12 +292,12 @@
       <div class="card p-8">
         <EmptyState icon="⚠️" title="Error Loading Finder" description={error}>
           {#snippet action()}
-            <button
-              onclick={() => goto("/dashboard")}
+            <a
+              href="/dashboard"
               class="btn variant-soft-primary"
             >
               Back to Dashboard
-            </button>
+            </a>
           {/snippet}
         </EmptyState>
       </div>
@@ -300,9 +305,10 @@
       <!-- Header -->
       <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div class="flex items-start gap-4">
-          <button
-            onclick={() => goto("/dashboard")}
+          <a
+            href="/dashboard"
             class="btn btn-sm variant-ghost-surface"
+            aria-label="Back to Dashboard"
           >
             <svg
               class="w-5 h-5"
@@ -317,7 +323,7 @@
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-          </button>
+          </a>
           <div>
             <div class="flex items-center gap-3 mb-2">
               <h1 class="text-3xl font-bold">{finder.name}</h1>
@@ -566,12 +572,31 @@
 
             <!-- Results List -->
             <div class="card p-6">
-              <h2 class="text-2xl font-bold mb-4">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold">
                 Imagery Results ({studyResults.study_data?.results?.length ||
                   0})
               </h2>
+                <div class="btn-group">
+                  <button
+                    type="button"
+                    class={`btn btn-sm ${resultsView === 'grid' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
+                    onclick={() => (resultsView = 'grid')}
+                  >
+                    Grid
+                  </button>
+                  <button
+                    type="button"
+                    class={`btn btn-sm ${resultsView === 'table' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
+                    onclick={() => (resultsView = 'table')}
+                  >
+                    Table
+                  </button>
+                </div>
+              </div>
 
               {#if studyResults.study_data?.results && studyResults.study_data.results.length > 0}
+                {#if resultsView === 'grid'}
                 <div
                   class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
                 >
@@ -596,6 +621,36 @@
                     </div>
                   {/each}
                 </div>
+                {:else}
+                  <div class="overflow-x-auto">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Collection</th>
+                          <th>Sensor</th>
+                          <th>Technique</th>
+                          <th>Start Date</th>
+                          <th>End Date</th>
+                          <th>Geometry</th>
+                          <th>Provider</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {#each studyResults.study_data.results as result}
+                          <tr>
+                            <td class="font-semibold">{result.collection}</td>
+                            <td>{result.sensor.name || '—'}</td>
+                            <td>{result.sensor.technique || '—'}</td>
+                            <td>{formatDate(result.start_date)}</td>
+                            <td>{formatDate(result.end_date)}</td>
+                            <td>{result.geometry.type}</td>
+                            <td>{result.provider || '—'}</td>
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
+                  </div>
+                {/if}
               {:else}
                 <EmptyState
                   icon="🔍"
