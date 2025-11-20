@@ -32,6 +32,7 @@
 	"type": "module",
 	"dependencies": {
 		"@types/openlayers": "^4.6.23",
+		"caniuse-lite": "^1.0.30001756",
 		"ol": "^10.2.1",
 		"ol-ext": "^4.0.24",
 		"svelte-add": "^2.7.3",

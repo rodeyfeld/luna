@@ -1,20 +1,28 @@
-FROM node:latest AS builder 
-ENV ORIGIN=https://luna.pinwheel.fan
-RUN apt update && apt install python3 python3-pip make g++ build-essential -y
-WORKDIR /luna
+FROM oven/bun:1 AS builder
+WORKDIR /app
 
+COPY package.json bun.lockb ./
+RUN bun install
 COPY . .
-RUN npm install
-RUN npm run build
+RUN bun run build
 
-FROM node:latest AS runner
-ENV ORIGIN=https://luna.pinwheel.fan
+FROM oven/bun:1 AS dev
+WORKDIR /app
+COPY package.json bun.lockb ./
+RUN bun install
+COPY . .
+CMD ["bun", "run", "dev"]
+
+FROM oven/bun:1
+WORKDIR /app
+
 RUN apt-get update && apt-get install -y ca-certificates
-WORKDIR /luna
-COPY --from=builder /luna/build ./build
-COPY --from=builder /luna/package.json ./
-COPY --from=builder /luna/node_modules ./node_modules
 
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
 
-CMD ["node", "build/index.js"]
+RUN useradd -ms /bin/bash luna && chown -R luna:luna /app
+USER luna
 
+CMD ["bun", "run", "build/index.js"]

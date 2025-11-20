@@ -1,0 +1,18 @@
+services:
+  sveltekit-web:
+    build:
+      context: .
+      target: dev
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - VITE_AUGUR_API_URL=http://host.docker.internal:8000
+    networks:
+      - luna-net
+
+networks:
+  luna-net:
+    driver: bridge
