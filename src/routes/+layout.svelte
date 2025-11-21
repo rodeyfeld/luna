@@ -45,6 +45,12 @@
 						{link.label}
 					</a>
 				{/each}
+				<a
+					href="https://pinwheel.fan"
+					class="rounded-md px-3 py-2 transition-colors text-surface-300 hover:bg-primary-500/90 hover:text-white ml-2"
+				>
+					◉ <span class="hidden sm:inline">All Projects</span>
+				</a>
 			</nav>
 		</div>
 	</header>
