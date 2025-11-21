@@ -61,10 +61,7 @@
 
 	<footer class="border-t border-surface-800/60 bg-surface-900/80">
 		<div class="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-6 text-sm text-surface-400 sm:flex-row sm:items-center sm:justify-between">
-			<p>© {year} Augur Geospatial</p>
-			<p class="text-xs">
-				Simple SvelteKit frontend powered by Skeleton + Tailwind&nbsp;4
-			</p>
+			<p>© {year} Pinwheel Labs</p>
 		</div>
 	</footer>
 </div>
