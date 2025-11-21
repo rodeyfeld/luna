@@ -1,21 +1,19 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { env } from '$env/dynamic/public';
 
     let checking = $state(true);
     let apiAvailable = $state(false);
     let dismissed = $state(false);
-    let apiUrl = $state('');
 
     onMount(async () => {
-        apiUrl = env.PUBLIC_AUGUR_URL || 'http://localhost:8000';
         await checkApi();
     });
 
     async function checkApi() {
         checking = true;
         try {
-            const response = await fetch(`${apiUrl}/api/providers/`, {
+            // Check Luna's internal API proxy (which will check Augur connection)
+            const response = await fetch('/api/providers', {
                 method: 'GET',
                 signal: AbortSignal.timeout(5000), // 5 second timeout
             });

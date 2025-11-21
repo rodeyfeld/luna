@@ -1,14 +1,19 @@
 import { json, type RequestHandler } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 
-const FALLBACK_HOST = "http://localhost:8000";
-
-export const POST: RequestHandler = async () => {
-	const host = env.LUNA_AUGUR_HOST ?? FALLBACK_HOST;
-	const url = `${host}/api/imagery/finder`;
+export const GET: RequestHandler = async () => {
+	if (!env.LUNA_AUGUR_HOST) {
+		console.error("[api/archive] LUNA_AUGUR_HOST environment variable is not set");
+		return json(
+			{ error: "Server configuration error: LUNA_AUGUR_HOST not configured" },
+			{ status: 500 }
+		);
+	}
+	
+	const url = `${env.LUNA_AUGUR_HOST}/api/imagery/finder`;
 
 	try {
-	const response = await fetch(url);
+		const response = await fetch(url);
 
 		if (!response.ok) {
 			const errorBody = await response.text().catch(() => "");
@@ -22,8 +27,8 @@ export const POST: RequestHandler = async () => {
 			);
 		}
 
-	const data = await response.json();
-	return json({ finders: data });
+		const data = await response.json();
+		return json({ results: data });
 	} catch (error) {
 		console.error("[api/archive] request failed", error);
 		return json(
@@ -32,3 +37,5 @@ export const POST: RequestHandler = async () => {
 		);
 	}
 };
+
+// POST endpoint removed - use GET instead

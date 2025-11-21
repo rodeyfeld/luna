@@ -59,8 +59,24 @@ bun run build/index.js
 
 See `example.env` for configuration:
 
-- `LUNA_AUGUR_HOST` - Backend API URL for Augur services
-- `PUBLIC_*` - Public environment variables accessible in the browser
+### Required Variables
+
+- **`LUNA_AUGUR_HOST`** (Required) - Backend API URL for Augur services
+  - In Docker: `http://augur-service:8000`
+  - In Kubernetes: `http://augur-service.default.svc.cluster.local:8000`
+  - **The application will fail to start if this is not set** (no fallback for production safety)
+
+### Architecture
+
+Luna uses an **internal proxy pattern** where all API requests go through Luna's server-side routes (`/api/*`) before reaching Augur. This means:
+
+- ✅ Backend URLs never exposed to browser
+- ✅ Kubernetes-ready with internal service DNS
+- ✅ Easy to add auth, caching, or rate limiting at proxy layer
+- ✅ Single point for monitoring all API traffic
+- ✅ Fail-fast configuration validation
+
+**No public environment variables** are used for backend connectivity - everything is server-side only.
 
 ## Troubleshooting
 

@@ -1,11 +1,16 @@
 import { env } from "$env/dynamic/private";
 import { json, type RequestHandler } from "@sveltejs/kit";
 
-const FALLBACK_HOST = "http://localhost:8000";
-
-export const POST: RequestHandler = async () => {
-	const host = env.LUNA_AUGUR_HOST ?? FALLBACK_HOST;
-	const url = `${host}/api/core/location`;
+export const GET: RequestHandler = async () => {
+	if (!env.LUNA_AUGUR_HOST) {
+		console.error("[api/imagery] LUNA_AUGUR_HOST environment variable is not set");
+		return json(
+			{ error: "Server configuration error: LUNA_AUGUR_HOST not configured" },
+			{ status: 500 }
+		);
+	}
+	
+	const url = `${env.LUNA_AUGUR_HOST}/api/core/location`;
 
 	try {
 		const response = await fetch(url);
@@ -34,7 +39,7 @@ export const POST: RequestHandler = async () => {
 			);
 		}
 
-		return json({ images: data });
+		return json({ results: data });
 	} catch (error) {
 		console.error("[api/imagery] request failed", error);
 		return json(

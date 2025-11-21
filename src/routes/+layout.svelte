@@ -1,6 +1,5 @@
 <script lang="ts">
 	import '../app.css';
-	import { env } from '$env/dynamic/public';
 	import { page } from '$app/stores';
 
   interface Props {
@@ -14,8 +13,7 @@
 		{ href: '/areas-of-interest', label: 'Areas of Interest' }
 	] as const;
 
-	const apiBase = env.PUBLIC_AUGUR_URL || 'http://localhost:8000';
-	const apiDocsUrl = `${apiBase}/api/docs`;
+	// API docs are proxied through the backend - users don't need direct access
 	const logo = '/pinwheel.svg';
 	const year = new Date().getFullYear();
 
@@ -48,16 +46,6 @@
 					</a>
 				{/each}
 			</nav>
-			<div class="flex items-center gap-2">
-				<a
-					href={apiDocsUrl}
-					target="_blank"
-					rel="noreferrer"
-					class="btn btn-sm variant-soft"
-				>
-					API Docs
-				</a>
-			</div>
 		</div>
 	</header>
 
@@ -67,7 +55,7 @@
 
 	<footer class="border-t border-surface-800/60 bg-surface-900/80">
 		<div class="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-6 text-sm text-surface-400 sm:flex-row sm:items-center sm:justify-between">
-			<p>© {year} Augur Geospatial · {apiBase}</p>
+			<p>© {year} Augur Geospatial</p>
 			<p class="text-xs">
 				Simple SvelteKit frontend powered by Skeleton + Tailwind&nbsp;4
 			</p>

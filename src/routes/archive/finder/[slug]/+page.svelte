@@ -1,14 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import {
-    getImageryFinderById,
-    executeStudy,
-    getStudyResults,
-    getStudyStatus,
-  } from "$lib/api/augur";
+  import { goto } from "$app/navigation";
   import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
-  import EmptyState from "$lib/components/shared/EmptyState.svelte";
+  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import Map from "ol/Map";
   import View from "ol/View";
   import TileLayer from "ol/layer/Tile";
@@ -22,66 +17,77 @@
   import "ol/ol.css";
 
   interface Props {
-    data: { finderId: string };
+    data: { finderId: string; finderData?: any };
   }
 
   let { data }: Props = $props();
 
   let mapElement = $state<HTMLDivElement | undefined>(undefined);
-  let resultsMapElement = $state<HTMLDivElement | undefined>(undefined);
   let map: Map;
-  let resultsMap: Map;
 
-  let finder = $state<any>(null);
-  let loading = $state(true);
+  let finder = $state<any>(data.finderData || null);
+  let loading = $state(!data.finderData);
   let error = $state<string | null>(null);
   let executing = $state(false);
-  let activeTab = $state<"overview" | "studies" | "results">("overview");
-
-  // Study results
-  let selectedStudy = $state<any>(null);
-  let studyResults = $state<any>(null);
-  let loadingResults = $state(false);
-  let resultsView = $state<"grid" | "table">("grid");
 
   const finderId = $derived(data.finderId);
 
-  onMount(() => {
-    loadFinder();
+  // Watch for changes to finderId and reload data
+  $effect(() => {
+    if (finderId) {
+      // Dispose old map if it exists
+      if (map) {
+        map.dispose();
+        map = undefined as any;
+      }
+      // Load the new finder
+      loadFinder();
+    }
+  });
 
+  onMount(() => {
     return () => {
       map?.dispose();
-      resultsMap?.dispose();
     };
   });
 
   async function loadFinder() {
-    if (!finderId) return;
+    if (!finderId) {
+      loading = false;
+      error = 'No finder ID provided';
+      return;
+    }
 
     loading = true;
     error = null;
+    finder = null;
 
     try {
       const response = await fetch(`/api/archive/finder_data/${finderId}`);
+      
       if (!response.ok) {
         error = `Failed to load finder: ${response.statusText}`;
-        loading = false;
         return;
       }
       const data = await response.json();
-      finder = data.results;
+      
+      if (!data.result) {
+        error = 'No finder data returned from server';
+        return;
+      }
+      
+      finder = data.result;
+      
+      setTimeout(() => {
+        if (finder) {
+          initMap();
+        }
+      }, 100);
     } catch (e) {
       error = e instanceof Error ? e.message : 'Failed to load finder';
+    } finally {
+      loading = false;
     }
-    
-    loading = false;
-
-    // Initialize map after data loads
-    setTimeout(() => {
-      if (finder) {
-        initMap();
-      }
-    }, 100);
   }
 
   function initMap() {
@@ -89,7 +95,6 @@
 
     const vectorSource = new VectorSource();
 
-    // Add the finder geometry to the map
     if (finder.geometry) {
       const geoJSON = new GeoJSON();
       const feature = geoJSON.readFeature(finder.geometry, {
@@ -104,7 +109,7 @@
           }),
           stroke: new Stroke({
             color: "rgba(59, 130, 246, 1)",
-            width: 3,
+            width: 2,
           }),
         })
       );
@@ -130,143 +135,53 @@
       }),
     });
 
-    // Zoom to the geometry
+    // Zoom to the geometry extent
     if (vectorSource.getFeatures().length > 0) {
       map.getView().fit(vectorSource.getExtent(), {
-        padding: [50, 50, 50, 50],
-        maxZoom: 15,
+        padding: [20, 20, 20, 20],
+        maxZoom: 12,
       });
     }
   }
 
-  function initResultsMap(studyData: any) {
-    if (!resultsMapElement || !studyData) return;
-
-    const vectorSource = new VectorSource();
-
-    // Add the imagery finder area
-    if (studyData.imagery_finder_geometry) {
-      const geoJSON = new GeoJSON();
-      const finderFeature = geoJSON.readFeature(
-        studyData.imagery_finder_geometry,
-        {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857",
-        }
-      ) as Feature;
-
-      finderFeature.setStyle(
-        new Style({
-          fill: new Fill({
-            color: "rgba(59, 130, 246, 0.1)",
-          }),
-          stroke: new Stroke({
-            color: "rgba(59, 130, 246, 1)",
-            width: 2,
-          }),
-        })
-      );
-
-      vectorSource.addFeature(finderFeature);
-    }
-
-    // Add imagery results
-    if (studyData.results && studyData.results.length > 0) {
-      const geoJSON = new GeoJSON();
-
-      studyData.results.forEach((result: any) => {
-        const feature = geoJSON.readFeature(result.geometry, {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857",
-        }) as Feature;
-
-        feature.setStyle(
-          new Style({
-            fill: new Fill({
-              color: "rgba(34, 197, 94, 0.2)",
-            }),
-            stroke: new Stroke({
-              color: "rgba(34, 197, 94, 1)",
-              width: 2,
-            }),
-          })
-        );
-
-        feature.set("result", result);
-        vectorSource.addFeature(feature);
-      });
-    }
-
-    const vectorLayer = new VectorLayer({
-      source: vectorSource,
-    });
-
-    resultsMap = new Map({
-      target: resultsMapElement,
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        vectorLayer,
-      ],
-      view: new View({
-        center: fromLonLat([0, 20]),
-        zoom: 2,
-      }),
-    });
-
-    // Zoom to all features
-    if (vectorSource.getFeatures().length > 0) {
-      resultsMap.getView().fit(vectorSource.getExtent(), {
-        padding: [50, 50, 50, 50],
-        maxZoom: 15,
-      });
-    }
-  }
-
-  async function handleExecuteStudy(studyName: string) {
+  async function handleExecuteStudy() {
     if (!finder) return;
 
     executing = true;
     error = null;
 
-    const response = await executeStudy(finder.id, studyName);
+    try {
+      const response = await fetch('/api/archive/finder_execute', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          imagery_finder_id: finder.id,
+          study_name: "archive_lookup",
+        }),
+      });
 
-    if (response.error) {
-      error = response.error;
-    } else {
-      // Reload finder to get updated studies
-      await loadFinder();
+      if (!response.ok) {
+        const errorData = await response.text();
+        error = `Failed to execute study: ${response.statusText}`;
+        console.error('Execute study error:', errorData);
+      } else {
+        // Wait a bit for the study to be created
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // Reload finder data to show new study
+        await loadFinder();
+      }
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to execute study';
+      console.error('Execute study error:', err);
     }
 
     executing = false;
   }
 
-  async function viewStudyResults(study: any) {
-    selectedStudy = study;
-    loadingResults = true;
-    activeTab = "results";
-
-    const response = await getStudyResults(
-      study.study_name,
-      study.id.toString()
-    );
-
-    if (response.error) {
-      error = response.error;
-      loadingResults = false;
-      return;
-    }
-
-    studyResults = response.data;
-    loadingResults = false;
-
-    // Initialize results map
-    setTimeout(() => {
-      if (studyResults?.study_data) {
-        initResultsMap(studyResults.study_data);
-      }
-    }, 100);
+  function viewStudyResults(study: any) {
+    goto(`/archive/finder/${finderId}/study/${study.study_name}/${study.id}`);
   }
 
   function formatDate(dateStr: string) {
@@ -288,99 +203,82 @@
   }
 </script>
 
-<div class="w-full h-full overflow-y-auto">
-  <div class="max-w-7xl mx-auto p-4 sm:p-8 space-y-6">
-    {#if loading}
-      <LoadingSpinner message="Loading imagery finder..." />
-    {:else if error && !finder}
-      <div class="card p-8">
-        <EmptyState icon="⚠️" title="Error Loading Finder" description={error}>
-          {#snippet action()}
-            <a
-              href="/dashboard"
-              class="btn variant-soft-primary"
-            >
-              Back to Dashboard
-            </a>
-          {/snippet}
-        </EmptyState>
+{#if loading}
+  <div class="w-full h-full flex items-center justify-center">
+    <LoadingSpinner message="Loading imagery finder..." />
+  </div>
+{:else if error && !finder}
+  <div class="w-full h-full p-6">
+    <SectionPanel>
+      <div class="text-center py-12">
+        <div class="text-6xl mb-4 opacity-30">⚠️</div>
+        <h2 class="text-xl font-bold mb-2">Error Loading Finder</h2>
+        <p class="text-surface-400 mb-6">{error}</p>
+        <a href="/archive" class="btn variant-soft-primary">
+          Back to Archive
+        </a>
       </div>
-    {:else if finder}
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div class="flex items-start gap-4">
-          <a
-            href="/dashboard"
-            class="btn btn-sm variant-ghost-surface"
-            aria-label="Back to Dashboard"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </a>
-          <div>
-            <div class="flex items-center gap-3 mb-2">
-              <h1 class="text-3xl font-bold">{finder.name}</h1>
-              <StatusBadge status={finder.is_active ? "ACTIVE" : "INACTIVE"} />
-            </div>
-            <p class="text-surface-600-300-token">
-              {formatDate(finder.start_date)} - {formatDate(finder.end_date)}
-            </p>
+    </SectionPanel>
+  </div>
+{:else if finder}
+  <div class="w-full h-full overflow-y-auto p-6 space-y-4">
+    
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-sm mb-2">
+      <a href="/dashboard" class="text-surface-400 hover:text-surface-200 transition-smooth">
+        Dashboard
+      </a>
+      <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <a href="/areas-of-interest" class="text-surface-400 hover:text-surface-200 transition-smooth">
+        Areas of Interest
+      </a>
+      {#if finder?.location?.id}
+        <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <a href="/areas-of-interest/{finder.location.id}" class="text-surface-400 hover:text-surface-200 transition-smooth">
+          {finder.location.name || `Location #${finder.location.id}`}
+        </a>
+      {/if}
+      <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-surface-200 font-medium">{finder?.name || 'Finder'}</span>
+    </nav>
+    
+    <!-- Finder Details with Map -->
+    <SectionPanel>
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex-1 min-w-0">
+          <h1 class="text-xl font-bold mb-2 truncate">{finder.name}</h1>
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <StatusBadge status={finder.is_active ? "ACTIVE" : "INACTIVE"} />
+            <span class="text-surface-400">•</span>
+            <span class="text-surface-400">{formatDate(finder.start_date)} - {formatDate(finder.end_date)}</span>
+            <span class="text-surface-400">•</span>
+            <span class="text-surface-400">{finder?.geometry?.type || finder?.location?.geometry?.type || 'Unknown'}</span>
           </div>
         </div>
 
         <button
-          onclick={() => handleExecuteStudy("archive_lookup")}
+          onclick={handleExecuteStudy}
           disabled={executing}
-          class="btn variant-filled-primary"
+          class="btn variant-filled-primary btn-sm shrink-0 ml-4"
         >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>{executing ? "Executing..." : "Execute Study"}</span>
+          <span>{executing ? "Executing..." : "Execute"}</span>
         </button>
       </div>
 
       {#if error}
-        <aside class="alert variant-filled-error">
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+        <aside class="alert variant-filled-error mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div class="alert-message">
             <p>{error}</p>
@@ -388,317 +286,141 @@
         </aside>
       {/if}
 
-      <!-- Tabs -->
-      <div class="card p-1">
-        <div class="flex gap-2">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Left: Parameters -->
+        <div class="space-y-3">
+          {#if finder.rules && Object.keys(finder.rules).length > 0}
+            <div>
+              <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">Search Parameters</h3>
+              <div class="flex flex-wrap gap-2">
+                {#each Object.entries(JSON.parse(finder.rules)) as [key, value]}
+                  {#if value !== null}
+                    <span class="badge variant-soft-surface text-xs">
+                      <span class="text-primary-400">{key}:</span>
+                      <span class="ml-1">{value}</span>
+                    </span>
+                  {/if}
+                {/each}
+              </div>
+            </div>
+          {/if}
+          
+          <div>
+            <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">Summary</h3>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span class="text-surface-500">Studies:</span>
+                <span class="font-medium ml-1">{finder.studies?.length || 0}</span>
+              </div>
+              <div>
+                <span class="text-surface-500">ID:</span>
+                <span class="font-medium ml-1">{finder.id}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Map -->
+        <div>
+          <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">Area of Interest</h3>
+          <div class="aoi-map-container" bind:this={mapElement}></div>
+        </div>
+      </div>
+    </SectionPanel>
+
+    <!-- Study Runs Table -->
+    <SectionPanel>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">Study Runs</h2>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-surface-500">
+            {finder.studies?.length || 0} total
+          </span>
           <button
-            onclick={() => (activeTab = "overview")}
-            class="btn flex-1 {activeTab === 'overview'
-              ? 'variant-filled-primary'
-              : 'variant-ghost-surface'}"
+            onclick={loadFinder}
+            disabled={loading}
+            class="btn btn-sm variant-soft-surface"
+            title="Refresh study runs"
           >
-            Overview
-          </button>
-          <button
-            onclick={() => (activeTab = "studies")}
-            class="btn flex-1 {activeTab === 'studies'
-              ? 'variant-filled-primary'
-              : 'variant-ghost-surface'}"
-          >
-            Studies ({finder.studies?.length || 0})
-          </button>
-          <button
-            onclick={() => (activeTab = "results")}
-            class="btn flex-1 {activeTab === 'results'
-              ? 'variant-filled-primary'
-              : 'variant-ghost-surface'}"
-          >
-            Results
+            <svg class="w-4 h-4 {loading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      <!-- Overview Tab -->
-      {#if activeTab === "overview"}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="card p-6 space-y-4">
-            <h2 class="text-2xl font-bold">Details</h2>
-
-            <div class="space-y-3">
-              <div>
-                <p class="text-sm text-surface-600-300-token">Geometry Type</p>
-                <p class="font-medium">{finder.geometry.type}</p>
-              </div>
-
-              <div>
-                <p class="text-sm text-surface-600-300-token">Date Range</p>
-                <p class="font-medium">
-                  {formatDate(finder.start_date)} - {formatDate(
-                    finder.end_date
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p class="text-sm text-surface-600-300-token">Status</p>
-                <StatusBadge
-                  status={finder.is_active ? "ACTIVE" : "INACTIVE"}
-                />
-              </div>
-
-              {#if finder.rules && Object.keys(finder.rules).length > 0}
-                <div>
-                  <p class="text-sm text-surface-600-300-token mb-2">
-                    Search Rules
-                  </p>
-                  <div
-                    class="p-3 bg-surface-100-800-token rounded-lg space-y-1 text-sm"
-                  >
-                    {#each Object.entries(JSON.parse(finder.rules)) as [key, value]}
-                      {#if value !== null}
-                        <p><span class="font-medium">{key}:</span> {value}</p>
-                      {/if}
-                    {/each}
-                  </div>
-                </div>
-              {/if}
-            </div>
-          </div>
-
-          <div class="card p-6 space-y-4">
-            <h2 class="text-2xl font-bold">Area of Interest</h2>
-            <div class="map-container" bind:this={mapElement}></div>
-          </div>
-        </div>
-
-        <!-- Study Options -->
-        {#if finder.study_options && finder.study_options.length > 0}
-          <div class="card p-6">
-            <h2 class="text-2xl font-bold mb-4">Available Studies</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {#each finder.study_options as option}
-                <div class="p-4 bg-surface-100-800-token rounded-lg">
-                  <p class="font-semibold">{option.study_name}</p>
-                  <button
-                    onclick={() => handleExecuteStudy(option.study_name)}
-                    disabled={executing}
-                    class="btn btn-sm variant-soft-primary mt-2"
-                  >
-                    Execute
-                  </button>
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/if}
-      {/if}
-
-      <!-- Studies Tab -->
-      {#if activeTab === "studies"}
-        <div class="card p-6">
-          <h2 class="text-2xl font-bold mb-6">Studies</h2>
-
-          {#if finder.studies && finder.studies.length > 0}
-            <div class="space-y-3">
+      {#if finder.studies && finder.studies.length > 0}
+        <div class="overflow-x-auto">
+          <table class="table table-compact table-hover w-full">
+            <thead>
+              <tr>
+                <th class="w-28">Status</th>
+                <th>Study Name</th>
+                <th class="w-40">Created</th>
+                <th class="w-40">Time Span</th>
+                <th class="w-24 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {#each finder.studies as study}
-                <div
-                  class="p-4 rounded-lg hover:bg-surface-200-700-token transition-smooth"
+                <tr 
+                  class="hover:bg-surface-800/50 transition-smooth cursor-pointer" 
+                  onclick={() => study.status === "COMPLETED" && viewStudyResults(study)}
                 >
-                  <div
-                    class="flex items-center justify-between gap-4 flex-wrap"
-                  >
-                    <div class="flex-1">
-                      <div class="flex items-center gap-3 mb-2">
-                        <StatusBadge status={study.status} />
-                        <span class="font-semibold">{study.study_name}</span>
-                      </div>
-                      <p class="text-sm text-surface-600-300-token">
-                        Created: {formatDateTime(study.created)}
-                      </p>
-                    </div>
-                    <button
-                      onclick={() => viewStudyResults(study)}
-                      class="btn btn-sm variant-soft-primary"
-                      disabled={study.status !== "COMPLETED"}
-                    >
-                      {study.status === "COMPLETED"
-                        ? "View Results"
-                        : "Pending"}
-                    </button>
-                  </div>
-                </div>
+                  <td>
+                    <StatusBadge status={study.status} />
+                  </td>
+                  <td class="font-medium">{study.study_name}</td>
+                  <td class="text-sm text-surface-400">{formatDateTime(study.created)}</td>
+                  <td class="text-sm text-surface-400">
+                    {formatDate(finder.start_date)} - {formatDate(finder.end_date)}
+                  </td>
+                  <td class="text-right">
+                    {#if study.status === "COMPLETED"}
+                      <button
+                        onclick={(e) => {
+                          e.stopPropagation();
+                          viewStudyResults(study);
+                        }}
+                        class="btn btn-sm variant-soft-primary"
+                      >
+                        View
+                      </button>
+                    {:else}
+                      <span class="text-xs text-surface-500">Pending</span>
+                    {/if}
+                  </td>
+                </tr>
               {/each}
-            </div>
-          {:else}
-            <EmptyState
-              icon="📊"
-              title="No Studies Yet"
-              description="Execute a study to search for satellite imagery in this area"
-            >
-              {#snippet action()}
-                <button
-                  onclick={() => handleExecuteStudy("archive_lookup")}
-                  disabled={executing}
-                  class="btn variant-filled-primary"
-                >
-                  Execute Imagery Study
-                </button>
-              {/snippet}
-            </EmptyState>
-          {/if}
+            </tbody>
+          </table>
+        </div>
+      {:else}
+        <div class="text-center py-12">
+          <div class="text-4xl mb-2 opacity-20">📊</div>
+          <h3 class="text-base font-semibold mb-1">No study runs yet</h3>
+          <p class="text-sm text-surface-400 mb-4">Execute a study to start searching for satellite imagery</p>
+          <button
+            onclick={handleExecuteStudy}
+            disabled={executing}
+            class="btn variant-filled-primary btn-sm"
+          >
+            Execute Study
+          </button>
         </div>
       {/if}
-
-      <!-- Results Tab -->
-      {#if activeTab === "results"}
-        {#if loadingResults}
-          <LoadingSpinner message="Loading results..." />
-        {:else if studyResults}
-          <div class="space-y-6">
-            <!-- Results Map -->
-            <div class="card p-6">
-              <h2 class="text-2xl font-bold mb-4">Results Map</h2>
-              <div
-                class="results-map-container"
-                bind:this={resultsMapElement}
-              ></div>
-              <p class="text-sm text-surface-600-300-token mt-4">
-                <span
-                  class="inline-block w-4 h-4 bg-blue-500/20 border-2 border-blue-500 mr-2"
-                ></span>
-                Search Area
-                <span
-                  class="inline-block w-4 h-4 bg-green-500/20 border-2 border-green-500 mr-2 ml-4"
-                ></span>
-                Imagery Results
-              </p>
-            </div>
-
-            <!-- Results List -->
-            <div class="card p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-bold">
-                Imagery Results ({studyResults.study_data?.results?.length ||
-                  0})
-              </h2>
-                <div class="btn-group">
-                  <button
-                    type="button"
-                    class={`btn btn-sm ${resultsView === 'grid' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-                    onclick={() => (resultsView = 'grid')}
-                  >
-                    Grid
-                  </button>
-                  <button
-                    type="button"
-                    class={`btn btn-sm ${resultsView === 'table' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-                    onclick={() => (resultsView = 'table')}
-                  >
-                    Table
-                  </button>
-                </div>
-              </div>
-
-              {#if studyResults.study_data?.results && studyResults.study_data.results.length > 0}
-                {#if resultsView === 'grid'}
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                >
-                  {#each studyResults.study_data.results as result}
-                    <div class="card p-4 hover-lift">
-                      {#if result.thumbnail}
-                        <img
-                          src={result.thumbnail}
-                          alt={result.collection}
-                          class="w-full h-40 object-cover rounded-lg mb-3"
-                        />
-                      {/if}
-                      <h3 class="font-semibold mb-2">{result.collection}</h3>
-                      <div class="space-y-1 text-sm text-surface-600-300-token">
-                        <p>
-                          Sensor: {result.sensor.name ||
-                            result.sensor.technique}
-                        </p>
-                        <p>Date: {formatDate(result.start_date)}</p>
-                        <p>Type: {result.geometry.type}</p>
-                      </div>
-                    </div>
-                  {/each}
-                </div>
-                {:else}
-                  <div class="overflow-x-auto">
-                    <table class="table">
-                      <thead>
-                        <tr>
-                          <th>Collection</th>
-                          <th>Sensor</th>
-                          <th>Technique</th>
-                          <th>Start Date</th>
-                          <th>End Date</th>
-                          <th>Geometry</th>
-                          <th>Provider</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {#each studyResults.study_data.results as result}
-                          <tr>
-                            <td class="font-semibold">{result.collection}</td>
-                            <td>{result.sensor.name || '—'}</td>
-                            <td>{result.sensor.technique || '—'}</td>
-                            <td>{formatDate(result.start_date)}</td>
-                            <td>{formatDate(result.end_date)}</td>
-                            <td>{result.geometry.type}</td>
-                            <td>{result.provider || '—'}</td>
-                          </tr>
-                        {/each}
-                      </tbody>
-                    </table>
-                  </div>
-                {/if}
-              {:else}
-                <EmptyState
-                  icon="🔍"
-                  title="No Results Found"
-                  description="No imagery was found matching your search criteria"
-                />
-              {/if}
-            </div>
-          </div>
-        {:else if !selectedStudy}
-          <div class="card p-6">
-            <EmptyState
-              icon="📊"
-              title="Select a Study"
-              description="Go to the Studies tab and select a completed study to view results"
-            >
-              {#snippet action()}
-                <button
-                  onclick={() => (activeTab = "studies")}
-                  class="btn variant-soft-primary"
-                >
-                  View Studies
-                </button>
-              {/snippet}
-            </EmptyState>
-          </div>
-        {/if}
-      {/if}
-    {/if}
+    </SectionPanel>
   </div>
-</div>
+{/if}
 
 <style>
-  .map-container {
-    height: 400px;
+  .aoi-map-container {
+    height: 200px;
     width: 100%;
     border-radius: 0.5rem;
     overflow: hidden;
-  }
-
-  .results-map-container {
-    height: 500px;
-    width: 100%;
-    border-radius: 0.5rem;
-    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 </style>

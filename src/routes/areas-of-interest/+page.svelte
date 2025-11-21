@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { createImagery, getImagery } from "$lib/api/augur";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
 import GeometryEditor from "$lib/components/shared/GeometryEditor.svelte";
 import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
@@ -25,13 +24,22 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
   async function loadGeometries() {
     loading = true;
     error = null;
-    const response = await getImagery();
-    if (response.error) {
-      error = response.error;
+    
+    try {
+      const response = await fetch('/api/imagery');
+      
+      if (!response.ok) {
+        error = `Failed to load geometries: ${response.statusText}`;
+        geometries = [];
+      } else {
+        const data = await response.json();
+        geometries = data.results || [];
+      }
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to load geometries';
       geometries = [];
-    } else {
-      geometries = (response.data as StoredGeometry[]) ?? [];
     }
+    
     loading = false;
   }
 
@@ -48,20 +56,36 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
     saving = true;
     error = null;
     success = null;
+    
     const payload = {
       name: geometryName.trim(),
       geometry: JSON.stringify(normalized),
     };
-    const response = await createImagery(payload.geometry, payload.name);
-    saving = false;
-    if (response.error) {
-      error = response.error;
-      return;
+    
+    try {
+      const response = await fetch('/api/imagery/create', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      saving = false;
+      
+      if (!response.ok) {
+        error = `Failed to save: ${response.statusText}`;
+        return;
+      }
+      
+      geometryName = "";
+      geometryDraft = null;
+      success = "Saved area of interest for reuse.";
+      await loadGeometries();
+    } catch (err) {
+      saving = false;
+      error = err instanceof Error ? err.message : 'Failed to save';
     }
-    geometryName = "";
-    geometryDraft = null;
-    success = "Saved area of interest for reuse.";
-    await loadGeometries();
   }
 
   function handleGeometryChange(event: CustomEvent<{ geometry: GeoJSONGeometry }>) {

@@ -1,12 +1,17 @@
 import { env } from "$env/dynamic/private";
 import { json, type RequestHandler } from "@sveltejs/kit";
 
-const FALLBACK_HOST = "http://localhost:8000";
-
 export const POST: RequestHandler = async ({ request }) => {
-	const host = env.LUNA_AUGUR_HOST ?? FALLBACK_HOST;
+	if (!env.LUNA_AUGUR_HOST) {
+		console.error("[api/archive/finder_create] LUNA_AUGUR_HOST environment variable is not set");
+		return json(
+			{ error: "Server configuration error: LUNA_AUGUR_HOST not configured" },
+			{ status: 500 }
+		);
+	}
+	
 	const requestData = await request.json();
-	const url = `${host}/api/imagery/finder/create`;
+	const url = `${env.LUNA_AUGUR_HOST}/api/imagery/finder/create`;
 
 	try {
 	const response = await fetch(url, {
@@ -30,7 +35,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 	const data = await response.json();
-	return json({ finder: data });
+	return json({ result: data });
 	} catch (error) {
 		console.error("[api/archive/finder_create] request failed", error);
 		return json(

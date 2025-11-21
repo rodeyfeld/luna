@@ -3,8 +3,6 @@
     import { goto } from '$app/navigation';
     import { get } from 'svelte/store';
     import { page } from '$app/stores';
-    import { createImageryFinder, executeStudy, getImagery, getProviders } from '$lib/api/augur';
-    import type { CreateImageryFinderRequest } from '$lib/api/augur';
     import SectionPanel from '$lib/components/shared/SectionPanel.svelte';
     import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
     import { normalizeGeometry, type GeoJSONGeometry } from '$lib/utils/geometry';
@@ -41,36 +39,107 @@
             selectedGeometryId = geometryParam;
         }
 
+        // Check if we're duplicating/referencing an existing finder
+        const fromParam = get(page).url.searchParams.get('from');
+        if (fromParam) {
+            await loadExistingFinder(fromParam);
+        }
+
         await Promise.all([loadSavedGeometries(), loadProviders()]);
 
         return () => {};
     });
 
-    async function loadSavedGeometries() {
-        savedLoading = true;
-        const response = await getImagery();
-        if (!response.error) {
-            savedGeometries = (response.data as any[]) ?? [];
-            if (selectedGeometryId && !savedGeometries.find((item) => String(item.id) === String(selectedGeometryId))) {
-                selectedGeometryId = '';
-            }
-            // Set default name based on selected geometry
-            if (selectedGeometryId) {
-                const selected = savedGeometries.find((item) => String(item.id) === String(selectedGeometryId));
-                if (selected && !name) {
-                    name = `${selected.name} - ${new Date().toLocaleString()}`;
+    async function loadExistingFinder(finderId: string) {
+        try {
+            const response = await fetch(`/api/archive/finder_data/${finderId}`);
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            const finder = data.result;
+            
+            if (finder) {
+                // Pre-populate form with existing finder's data
+                name = `${finder.name} (Copy)`;
+                
+                // Convert ISO date strings to input date format (YYYY-MM-DD)
+                if (finder.start_date) {
+                    startDate = new Date(finder.start_date).toISOString().split('T')[0];
+                }
+                if (finder.end_date) {
+                    endDate = new Date(finder.end_date).toISOString().split('T')[0];
+                }
+                
+                // Load advanced rules if they exist
+                if (finder.rules) {
+                    try {
+                        const rules = JSON.parse(finder.rules);
+                        if (rules.cloud_coverage !== undefined) {
+                            cloudCoverage = rules.cloud_coverage;
+                            showAdvanced = true;
+                        }
+                        if (rules.eo_resolution_max !== undefined) {
+                            eoResolutionMax = rules.eo_resolution_max;
+                            showAdvanced = true;
+                        }
+                        if (rules.eo_resolution_min !== undefined) {
+                            eoResolutionMin = rules.eo_resolution_min;
+                            showAdvanced = true;
+                        }
+                        if (rules.sar_resolution_max !== undefined) {
+                            sarResolutionMax = rules.sar_resolution_max;
+                            showAdvanced = true;
+                        }
+                        if (rules.sar_resolution_min !== undefined) {
+                            sarResolutionMin = rules.sar_resolution_min;
+                            showAdvanced = true;
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse finder rules:', e);
+                    }
                 }
             }
+        } catch (e) {
+            console.error('Failed to load existing finder:', e);
+        }
+    }
+
+    async function loadSavedGeometries() {
+        savedLoading = true;
+        try {
+            const response = await fetch('/api/imagery');
+            
+            if (response.ok) {
+                const data = await response.json();
+                savedGeometries = data.results || [];
+                if (selectedGeometryId && !savedGeometries.find((item) => String(item.id) === String(selectedGeometryId))) {
+                    selectedGeometryId = '';
+                }
+                // Set default name based on selected geometry
+                if (selectedGeometryId) {
+                    const selected = savedGeometries.find((item) => String(item.id) === String(selectedGeometryId));
+                    if (selected && !name) {
+                        name = `${selected.name} - ${new Date().toLocaleString()}`;
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load geometries:', err);
         }
         savedLoading = false;
     }
 
     async function loadProviders() {
-        const response = await getProviders();
-        if (!response.error && response.data) {
-            providers = Array.isArray(response.data) ? response.data : [];
-            // Select all providers by default
-            selectedProviders = new Set(providers.map((p) => p.id || p.name));
+        try {
+            const response = await fetch('/api/providers');
+            if (response.ok) {
+                const data = await response.json();
+                providers = data.results || [];
+                // Select all providers by default
+                selectedProviders = new Set(providers.map((p) => p.id || p.name));
+            }
+        } catch (err) {
+            console.error('Failed to load providers:', err);
         }
     }
 
@@ -113,7 +182,7 @@
         creating = true;
         error = null;
 
-        const request: CreateImageryFinderRequest = {
+        const request = {
             name: name.trim(),
             start_date: new Date(startDate).toISOString(),
             end_date: new Date(endDate).toISOString(),
@@ -128,20 +197,33 @@
             }
         };
 
-        const response = await createImageryFinder(request);
+        try {
+            const response = await fetch('/api/archive/finder_create', {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify(request),
+            });
 
-        if (response.error) {
-            error = `Unable to create imagery finder: ${response.error}. Please ensure the Augur backend is running.`;
             creating = false;
-            return;
-        }
 
-        creating = false;
+            if (!response.ok) {
+                error = `Unable to create imagery finder: ${response.statusText}. Please ensure the Augur backend is running.`;
+                return;
+            }
 
-        if (autoExecute && response.data) {
-            await handleExecuteStudy(response.data.imagery_finder_id);
-        } else if (response.data) {
-            goto(`/archive/finder/${response.data.imagery_finder_id}`);
+            const data = await response.json();
+            const finderId = data.result?.imagery_finder_id;
+
+            if (autoExecute && finderId) {
+                await handleExecuteStudy(finderId);
+            } else if (finderId) {
+                goto(`/archive/finder/${finderId}`);
+            }
+        } catch (err) {
+            creating = false;
+            error = err instanceof Error ? err.message : 'Failed to create finder';
         }
     }
 
@@ -149,17 +231,30 @@
         executing = true;
         error = null;
 
-        const response = await executeStudy(finderId, 'archive_lookup');
+        try {
+            const response = await fetch('/api/archive/finder_execute', {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    imagery_finder_id: finderId,
+                    study_name: 'archive_lookup',
+                }),
+            });
 
-        executing = false;
+            executing = false;
 
-        if (response.error) {
-            error = response.error;
+            if (!response.ok) {
+                error = `Failed to execute study: ${response.statusText}`;
+            }
+
             goto(`/archive/finder/${finderId}`);
-            return;
+        } catch (err) {
+            executing = false;
+            error = err instanceof Error ? err.message : 'Failed to execute study';
+            goto(`/archive/finder/${finderId}`);
         }
-
-        goto(`/archive/finder/${finderId}`);
     }
 
     function hasFilterValue(value: number | null): value is number {

@@ -1,6 +1,5 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import CreateFinder from '$lib/components/Archive/SideBar/CreateFinder.svelte';
     import ListFinders from '$lib/components/Archive/SideBar/ListFinders.svelte';
 
     interface Props {
@@ -9,33 +8,42 @@
     }
 
     let { slug, finders }: Props = $props();
+    
+    const isCreatePage = $derived($page.url.pathname.includes('create'));
+    const currentFinderId = $derived($page.params.slug);
+    
+    // Build create URL with current finder ID if on a finder detail page
+    const createUrl = $derived(() => {
+        if (currentFinderId && $page.url.pathname.includes('finder')) {
+            return `/archive/create?from=${currentFinderId}`;
+        }
+        return '/archive/create';
+    });
 </script>
 
-<div class="grid-rows-2 animate-fadeIn">
-    <div class="p-4">
-        <div class="flex justify-around gap-2">
-            <a 
-                href="/archive/create"
-                class="btn flex-1 transition-smooth hover:scale-105 {$page.url.pathname.includes('create') ? 'variant-filled-primary' : 'variant-soft'}"
-            >
-                CREATE
-            </a>
-            <a 
-                href="/archive/finder"
-                class="btn flex-1 transition-smooth hover:scale-105 {$page.url.pathname.includes('finder') ? 'variant-filled-primary' : 'variant-soft'}"
-            >
-                VIEW
-            </a>
-        </div>
+<div class="h-full flex flex-col">
+    <!-- Header with Create Button -->
+    <div class="p-4 border-b border-surface-700/50">
+        <a 
+            href={createUrl()}
+            class="btn variant-filled-primary w-full"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>New Finder</span>
+        </a>
     </div>
-    <div class="p-4">
-        {#if slug.includes('create')}
-            <form method="POST" action="create?/submit">
-                <CreateFinder></CreateFinder>
-            </form>
-        {:else if slug.includes('finder')}
-            <ListFinders finders={finders}></ListFinders>
+    
+    <!-- Finders List -->
+    <div class="flex-1 overflow-y-auto p-4">
+        {#if isCreatePage}
+            <div class="text-center py-8">
+                <div class="text-4xl mb-3 opacity-20">✨</div>
+                <p class="text-sm text-surface-400">Creating new imagery finder</p>
+            </div>
+        {:else}
+            <ListFinders finders={finders} />
         {/if}
     </div>
 </div>
-

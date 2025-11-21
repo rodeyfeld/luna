@@ -1,11 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { env } from "$env/dynamic/public";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
 
   const pinwheel = "/pinwheel.svg";
-  const apiDocsUrl =
-    (env.PUBLIC_AUGUR_URL || "http://localhost:8000") + "/api/docs";
 
   const features = [
     {
@@ -229,13 +226,11 @@
       >
         Go to Dashboard
       </button>
-      <a
-        href={apiDocsUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        onclick={() => goto("/areas-of-interest")}
         class="btn variant-soft text-lg px-8 py-4 hover:scale-105 transition-smooth bg-white/10 text-white hover:bg-white/20"
       >
-        <span>View API Docs</span>
+        <span>Browse Areas</span>
         <svg
           class="w-5 h-5"
           fill="none"
@@ -246,10 +241,10 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
           />
         </svg>
-      </a>
+      </button>
     </div>
   </div>
 </SectionPanel>

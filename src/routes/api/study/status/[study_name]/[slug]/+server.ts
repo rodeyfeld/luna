@@ -1,9 +1,39 @@
 import { env } from "$env/dynamic/private";
 import { json, type RequestHandler } from "@sveltejs/kit";
 
-export const GET: RequestHandler = async ({ request, params }) => {
-	const url = `${env.LUNA_AUGUR_HOST}/api/archive/study/${params.study_name}/${params.slug}/status`;
-	const response = await fetch(url);
-	const data = await response.json();
-	return json({ results: data });
+export const GET: RequestHandler = async ({ params }) => {
+	if (!env.LUNA_AUGUR_HOST) {
+		console.error("[api/study/status] LUNA_AUGUR_HOST environment variable is not set");
+		return json(
+			{ error: "Server configuration error: LUNA_AUGUR_HOST not configured" },
+			{ status: 500 }
+		);
+	}
+	
+	const url = `${env.LUNA_AUGUR_HOST}/api/imagery/study/${params.study_name}/${params.slug}/status`;
+
+	try {
+		const response = await fetch(url);
+
+		if (!response.ok) {
+			const errorBody = await response.text().catch(() => "");
+			console.error("[api/study/status] upstream error", response.status, errorBody);
+			return json(
+				{
+					error: `Upstream responded with ${response.status}`,
+					details: errorBody?.slice(0, 500),
+				},
+				{ status: 502 }
+			);
+		}
+
+		const data = await response.json();
+		return json({ result: data });
+	} catch (error) {
+		console.error("[api/study/status] request failed", error);
+		return json(
+			{ error: "Unable to reach Augur backend." },
+			{ status: 502 }
+		);
+	}
 };

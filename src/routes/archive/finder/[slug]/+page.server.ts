@@ -1,7 +1,6 @@
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params }) => {
-	return {
-		finderId: params.slug,
-		};
+export const load: PageServerLoad = async ({ parent }) => {
+	const parentData = await parent();
+	return parentData;
 };

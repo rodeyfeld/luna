@@ -12,6 +12,7 @@
   let { data }: Props = $props();
 
   const geometryRecord = (data.geometry ?? null) as StoredGeometry | null;
+  const finders = (data.finders ?? []) as any[];
   const loadError = data.error as string | null;
 
   function parseGeometry(rawGeometry: StoredGeometry["geometry"]): GeoJSONGeometry | null {
@@ -128,6 +129,46 @@
         </div>
       </div>
     </SectionPanel>
+
+    {#if finders.length > 0}
+    <SectionPanel className="space-y-5">
+      <div>
+        <h2 class="text-2xl font-bold mb-4">Imagery Finders Using This AOI</h2>
+        <p class="text-sm text-surface-500 mb-4">
+          Archive searches that have been run on this area of interest
+        </p>
+        <div class="space-y-3">
+          {#each finders as finder}
+            <a
+              href={`/archive/finder/${finder.id}`}
+              class="tile hover-lift flex items-center justify-between"
+            >
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="badge {finder.is_active ? 'variant-filled-success' : 'variant-soft-surface'}">
+                    {finder.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  <h3 class="font-semibold text-lg">{finder.name}</h3>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-surface-500">
+                  <span>
+                    {formatDate(finder.start_date)} - {formatDate(finder.end_date)}
+                  </span>
+                  {#if finder.studies && finder.studies.length > 0}
+                    <span>•</span>
+                    <span>{finder.studies.length} {finder.studies.length === 1 ? 'study' : 'studies'}</span>
+                  {/if}
+                </div>
+              </div>
+              <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          {/each}
+        </div>
+      </div>
+    </SectionPanel>
+    {/if}
 
     <SectionPanel className="space-y-5">
       <div class="flex items-center justify-between">

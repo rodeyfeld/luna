@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { getProviders, getProviderIntegrations } from "$lib/api/augur";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import EmptyState from "$lib/components/shared/EmptyState.svelte";
   import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
@@ -19,19 +18,25 @@
     loading = true;
     error = null;
 
-    const [providersResponse, integrationsResponse] = await Promise.all([
-      getProviders(),
-      getProviderIntegrations(),
-    ]);
+    try {
+      const [providersResponse, integrationsResponse] = await Promise.all([
+        fetch('/api/providers'),
+        fetch('/api/providers/integrations'),
+      ]);
 
-    if (providersResponse.error) {
-      error = providersResponse.error;
-    } else {
-      providers = (providersResponse.data as any[]) || [];
-    }
+      if (!providersResponse.ok) {
+        error = `Failed to load providers: ${providersResponse.statusText}`;
+      } else {
+        const providersData = await providersResponse.json();
+        providers = providersData.results || [];
+      }
 
-    if (!integrationsResponse.error) {
-      integrations = (integrationsResponse.data as any[]) || [];
+      if (integrationsResponse.ok) {
+        const integrationsData = await integrationsResponse.json();
+        integrations = integrationsData.results || [];
+      }
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to load data';
     }
 
     loading = false;
@@ -67,7 +72,7 @@
         <EmptyState
           icon="🔌"
           title="Unable to Connect to API"
-          description={`${error}. Make sure the Augur backend is running at ${import.meta.env.PUBLIC_AUGUR_URL || "http://localhost:8000"}`}
+          description={`${error}. Make sure the Augur backend is running.`}
         >
           {#snippet action()}
             <button onclick={loadData} class="btn variant-soft-primary">

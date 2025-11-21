@@ -3,6 +3,7 @@
     let { finderData } = $props();
 </script>
 
+{#if finderData}
 <label>    
     <span>Name</span>
     <input class="input" name="nane" title="Start Date" value={finderData.name} disabled />
@@ -16,3 +17,8 @@
     <input class="input" name="startDate" title="End Date" value={finderData.end_date} disabled />
 </label>
 <Map finderData={finderData}></Map>
+{:else}
+<div class="p-4 text-sm text-surface-500">
+    Loading finder data...
+</div>
+{/if}

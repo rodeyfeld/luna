@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { getImageryFinders } from "$lib/api/augur";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import StatCard from "$lib/components/shared/StatCard.svelte";
@@ -20,37 +19,37 @@
     error = null;
 
     try {
-      // Fetch imagery finders
-      const findersResponse = await getImageryFinders();
-      if (findersResponse.error) {
-        error = findersResponse.error;
-      } else if (findersResponse.data) {
-        const finders = findersResponse.data as any[];
-        imageryFinders = finders;
-
-        // Extract all studies from finders
-        const allStudies: any[] = [];
-        finders.forEach((finder: any) => {
-          if (finder.studies && finder.studies.length > 0) {
-            finder.studies.forEach((study: any) => {
-              allStudies.push({
-                ...study,
-                imagery_finder_id: finder.id,
-                imagery_finder_name: finder.name,
-              });
-            });
-          }
-        });
-
-        // Sort by created date (most recent first)
-        recentStudies = allStudies.sort(
-          (a, b) =>
-            new Date(b.created).getTime() - new Date(a.created).getTime()
-        );
+      // Fetch imagery finders via proxy
+      const response = await fetch('/api/archive');
+      if (!response.ok) {
+        error = `Failed to load finders: ${response.statusText}`;
+        loading = false;
+        return;
       }
+      
+      const data = await response.json();
+      const finders = data.results || [];
+      imageryFinders = finders;
 
-      // Optionally also fetch dream details for more comprehensive status
-      // const dreamsResponse = await getDreamDetails();
+      // Extract all studies from finders
+      const allStudies: any[] = [];
+      finders.forEach((finder: any) => {
+        if (finder.studies && finder.studies.length > 0) {
+          finder.studies.forEach((study: any) => {
+            allStudies.push({
+              ...study,
+              imagery_finder_id: finder.id,
+              imagery_finder_name: finder.name,
+            });
+          });
+        }
+      });
+
+      // Sort by created date (most recent first)
+      recentStudies = allStudies.sort(
+        (a, b) =>
+          new Date(b.created).getTime() - new Date(a.created).getTime()
+      );
     } catch (err) {
       error = err instanceof Error ? err.message : "Failed to load data";
     } finally {
@@ -328,7 +327,7 @@
                 </svg>
                 <span>{finder.studies?.length || 0} studies</span>
                 <span class="mx-2">•</span>
-                <span>{finder.geometry.type}</span>
+                <span>{finder.location?.geometry?.type || 'Unknown'}</span>
               </div>
             </button>
           {/each}
