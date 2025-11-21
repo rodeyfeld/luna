@@ -2,8 +2,7 @@ import { error } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 import type { StoredGeometry } from "$lib/types/imagery";
 
-interface ImageryResponse {
-	result?: StoredGeometry | null;
+interface ImageryResponse extends StoredGeometry {
 	error?: string;
 }
 
@@ -27,7 +26,7 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
     };
   }
 
-		const match = (payload?.result ?? null) as StoredGeometry | null;
+		const match = (payload?.error ? null : payload) as StoredGeometry | null;
 
   if (!match) {
     return {
@@ -42,10 +41,11 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		try {
 			const findersResponse = await fetch('/api/archive');
 			if (findersResponse.ok) {
-				const findersData = await findersResponse.json();
-				const allFinders = findersData.results || [];
+				const allFinders = await findersResponse.json();
 				// Filter finders that use this location_id
-				finders = allFinders.filter((f: any) => f.location?.id === match.id);
+				finders = Array.isArray(allFinders) 
+					? allFinders.filter((f: any) => f.location?.id === match.id)
+					: [];
 			}
 		} catch (err) {
 			console.error("[areas-of-interest/:pk] failed to load finders", err);

@@ -2,17 +2,15 @@ import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ fetch }) => {
 	// Fetch imagery (areas of interest)
-	let response = await fetch('/api/imagery');
-	let data = await response.json();
-	const { results: images = [] } = data;
+	const imagesResponse = await fetch('/api/imagery');
+	const images = await imagesResponse.json();
 
 	// Fetch archive finders
-	response = await fetch('/api/archive');
-	data = await response.json();
-	const { results: finders = [] } = data;
+	const findersResponse = await fetch('/api/archive');
+	const finders = await findersResponse.json();
 
 	return {
-		finders: finders,
-		images: images
+		finders: Array.isArray(finders) ? finders : [],
+		images: Array.isArray(images) ? images : []
 	}
 };

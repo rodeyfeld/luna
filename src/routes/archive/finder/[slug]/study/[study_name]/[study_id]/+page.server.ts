@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ params, fetch, parent }) => {
 		
 		return {
 			finderData: parentData.finderData,
-			studyResults: data.result,
+			studyResults: data?.error ? null : data,
 			studyName: params.study_name,
 			studyId: params.study_id,
 			error: null,

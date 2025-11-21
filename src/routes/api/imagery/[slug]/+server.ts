@@ -1,7 +1,7 @@
 import { json, type RequestHandler } from "@sveltejs/kit";
 import { augurFetch } from "$lib/server/augur";
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ fetch, params }) => {
 	const geometryId = params.slug;
 
 	if (!geometryId) {
@@ -11,5 +11,5 @@ export const GET: RequestHandler = async ({ params }) => {
 		);
 	}
 
-	return augurFetch(`/api/core/location/id/${encodeURIComponent(geometryId)}`);
+	return augurFetch(fetch, `/api/core/location/id/${encodeURIComponent(geometryId)}`);
 };

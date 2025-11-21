@@ -6,6 +6,6 @@ export const load: LayoutServerLoad = async ({ params, fetch }) => {
 	
 	return {
 		finderId: params.slug,
-		finderData: data.result || null,
+		finderData: data?.error ? null : data,
 	};
 };

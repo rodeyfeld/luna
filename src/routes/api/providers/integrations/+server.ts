@@ -1,6 +1,6 @@
 import { type RequestHandler } from "@sveltejs/kit";
 import { augurFetch } from "$lib/server/augur";
 
-export const GET: RequestHandler = async () => {
-	return augurFetch("/api/providers/integrations");
+export const GET: RequestHandler = async ({ fetch }) => {
+	return augurFetch(fetch, "/api/providers/integrations");
 };
