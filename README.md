@@ -4,21 +4,22 @@ Satellite imagery search and analysis platform. https://luna.pinwheel.fan
 
 ## Running locally
 
-   ```bash
-   cp example.env .env
-   docker compose up
-   ```
+```bash
+cp example.env .env
+docker compose up
+```
 
 Opens at http://localhost:5173
 
 ## Deploying
 
 ```bash
-docker build --target prod -t edrodefeld/luna .
+docker build -t edrodefeld/luna .
 docker push edrodefeld/luna:latest
 ```
 
 Then in k8s:
+
 ```bash
 kubectl apply -f ../mirage/deployments/luna.yml
 kubectl rollout restart deployment/luna -n galaxy
@@ -27,8 +28,8 @@ kubectl rollout restart deployment/luna -n galaxy
 ## Config
 
 You need `LUNA_AUGUR_HOST` set to tell Luna where the API is:
+
 - Docker: `http://augur-service:8000`
-- Kubernetes: `http://augur-service.galaxy.svc.cluster.local:8000`
 
 ## What it does
 
