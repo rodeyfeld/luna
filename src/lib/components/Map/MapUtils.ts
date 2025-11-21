@@ -11,6 +11,84 @@ import { Draw, Modify } from 'ol/interaction.js';
 import { Polygon } from 'ol/geom';
 import type { Writable } from 'svelte/store';
 import Collection from 'ol/Collection'
+
+/**
+ * Create a simple map with a single geometry and auto-zoom to it
+ * @param htmlTarget - The HTML element ID to render the map
+ * @param geometry - GeoJSON geometry object
+ * @param options - Optional configuration
+ */
+export function createSimpleGeometryMap(
+    htmlTarget: string | HTMLElement,
+    geometry: any,
+    options?: {
+        fillColor?: string;
+        strokeColor?: string;
+        strokeWidth?: number;
+        padding?: number[];
+        duration?: number;
+    }
+): Map {
+    const vectorSource = new VectorSource();
+    const geoJSON = new GeoJSON();
+
+    // Parse and add geometry
+    if (geometry) {
+        try {
+            const feature = geoJSON.readFeature(geometry, {
+                dataProjection: 'EPSG:4326',
+                featureProjection: 'EPSG:4326',
+            });
+
+            feature.setStyle(new Style({
+                fill: new Fill({
+                    color: options?.fillColor || 'rgba(59, 130, 246, 0.2)',
+                }),
+                stroke: new Stroke({
+                    color: options?.strokeColor || 'rgba(59, 130, 246, 1)',
+                    width: options?.strokeWidth || 2,
+                }),
+            }));
+
+            vectorSource.addFeature(feature);
+        } catch (error) {
+            console.error('Failed to parse geometry:', error);
+        }
+    }
+
+    const vectorLayer = new VectorLayer({
+        source: vectorSource,
+    });
+
+    const map = new Map({
+        target: htmlTarget,
+        layers: [
+            new TileLayer({
+                source: new OSM(),
+            }),
+            vectorLayer,
+        ],
+        view: new View({
+            center: [0, 0],
+            zoom: 2,
+            projection: 'EPSG:4326',
+        }),
+    });
+
+    // Auto-zoom to geometry extent after map is fully sized
+    setTimeout(() => {
+        if (vectorSource.getFeatures().length > 0) {
+            map.updateSize(); // Ensure map knows its container size
+            const extent = vectorSource.getExtent();
+            map.getView().fit(extent, {
+                padding: options?.padding || [60, 60, 60, 60],
+                duration: options?.duration || 500,
+            });
+        }
+    }, 150);
+
+    return map;
+}
 export function lunaMap(htmlTarget: string): Map {
     return new Map({
         view: new View({

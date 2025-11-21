@@ -96,193 +96,128 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
 </script>
 
 <div class="page-stack">
-  <SectionPanel variant="hero" padding="px-4 sm:px-12 py-16">
-    <div class="flex flex-col gap-12">
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-14">
-        <div class="space-y-6 max-w-3xl">
-          <div class="flex flex-wrap items-center gap-3">
-            <span class="badge variant-soft-primary text-[0.65rem] uppercase tracking-[0.4em]">
-              Areas of Interest
-            </span>
-            <span class="text-xs text-surface-400/90">AOI workflows for archive + tasking</span>
-          </div>
-          <div class="space-y-4">
-            <h1 class="text-4xl lg:text-5xl font-semibold leading-tight">
-              Create or Reuse Areas of Interest
-            </h1>
-            <p class="text-surface-200/80 text-base lg:text-lg">
-              Start by defining a new area of interest or instantly jump into your saved library.
-              Every AOI can kick off archive finders, new collections, and future studies.
-            </p>
-          </div>
-          <div class="flex flex-wrap gap-2 text-xs sm:text-sm text-surface-200/80">
-            <span class="badge variant-soft">Precision AOIs</span>
-            <span class="badge variant-soft">Archive Finder Ready</span>
-            <span class="badge variant-soft">Shared Team Library</span>
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4 sm:gap-6 w-full sm:max-w-2xl">
-          <button
-            type="button"
-            class={`tile text-left transition-smooth ${mode === 'create' ? 'border-primary-500 bg-primary-500/10' : ''}`}
-            onclick={() => (mode = 'create')}
-          >
-            <p class="text-sm text-primary-200 mb-1">Create</p>
-            <p class="text-lg font-semibold">New AOI</p>
-            <p class="text-xs text-surface-400 mt-1">Draw on the map and save for reuse.</p>
-          </button>
-          <button
-            type="button"
-            class={`tile text-left transition-smooth ${mode === 'library' ? 'border-primary-500 bg-primary-500/10' : ''}`}
-            onclick={() => (mode = 'library')}
-          >
-            <p class="text-sm text-primary-200 mb-1">Library</p>
-            <p class="text-lg font-semibold">Saved AOIs</p>
-            <p class="text-xs text-surface-400 mt-1">Launch archive finders on stored areas.</p>
-          </button>
-        </div>
+  <SectionPanel variant="hero">
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">Areas of Interest</h1>
+        <p class="text-surface-300">
+          Draw new areas or select from your saved library
+        </p>
       </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        <div class="stat-card" data-variant="accent">
-          <span class="text-xs uppercase tracking-[0.35em] text-primary-50/70">Library Size</span>
-          <p class="text-4xl lg:text-5xl font-bold">{geometries.length}</p>
-          <span class="text-sm text-surface-50/80">
-            {geometries.length
-              ? `${geometries.length === 1 ? "AOI" : "AOIs"} ready for reuse`
-              : "Save your first AOI to unlock archive finders."}
-          </span>
-        </div>
-        <div class="stat-card">
-          <span class="text-xs uppercase tracking-[0.35em] text-surface-300/80">Workflow Focus</span>
-          <p class="text-lg font-semibold">
-            {mode === "create" ? "Sketch & Save" : "Launch from Library"}
-          </p>
-          <span class="text-sm text-surface-300/75">
-            {mode === "create"
-              ? "Draw a fresh AOI or import GeoJSON, then keep it ready for future orders."
-              : "Select a saved AOI, run archive finders, or kick off new studies instantly."}
-          </span>
-        </div>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          class={`btn btn-sm ${mode === 'create' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
+          onclick={() => (mode = 'create')}
+        >
+          Create New
+        </button>
+        <button
+          type="button"
+          class={`btn btn-sm ${mode === 'library' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
+          onclick={() => (mode = 'library')}
+        >
+          Library ({geometries.length})
+        </button>
       </div>
     </div>
   </SectionPanel>
 
   {#if mode === "create"}
-    <SectionPanel className="space-y-6">
-      <h2 class="text-xl font-semibold">Define Area of Interest</h2>
+    <SectionPanel>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">Draw Area of Interest</h2>
+        <div class="btn-group">
+          <button
+            type="button"
+            class={`btn btn-sm ${drawMode === 'polygon' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
+            onclick={() => (drawMode = 'polygon')}
+          >
+            Polygon
+          </button>
+          <button
+            type="button"
+            class={`btn btn-sm ${drawMode === 'point' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
+            onclick={() => (drawMode = 'point')}
+          >
+            Point
+          </button>
+        </div>
+      </div>
+
       <GeometryEditor
         bind:geometry={geometryDraft}
         bind:drawMode
         height="500px"
         onchange={handleGeometryChange}
       />
-      {#if geometryDraft}
-        <div class="alert variant-filled-success">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <div class="alert-message">
-            <p>AOI ready ({geometryDraft.type}).</p>
-          </div>
-        </div>
-      {/if}
 
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        <div class="space-y-4">
-          <label class="label">
-            <span>AOI Name</span>
-            <input
-              class="input"
-              placeholder="e.g., Downtown Forestry Zone"
-              bind:value={geometryName}
-            />
-          </label>
-          {#if error}
-            <aside class="alert variant-filled-error">
-              <div class="alert-message">
-                <p>{error}</p>
-              </div>
-            </aside>
-          {/if}
-          {#if success}
-            <aside class="alert variant-filled-success">
-              <div class="alert-message">
-                <p>{success}</p>
-              </div>
-            </aside>
-          {/if}
-          <button
-            class="btn variant-filled-primary w-full"
-            onclick={handleSave}
-            disabled={saving}
-          >
-            {saving ? "Saving..." : "Save AOI"}
-          </button>
-        </div>
-        <div class="space-y-3">
-          <p class="text-sm text-surface-500">
-            Saved AOIs appear in the library and archive finder creation flows. Use Quick Point to auto-build a small square AOI or switch to polygon for precise drawing.
-          </p>
-          <div class="btn-group">
-            <button
-              type="button"
-              class={`btn btn-sm ${drawMode === 'polygon' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-              onclick={() => (drawMode = 'polygon')}
-            >
-              Polygon
-            </button>
-            <button
-              type="button"
-              class={`btn btn-sm ${drawMode === 'point' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-              onclick={() => (drawMode = 'point')}
-            >
-              Quick Point
-            </button>
-          </div>
-        </div>
+      <div class="space-y-4 mt-6">
+        <label class="label">
+          <span>Name</span>
+          <input
+            class="input"
+            placeholder="e.g., Downtown Area"
+            bind:value={geometryName}
+          />
+        </label>
+
+        {#if error}
+          <div class="text-sm text-error-500">{error}</div>
+        {/if}
+        {#if success}
+          <div class="text-sm text-success-500">{success}</div>
+        {/if}
+
+        <button
+          class="btn variant-filled-primary"
+          onclick={handleSave}
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save Area of Interest"}
+        </button>
       </div>
     </SectionPanel>
   {/if}
 
   {#if mode === "library"}
-    <SectionPanel variant="muted">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold">AOI Library</h2>
+    <SectionPanel>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">Saved Areas</h2>
         <button class="btn btn-sm variant-ghost-surface" onclick={loadGeometries}>
-          Refresh
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
         </button>
       </div>
 
       {#if loading}
-        <LoadingSpinner message="Loading areas of interest..." />
+        <LoadingSpinner />
       {:else if geometries.length === 0}
         <div class="text-center py-12">
-          <div class="text-5xl mb-4 opacity-30">🗺️</div>
-          <p class="text-lg text-surface-400 mb-4">No AOIs stored yet.</p>
+          <div class="text-6xl mb-4 opacity-20">🗺️</div>
+          <p class="text-surface-400 mb-2">No areas saved</p>
           <p class="text-sm text-surface-500">
-            Use the Create flow to define your first reusable AOI.
+            Create your first area to get started
           </p>
         </div>
       {:else}
-        <div class="space-y-4">
+        <div class="space-y-3">
           {#each geometries as geometryItem}
-            <div class="tile flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <a
+              href={`/areas-of-interest/${encodeURIComponent(String(geometryItem.id))}`}
+              class="tile flex items-center justify-between"
+            >
               <div>
                 <p class="font-semibold">{geometryItem.name}</p>
                 <p class="text-sm text-surface-500">
-                  Saved {geometryItem.created ? new Date(geometryItem.created).toLocaleString() : "—"}
+                  {geometryItem.created ? new Date(geometryItem.created).toLocaleDateString() : "—"}
                 </p>
               </div>
-              <div>
-                <a
-                  class="btn btn-sm variant-filled-primary"
-                  href={`/areas-of-interest/${encodeURIComponent(String(geometryItem.id))}`}
-                >
-                  Select
-                </a>
-              </div>
-            </div>
+              <svg class="w-5 h-5 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
           {/each}
         </div>
       {/if}

@@ -4,16 +4,8 @@
   import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
-  import Map from "ol/Map";
-  import View from "ol/View";
-  import TileLayer from "ol/layer/Tile";
-  import OSM from "ol/source/OSM";
-  import VectorLayer from "ol/layer/Vector";
-  import VectorSource from "ol/source/Vector";
-  import { fromLonLat } from "ol/proj";
-  import GeoJSON from "ol/format/GeoJSON";
-  import Feature from "ol/Feature";
-  import { Style, Fill, Stroke } from "ol/style";
+  import { createSimpleGeometryMap } from "$lib/components/Map/MapUtils";
+  import type Map from "ol/Map";
   import "ol/ol.css";
 
   interface Props {
@@ -93,55 +85,20 @@
   function initMap() {
     if (!finder || !mapElement) return;
 
-    const vectorSource = new VectorSource();
+    const rawGeometry = finder.geometry || finder.location?.geometry || null;
 
-    if (finder.geometry) {
-      const geoJSON = new GeoJSON();
-      const feature = geoJSON.readFeature(finder.geometry, {
-        dataProjection: "EPSG:4326",
-        featureProjection: "EPSG:3857",
-      }) as Feature;
-
-      feature.setStyle(
-        new Style({
-          fill: new Fill({
-            color: "rgba(59, 130, 246, 0.2)",
-          }),
-          stroke: new Stroke({
-            color: "rgba(59, 130, 246, 1)",
-            width: 2,
-          }),
-        })
-      );
-
-      vectorSource.addFeature(feature);
+    if (!rawGeometry) {
+      console.warn("Finder missing geometry data");
+      return;
     }
 
-    const vectorLayer = new VectorLayer({
-      source: vectorSource,
+    map = createSimpleGeometryMap(mapElement, rawGeometry, {
+      fillColor: "rgba(59, 130, 246, 0.2)",
+      strokeColor: "rgba(59, 130, 246, 1)",
+      strokeWidth: 2,
+      padding: [60, 60, 60, 60],
+      duration: 500,
     });
-
-    map = new Map({
-      target: mapElement,
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        vectorLayer,
-      ],
-      view: new View({
-        center: fromLonLat([0, 20]),
-        zoom: 2,
-      }),
-    });
-
-    // Zoom to the geometry extent
-    if (vectorSource.getFeatures().length > 0) {
-      map.getView().fit(vectorSource.getExtent(), {
-        padding: [20, 20, 20, 20],
-        maxZoom: 12,
-      });
-    }
   }
 
   async function handleExecuteStudy() {

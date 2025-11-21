@@ -150,7 +150,7 @@
 	}
 
 	function renderGeometry(geojson: GeoJSONGeometry | null) {
-		if (!geojson || !vectorSource) return;
+		if (!geojson || !vectorSource || !map) return;
 		try {
 			vectorSource.clear();
 			const geometryObj = typeof geojson === 'string' ? JSON.parse(geojson) : geojson;
@@ -158,7 +158,17 @@
 				dataProjection: 'EPSG:4326',
 				featureProjection: 'EPSG:4326'
 			});
-			vectorSource.addFeature(new Feature(olGeometry));
+			const feature = new Feature(olGeometry);
+			vectorSource.addFeature(feature);
+			
+			// Zoom to the geometry extent (automatically adjusts based on size)
+			const extent = olGeometry.getExtent();
+			if (extent) {
+				map.getView().fit(extent, {
+					padding: [80, 80, 80, 80],
+					duration: 500
+				});
+			}
 		} catch (error) {
 			console.error('Unable to render geometry', error);
 		}

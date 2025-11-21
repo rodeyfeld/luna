@@ -49,163 +49,104 @@
 
 <div class="page-stack">
   {#if geometryRecord}
-    <SectionPanel variant="hero" padding="px-4 sm:px-12 py-16">
-      <div class="flex flex-col gap-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div class="space-y-3">
-            <p class="uppercase tracking-[0.35em] text-xs text-surface-300/70">Area of Interest</p>
-            <div class="space-y-2">
-              <h1 class="text-4xl font-semibold">{geometryRecord.name}</h1>
-              <p class="text-surface-200/80">
-                Review this saved area of interest, preview it on the map, and launch workflows that rely on a
-                precise outline.
-              </p>
-            </div>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <a class="btn variant-ghost-surface" href="/areas-of-interest">Back to Areas of Interest</a>
-          </div>
+    <SectionPanel variant="hero">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">{geometryRecord.name}</h1>
+          <p class="text-surface-300">
+            {geometryPreview ? geometryPreview.type : "Area of Interest"}
+          </p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {#each metadataRows as row}
-            <div class="stat-card">
-              <p class="text-xs uppercase tracking-[0.35em] text-surface-400/80">{row.label}</p>
-              <p class="text-lg font-semibold text-surface-50">{row.value}</p>
-            </div>
-          {/each}
-        </div>
+        <a class="btn variant-ghost-surface" href="/areas-of-interest">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
+        </a>
       </div>
     </SectionPanel>
 
-    <SectionPanel className="space-y-5">
-      <div>
-        <h2 class="text-2xl font-bold mb-4">Available Actions</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <a
-            href={`/archive/create?geometryId=${encodeURIComponent(String(geometryRecord.id))}`}
-            class="tile hover-lift flex flex-col gap-2 text-left"
-          >
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-primary-500/20 flex items-center justify-center">
-                <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <div>
-                <p class="font-semibold">Run Imagery Finder</p>
-                <p class="text-xs text-surface-500">Search satellite archives</p>
-              </div>
-            </div>
-          </a>
-          
-          <div class="tile flex flex-col gap-2 opacity-50 cursor-not-allowed">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-surface-700 flex items-center justify-center">
-                <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <div>
-                <p class="font-semibold">Create Tasking Order</p>
-                <p class="text-xs text-surface-500">Coming soon</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="tile flex flex-col gap-2 opacity-50 cursor-not-allowed">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-surface-700 flex items-center justify-center">
-                <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <p class="font-semibold">Run Analysis</p>
-                <p class="text-xs text-surface-500">Coming soon</p>
-              </div>
-            </div>
-          </div>
+    <SectionPanel>
+      <h2 class="text-xl font-semibold mb-4">Actions</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <a
+          href={`/archive/create?geometryId=${encodeURIComponent(String(geometryRecord.id))}`}
+          class="tile flex items-center gap-3"
+        >
+          <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span class="font-medium">Create Imagery Finder</span>
+        </a>
+        <div class="tile flex items-center gap-3 opacity-40">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <span class="font-medium">Create Tasking Order <span class="text-xs text-surface-500">(coming soon)</span></span>
         </div>
       </div>
     </SectionPanel>
 
     {#if finders.length > 0}
-    <SectionPanel className="space-y-5">
-      <div>
-        <h2 class="text-2xl font-bold mb-4">Imagery Finders Using This AOI</h2>
-        <p class="text-sm text-surface-500 mb-4">
-          Archive searches that have been run on this area of interest
-        </p>
-        <div class="space-y-3">
-          {#each finders as finder}
-            <a
-              href={`/archive/finder/${finder.id}`}
-              class="tile hover-lift flex items-center justify-between"
-            >
-              <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <span class="badge {finder.is_active ? 'variant-filled-success' : 'variant-soft-surface'}">
-                    {finder.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                  <h3 class="font-semibold text-lg">{finder.name}</h3>
-                </div>
-                <div class="flex items-center gap-4 text-sm text-surface-500">
-                  <span>
-                    {formatDate(finder.start_date)} - {formatDate(finder.end_date)}
-                  </span>
-                  {#if finder.studies && finder.studies.length > 0}
-                    <span>•</span>
-                    <span>{finder.studies.length} {finder.studies.length === 1 ? 'study' : 'studies'}</span>
-                  {/if}
-                </div>
+    <SectionPanel>
+      <h2 class="text-xl font-semibold mb-4">Imagery Finders ({finders.length})</h2>
+      <div class="space-y-3">
+        {#each finders as finder}
+          <a
+            href={`/archive/finder/${finder.id}`}
+            class="tile flex items-center justify-between"
+          >
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold">{finder.name}</span>
+                {#if finder.is_active}
+                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                {/if}
               </div>
-              <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          {/each}
-        </div>
+              <div class="text-sm text-surface-500">
+                {formatDate(finder.start_date)} - {formatDate(finder.end_date)}
+                {#if finder.studies && finder.studies.length > 0}
+                  • {finder.studies.length} {finder.studies.length === 1 ? 'study' : 'studies'}
+                {/if}
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        {/each}
       </div>
     </SectionPanel>
     {/if}
 
-    <SectionPanel className="space-y-5">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold">AOI Preview</h2>
-        <span class="text-sm text-surface-400">
-          {geometryPreview ? `Type: ${geometryPreview.type}` : "AOI unavailable"}
-        </span>
-      </div>
+    <SectionPanel>
+      <h2 class="text-xl font-semibold mb-4">Map Preview</h2>
       {#if geometryPreview}
-        <GeometryEditor geometry={geometryPreview} height="520px" showToolbar={false} />
+        <GeometryEditor geometry={geometryPreview} height="500px" showToolbar={false} />
       {:else}
-        <div class="tile text-sm text-surface-400">
-          This area of interest could not be parsed. Try recreating it from the library list.
+        <div class="text-center py-8 text-surface-500">
+          Unable to display geometry
         </div>
       {/if}
     </SectionPanel>
 
     <SectionPanel>
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xl font-semibold">AOI GeoJSON</h3>
-          <span class="text-xs text-surface-500">For quick copying into other tools</span>
-        </div>
-        <pre class="code-block">{JSON.stringify(geometryPreview ?? geometryRecord.geometry, null, 2)}</pre>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold">GeoJSON</h3>
       </div>
+      <pre class="code-block">{JSON.stringify(geometryPreview ?? geometryRecord.geometry, null, 2)}</pre>
     </SectionPanel>
   {:else}
-    <SectionPanel variant="hero" padding="px-4 sm:px-12 py-16">
-      <div class="space-y-6 text-center">
-        <p class="uppercase tracking-[0.4em] text-xs text-surface-400/80">Area of Interest</p>
-        <h1 class="text-4xl font-semibold">Area unavailable</h1>
-        <p class="text-surface-300/80 max-w-2xl mx-auto">
-          {loadError ?? "We couldn't find that area of interest in the current library. It might have been removed or renamed."}
+    <SectionPanel variant="hero">
+      <div class="text-center py-12">
+        <div class="text-6xl mb-4 opacity-20">🗺️</div>
+        <h1 class="text-2xl font-bold mb-2">Area not found</h1>
+        <p class="text-surface-400 mb-6">
+          {loadError ?? "This area of interest doesn't exist or has been removed."}
         </p>
-        <div class="flex flex-wrap justify-center gap-3">
-          <a class="btn variant-filled-primary" href="/areas-of-interest">Back to Areas of Interest</a>
-        </div>
+        <a class="btn variant-filled-primary" href="/areas-of-interest">
+          Back to Library
+        </a>
       </div>
     </SectionPanel>
   {/if}

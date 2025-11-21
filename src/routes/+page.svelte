@@ -28,19 +28,19 @@
 
           <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <button
-              onclick={() => goto("/dashboard")}
+              onclick={() => goto("/areas-of-interest")}
               class="btn variant-filled-primary text-lg px-8 py-4 transition-smooth hover:scale-105"
             >
-              <span>View Finders</span>
+              <span>Get Started</span>
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
             <button
-              onclick={() => goto("/archive/create")}
+              onclick={() => goto("/dashboard")}
               class="btn variant-soft-primary text-lg px-8 py-4 transition-smooth hover:scale-105"
             >
-              <span>Create Finder</span>
+              <span>View Finders</span>
             </button>
           </div>
         </div>
@@ -114,10 +114,10 @@
 
       <div class="text-center mt-12">
         <button
-          onclick={() => goto("/archive/create")}
+          onclick={() => goto("/areas-of-interest")}
           class="btn variant-filled-primary"
         >
-          Get Started
+          Define Your First Area
         </button>
       </div>
     </div>
