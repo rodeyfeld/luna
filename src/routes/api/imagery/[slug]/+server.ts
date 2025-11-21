@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
 		);
 	}
 
-	const url = `${env.LUNA_AUGUR_HOST}/api/core/location/id/${encodeURIComponent(geometryId)}`;
+	const url = `${env.LUNA_AUGUR_HOST}/api/core/location/id/${encodeURIComponent(geometryId)}/`;
 
 	try {
 	const response = await fetch(url);

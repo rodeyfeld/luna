@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		);
 	}
 	
-	const url = `${env.LUNA_AUGUR_HOST}/api/imagery/finder/id/${params.slug}`;
+	const url = `${env.LUNA_AUGUR_HOST}/api/imagery/finder/id/${params.slug}/`;
 
 	try {
 	const response = await fetch(url);

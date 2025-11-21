@@ -10,7 +10,7 @@ export const GET: RequestHandler = async () => {
 		);
 	}
 	
-	const url = `${env.LUNA_AUGUR_HOST}/api/core/location`;
+	const url = `${env.LUNA_AUGUR_HOST}/api/core/location/`;
 
 	try {
 		const response = await fetch(url);

@@ -11,7 +11,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 	
 	const requestData = await request.json();
-	const url = `${env.LUNA_AUGUR_HOST}/api/imagery/finder/create`;
+	const url = `${env.LUNA_AUGUR_HOST}/api/imagery/finder/create/`;
 
 	try {
 	const response = await fetch(url, {
