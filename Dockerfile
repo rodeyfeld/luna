@@ -10,6 +10,7 @@ WORKDIR /app
 COPY package.json bun.lockb ./
 RUN bun install
 COPY . .
+RUN bun x svelte-kit sync
 RUN bun run build
 
 FROM oven/bun:1
