@@ -54,7 +54,7 @@
   async function loadFinder() {
     if (!finderId) {
       loading = false;
-      error = 'No finder ID provided';
+      error = "No finder ID provided";
       return;
     }
 
@@ -64,27 +64,27 @@
 
     try {
       const response = await fetch(`/api/archive/finder_data/${finderId}`);
-      
+
       if (!response.ok) {
         error = `Failed to load finder: ${response.statusText}`;
         return;
       }
       const data = await response.json();
-      
+
       if (!data.result) {
-        error = 'No finder data returned from server';
+        error = "No finder data returned from server";
         return;
       }
-      
+
       finder = data.result;
-      
+
       setTimeout(() => {
         if (finder) {
           initMap();
         }
       }, 100);
     } catch (e) {
-      error = e instanceof Error ? e.message : 'Failed to load finder';
+      error = e instanceof Error ? e.message : "Failed to load finder";
     } finally {
       loading = false;
     }
@@ -151,10 +151,10 @@
     error = null;
 
     try {
-      const response = await fetch('/api/archive/finder_execute', {
-        method: 'POST',
+      const response = await fetch("/api/archive/finder_execute", {
+        method: "POST",
         headers: {
-          'content-type': 'application/json',
+          "content-type": "application/json",
         },
         body: JSON.stringify({
           imagery_finder_id: finder.id,
@@ -165,16 +165,16 @@
       if (!response.ok) {
         const errorData = await response.text();
         error = `Failed to execute study: ${response.statusText}`;
-        console.error('Execute study error:', errorData);
+        console.error("Execute study error:", errorData);
       } else {
         // Wait a bit for the study to be created
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         // Reload finder data to show new study
         await loadFinder();
       }
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to execute study';
-      console.error('Execute study error:', err);
+      error = err instanceof Error ? err.message : "Failed to execute study";
+      console.error("Execute study error:", err);
     }
 
     executing = false;
@@ -222,32 +222,72 @@
   </div>
 {:else if finder}
   <div class="w-full h-full overflow-y-auto p-6 space-y-4">
-    
     <!-- Breadcrumbs -->
     <nav class="flex items-center gap-2 text-sm mb-2">
-      <a href="/dashboard" class="text-surface-400 hover:text-surface-200 transition-smooth">
+      <a
+        href="/dashboard"
+        class="text-surface-400 hover:text-surface-200 transition-smooth"
+      >
         Dashboard
       </a>
-      <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      <svg
+        class="w-4 h-4 text-surface-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
       </svg>
-      <a href="/areas-of-interest" class="text-surface-400 hover:text-surface-200 transition-smooth">
+      <a
+        href="/areas-of-interest"
+        class="text-surface-400 hover:text-surface-200 transition-smooth"
+      >
         Areas of Interest
       </a>
       {#if finder?.location?.id}
-        <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        <svg
+          class="w-4 h-4 text-surface-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
         </svg>
-        <a href="/areas-of-interest/{finder.location.id}" class="text-surface-400 hover:text-surface-200 transition-smooth">
+        <a
+          href="/areas-of-interest/{finder.location.id}"
+          class="text-surface-400 hover:text-surface-200 transition-smooth"
+        >
           {finder.location.name || `Location #${finder.location.id}`}
         </a>
       {/if}
-      <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      <svg
+        class="w-4 h-4 text-surface-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
       </svg>
-      <span class="text-surface-200 font-medium">{finder?.name || 'Finder'}</span>
+      <span class="text-surface-200 font-medium"
+        >{finder?.name || "Finder"}</span
+      >
     </nav>
-    
+
     <!-- Finder Details with Map -->
     <SectionPanel>
       <div class="flex items-start justify-between mb-4">
@@ -256,9 +296,17 @@
           <div class="flex flex-wrap items-center gap-3 text-sm">
             <StatusBadge status={finder.is_active ? "ACTIVE" : "INACTIVE"} />
             <span class="text-surface-400">•</span>
-            <span class="text-surface-400">{formatDate(finder.start_date)} - {formatDate(finder.end_date)}</span>
+            <span class="text-surface-400"
+              >{formatDate(finder.start_date)} - {formatDate(
+                finder.end_date
+              )}</span
+            >
             <span class="text-surface-400">•</span>
-            <span class="text-surface-400">{finder?.geometry?.type || finder?.location?.geometry?.type || 'Unknown'}</span>
+            <span class="text-surface-400"
+              >{finder?.geometry?.type ||
+                finder?.location?.geometry?.type ||
+                "Unknown"}</span
+            >
           </div>
         </div>
 
@@ -267,9 +315,24 @@
           disabled={executing}
           class="btn variant-filled-primary btn-sm shrink-0 ml-4"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span>{executing ? "Executing..." : "Execute"}</span>
         </button>
@@ -277,8 +340,18 @@
 
       {#if error}
         <aside class="alert variant-filled-error mb-4">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div class="alert-message">
             <p>{error}</p>
@@ -291,7 +364,11 @@
         <div class="space-y-3">
           {#if finder.rules && Object.keys(finder.rules).length > 0}
             <div>
-              <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">Search Parameters</h3>
+              <h3
+                class="text-xs uppercase tracking-wider text-surface-400 mb-2"
+              >
+                Search Parameters
+              </h3>
               <div class="flex flex-wrap gap-2">
                 {#each Object.entries(JSON.parse(finder.rules)) as [key, value]}
                   {#if value !== null}
@@ -304,13 +381,17 @@
               </div>
             </div>
           {/if}
-          
+
           <div>
-            <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">Summary</h3>
+            <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">
+              Summary
+            </h3>
             <div class="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span class="text-surface-500">Studies:</span>
-                <span class="font-medium ml-1">{finder.studies?.length || 0}</span>
+                <span class="font-medium ml-1"
+                  >{finder.studies?.length || 0}</span
+                >
               </div>
               <div>
                 <span class="text-surface-500">ID:</span>
@@ -322,7 +403,9 @@
 
         <!-- Right: Map -->
         <div>
-          <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">Area of Interest</h3>
+          <h3 class="text-xs uppercase tracking-wider text-surface-400 mb-2">
+            Area of Interest
+          </h3>
           <div class="aoi-map-container" bind:this={mapElement}></div>
         </div>
       </div>
@@ -342,8 +425,18 @@
             class="btn btn-sm variant-soft-surface"
             title="Refresh study runs"
           >
-            <svg class="w-4 h-4 {loading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              class="w-4 h-4 {loading ? 'animate-spin' : ''}"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
             <span>Refresh</span>
           </button>
@@ -364,32 +457,28 @@
             </thead>
             <tbody>
               {#each finder.studies as study}
-                <tr 
-                  class="hover:bg-surface-800/50 transition-smooth cursor-pointer" 
-                  onclick={() => study.status === "COMPLETED" && viewStudyResults(study)}
-                >
+                <tr class="hover:bg-surface-800/50 transition-smooth">
                   <td>
                     <StatusBadge status={study.status} />
                   </td>
                   <td class="font-medium">{study.study_name}</td>
-                  <td class="text-sm text-surface-400">{formatDateTime(study.created)}</td>
+                  <td class="text-sm text-surface-400"
+                    >{formatDateTime(study.created)}</td
+                  >
                   <td class="text-sm text-surface-400">
-                    {formatDate(finder.start_date)} - {formatDate(finder.end_date)}
+                    {formatDate(finder.start_date)} - {formatDate(
+                      finder.end_date
+                    )}
                   </td>
                   <td class="text-right">
-                    {#if study.status === "COMPLETED"}
-                      <button
-                        onclick={(e) => {
-                          e.stopPropagation();
-                          viewStudyResults(study);
-                        }}
-                        class="btn btn-sm variant-soft-primary"
-                      >
-                        View
-                      </button>
-                    {:else}
-                      <span class="text-xs text-surface-500">Pending</span>
-                    {/if}
+                    <a
+                      href="/archive/finder/{finderId}/study/{study.study_name}/{study.id}"
+                      class="btn btn-sm {study.status === 'COMPLETED'
+                        ? 'variant-soft-primary'
+                        : 'variant-soft-surface'}"
+                    >
+                      View
+                    </a>
                   </td>
                 </tr>
               {/each}
@@ -400,7 +489,9 @@
         <div class="text-center py-12">
           <div class="text-4xl mb-2 opacity-20">📊</div>
           <h3 class="text-base font-semibold mb-1">No study runs yet</h3>
-          <p class="text-sm text-surface-400 mb-4">Execute a study to start searching for satellite imagery</p>
+          <p class="text-sm text-surface-400 mb-4">
+            Execute a study to start searching for satellite imagery
+          </p>
           <button
             onclick={handleExecuteStudy}
             disabled={executing}
