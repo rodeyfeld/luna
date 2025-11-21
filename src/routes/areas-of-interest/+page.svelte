@@ -3,6 +3,7 @@
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
 import GeometryEditor from "$lib/components/shared/GeometryEditor.svelte";
 import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
+import MiniMap from "$lib/components/shared/MiniMap.svelte";
 import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
   import type { StoredGeometry } from "$lib/types/imagery";
 
@@ -33,7 +34,7 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
         geometries = [];
       } else {
         const data = await response.json();
-        geometries = data.results || [];
+        geometries = Array.isArray(data) ? data : [];
       }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load geometries';
@@ -211,15 +212,16 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
           {#each geometries as geometryItem}
             <a
               href={`/areas-of-interest/${encodeURIComponent(String(geometryItem.id))}`}
-              class="tile flex items-center justify-between"
+              class="tile flex items-center gap-4"
             >
-              <div>
-                <p class="font-semibold">{geometryItem.name}</p>
+              <MiniMap geometry={geometryItem.geometry} width="100px" height="70px" />
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold truncate">{geometryItem.name}</p>
                 <p class="text-sm text-surface-500">
                   {geometryItem.created ? new Date(geometryItem.created).toLocaleDateString() : "—"}
                 </p>
               </div>
-              <svg class="w-5 h-5 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-surface-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </a>

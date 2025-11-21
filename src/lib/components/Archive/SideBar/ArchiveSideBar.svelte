@@ -12,10 +12,11 @@
     const isCreatePage = $derived($page.url.pathname.includes('create'));
     const currentFinderId = $derived($page.params.slug);
     
-    // Build create URL with current finder ID if on a finder detail page
+    // Build create URL with location ID if on a finder detail page
     const createUrl = $derived(() => {
-        if (currentFinderId && $page.url.pathname.includes('finder')) {
-            return `/archive/create?from=${currentFinderId}`;
+        const finderData = $page.data.finderData;
+        if (finderData?.location?.id) {
+            return `/archive/create?geometryId=${finderData.location.id}`;
         }
         return '/archive/create';
     });

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
@@ -63,12 +63,12 @@
       }
       const data = await response.json();
 
-      if (!data.result) {
+      if (!data) {
         error = "No finder data returned from server";
         return;
       }
 
-      finder = data.result;
+      finder = data;
 
       setTimeout(() => {
         if (finder) {
@@ -123,18 +123,18 @@
         const errorData = await response.text();
         error = `Failed to execute study: ${response.statusText}`;
         console.error("Execute study error:", errorData);
-      } else {
-        // Wait a bit for the study to be created
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        // Reload finder data to show new study
-        await loadFinder();
       }
     } catch (err) {
       error = err instanceof Error ? err.message : "Failed to execute study";
       console.error("Execute study error:", err);
+    } finally {
+      // Always refresh to show the study (even if it failed)
+      // Wait longer to ensure database transaction is committed
+      executing = false;
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await invalidateAll();
+      await loadFinder();
     }
-
-    executing = false;
   }
 
   function viewStudyResults(study: any) {

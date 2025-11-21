@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { goto } from '$app/navigation';
+    import { goto, invalidateAll } from '$app/navigation';
     import { get } from 'svelte/store';
     import { page } from '$app/stores';
     import SectionPanel from '$lib/components/shared/SectionPanel.svelte';
@@ -56,7 +56,7 @@
             if (!response.ok) return;
             
             const data = await response.json();
-            const finder = data.result;
+            const finder = data;
             
             if (finder) {
                 // Pre-populate form with existing finder's data
@@ -111,7 +111,7 @@
             
             if (response.ok) {
                 const data = await response.json();
-                savedGeometries = data.results || [];
+                savedGeometries = Array.isArray(data) ? data : [];
                 if (selectedGeometryId && !savedGeometries.find((item) => String(item.id) === String(selectedGeometryId))) {
                     selectedGeometryId = '';
                 }
@@ -134,7 +134,7 @@
             const response = await fetch('/api/providers');
             if (response.ok) {
                 const data = await response.json();
-                providers = data.results || [];
+                providers = Array.isArray(data) ? data : [];
                 // Select all providers by default
                 selectedProviders = new Set(providers.map((p) => p.id || p.name));
             }
@@ -214,11 +214,12 @@
             }
 
             const data = await response.json();
-            const finderId = data.result?.imagery_finder_id;
+            const finderId = data?.imagery_finder_id;
 
             if (autoExecute && finderId) {
                 await handleExecuteStudy(finderId);
             } else if (finderId) {
+                await invalidateAll();
                 goto(`/archive/finder/${finderId}`);
             }
         } catch (err) {
@@ -249,10 +250,12 @@
                 error = `Failed to execute study: ${response.statusText}`;
             }
 
+            await invalidateAll();
             goto(`/archive/finder/${finderId}`);
         } catch (err) {
             executing = false;
             error = err instanceof Error ? err.message : 'Failed to execute study';
+            await invalidateAll();
             goto(`/archive/finder/${finderId}`);
         }
     }
@@ -363,11 +366,6 @@
                     <p class="text-sm text-surface-300/80">Archive window</p>
                     <p class="text-lg font-semibold">{dateRangeSummary}</p>
                     <span class="text-xs text-surface-300/70">Search window</span>
-                </div>
-                <div class="stat-card">
-                    <p class="text-sm text-surface-300/80">Library size</p>
-                    <p class="text-3xl font-bold">{savedGeometries.length}</p>
-                    <span class="text-xs text-surface-300/70">Last sync {lastUpdated}</span>
                 </div>
                 <div class="stat-card">
                     <p class="text-sm text-surface-300/80">Execution plan</p>

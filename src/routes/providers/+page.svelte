@@ -26,12 +26,12 @@
         error = `Failed to load providers: ${providersResponse.statusText}`;
       } else {
         const providersData = await providersResponse.json();
-        providers = providersData.results || [];
+        providers = Array.isArray(providersData) ? providersData : [];
       }
 
       if (integrationsResponse.ok) {
         const integrationsData = await integrationsResponse.json();
-        integrations = integrationsData.results || [];
+        integrations = Array.isArray(integrationsData) ? integrationsData : [];
       }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load data';
