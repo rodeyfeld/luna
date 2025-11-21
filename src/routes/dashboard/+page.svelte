@@ -4,6 +4,8 @@
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import MiniMap from "$lib/components/shared/MiniMap.svelte";
+  import PaginatedList from "$lib/components/shared/PaginatedList.svelte";
+  import { formatDate } from "$lib/utils/dates";
 
   let imageryFinders = $state<any[]>([]);
   let loading = $state(true);
@@ -34,13 +36,6 @@
     }
   }
 
-  function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
 
   // Calculate study statistics
   const studyStats = $derived.by(() => {
@@ -127,26 +122,14 @@
       </div>
     {:else if loading}
       <LoadingSpinner />
-    {:else if imageryFinders.length === 0}
-      <div class="text-center py-16">
-        <div class="text-6xl mb-4 opacity-20">🗺️</div>
-        <h3 class="text-xl font-semibold mb-2">No imagery finders yet</h3>
-        <p class="text-surface-400 mb-6">
-          Create your first finder to start searching for satellite imagery
-        </p>
-        <button
-          onclick={() => goto("/archive/create")}
-          class="btn variant-filled-primary"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Create Finder</span>
-        </button>
-      </div>
     {:else}
-      <div class="space-y-3">
-        {#each imageryFinders as finder}
+      <PaginatedList
+        items={imageryFinders}
+        itemsPerPage={10}
+        emptyMessage="No imagery finders yet. Create your first finder to start searching for satellite imagery."
+        emptyIcon="🗺️"
+      >
+        {#snippet children(finder)}
           <a
             href="/archive/finder/{finder.id}"
             class="tile text-left block hover-lift"
@@ -179,8 +162,8 @@
               </div>
             </div>
           </a>
-        {/each}
-      </div>
+        {/snippet}
+      </PaginatedList>
     {/if}
   </SectionPanel>
 </div>

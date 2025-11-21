@@ -3,6 +3,7 @@
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
+  import { formatDate, formatDateTime } from "$lib/utils/dates";
 
   interface Props {
     data: {
@@ -20,25 +21,6 @@
   const results = $derived(data.studyResults?.study_data?.results || []);
   const studyData = $derived(data.studyResults?.study_data);
 
-  function formatDate(dateStr: string) {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
-
-  function formatDateTime(dateStr: string) {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
 </script>
 
 <div class="w-full h-full overflow-y-auto p-6 space-y-4">

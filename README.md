@@ -1,92 +1,35 @@
-# LUNA
+# Luna
 
-**Satellite Imagery Intelligence Platform**
+Satellite imagery search and analysis platform. https://luna.pinwheel.fan
 
-Luna is a modern frontend for accessing and analyzing satellite imagery from multiple providers. Search archives, execute studies, and visualize results with an intuitive, map-first interface.
+## Running locally
 
-Built with SvelteKit 5, Skeleton UI, Tailwind CSS, and OpenLayers.
-
-## ✨ New Redesign
-
-Luna has been completely redesigned with a modern UI/UX! See **[REDESIGN.md](./REDESIGN.md)** for:
-- Feature overview and usage guide
-- Technical architecture
-- Design principles
-- Migration notes
-
-### Key Features
-
-- 🗺️ **Interactive Mapping** - Draw areas of interest with Point/Polygon tools
-- 🛰️ **Multi-Provider Search** - Query multiple satellite providers simultaneously
-- 📊 **Study Execution** - Run analyses like tree coverage, wind speed detection
-- ⚡ **Real-Time Status** - Track searches and studies with live updates
-- 🎯 **Smart Filtering** - Filter by resolution, cloud coverage, sensor type
-- 📈 **Results Visualization** - Interactive maps with imagery thumbnails and metadata
-
-## Local Development
-
-### Prerequisites
-- Docker & Docker Compose
-- Bun (optional, for local development without Docker)
-
-### Quick Start
-
-1. **Copy environment file**
    ```bash
    cp example.env .env
-   ```
-
-2. **Start the development server**
-   ```bash
    docker compose up
    ```
 
-3. **Access the application**
-   - http://localhost:5173
+Opens at http://localhost:5173
 
-## Production Build
+## Deploying
 
 ```bash
-docker compose build
+docker build --target prod -t edrodefeld/luna .
+docker push edrodefeld/luna:latest
 ```
 
-Production build outputs to `build/` directory and runs with:
+Then in k8s:
 ```bash
-bun run build/index.js
+kubectl apply -f ../mirage/deployments/luna.yml
+kubectl rollout restart deployment/luna -n galaxy
 ```
 
-## Environment Variables
+## Config
 
-See `example.env` for configuration:
+You need `LUNA_AUGUR_HOST` set to tell Luna where the API is:
+- Docker: `http://augur-service:8000`
+- Kubernetes: `http://augur-service.galaxy.svc.cluster.local:8000`
 
-### Required Variables
+## What it does
 
-- **`LUNA_AUGUR_HOST`** (Required) - Backend API URL for Augur services
-  - In Docker: `http://augur-service:8000`
-  - In Kubernetes: `http://augur-service.default.svc.cluster.local:8000`
-  - **The application will fail to start if this is not set** (no fallback for production safety)
-
-### Architecture
-
-Luna uses an **internal proxy pattern** where all API requests go through Luna's server-side routes (`/api/*`) before reaching Augur. This means:
-
-- ✅ Backend URLs never exposed to browser
-- ✅ Kubernetes-ready with internal service DNS
-- ✅ Easy to add auth, caching, or rate limiting at proxy layer
-- ✅ Single point for monitoring all API traffic
-- ✅ Fail-fast configuration validation
-
-**No public environment variables** are used for backend connectivity - everything is server-side only.
-
-## Troubleshooting
-
-**Clean up and restart:**
-```bash
-docker compose down
-docker compose up --build
-```
-
-**View logs:**
-```bash
-docker compose logs -f sveltekit-web
-```
+Draw areas on a map, search multiple satellite providers at once, run analysis studies (tree coverage, wind speed, etc), and see results visualized on the map. Built with SvelteKit 5, Skeleton UI, Tailwind, and OpenLayers for the mapping.

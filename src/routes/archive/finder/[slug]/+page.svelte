@@ -4,7 +4,9 @@
   import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
+  import PaginatedList from "$lib/components/shared/PaginatedList.svelte";
   import { createSimpleGeometryMap } from "$lib/components/Map/MapUtils";
+  import { formatDate, formatDateTime } from "$lib/utils/dates";
   import type Map from "ol/Map";
   import "ol/ol.css";
 
@@ -43,16 +45,19 @@
     };
   });
 
-  async function loadFinder() {
+  async function loadFinder(silent = false) {
     if (!finderId) {
       loading = false;
       error = "No finder ID provided";
       return;
     }
 
-    loading = true;
-    error = null;
-    finder = null;
+    // Only show loading state on initial load, not on silent refresh
+    if (!silent) {
+      loading = true;
+      error = null;
+      finder = null;
+    }
 
     try {
       const response = await fetch(`/api/archive/finder_data/${finderId}`);
@@ -70,15 +75,20 @@
 
       finder = data;
 
-      setTimeout(() => {
-        if (finder) {
-          initMap();
-        }
-      }, 100);
+      // Only init map on initial load
+      if (!silent) {
+        setTimeout(() => {
+          if (finder) {
+            initMap();
+          }
+        }, 100);
+      }
     } catch (e) {
       error = e instanceof Error ? e.message : "Failed to load finder";
     } finally {
-      loading = false;
+      if (!silent) {
+        loading = false;
+      }
     }
   }
 
@@ -128,35 +138,29 @@
       error = err instanceof Error ? err.message : "Failed to execute study";
       console.error("Execute study error:", err);
     } finally {
-      // Always refresh to show the study (even if it failed)
-      // Wait longer to ensure database transaction is committed
+      // Show spinner for at least 1-2 seconds for better UX
+      const minSpinTime = 1000 + Math.random() * 1000; // 1-2 seconds
+      const spinPromise = new Promise((resolve) =>
+        setTimeout(resolve, minSpinTime)
+      );
+
+      // Wait for database transaction to commit
+      const dbPromise = new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Wait for both
+      await Promise.all([spinPromise, dbPromise]);
+
       executing = false;
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Silently refresh the finder data without showing loading state
+      await loadFinder(true);
+      // Invalidate layout to update sidebar
       await invalidateAll();
-      await loadFinder();
     }
   }
 
   function viewStudyResults(study: any) {
     goto(`/archive/finder/${finderId}/study/${study.study_name}/${study.id}`);
-  }
-
-  function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
-
-  function formatDateTime(dateStr: string) {
-    return new Date(dateStr).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   }
 </script>
 
@@ -272,26 +276,45 @@
           disabled={executing}
           class="btn variant-filled-primary btn-sm shrink-0 ml-4"
         >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>{executing ? "Executing..." : "Execute"}</span>
+          {#if executing}
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span>Executing...</span>
+          {:else}
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>Execute</span>
+          {/if}
         </button>
       </div>
 
@@ -377,7 +400,7 @@
             {finder.studies?.length || 0} total
           </span>
           <button
-            onclick={loadFinder}
+            onclick={() => loadFinder(true)}
             disabled={loading}
             class="btn btn-sm variant-soft-surface"
             title="Refresh study runs"
@@ -400,64 +423,38 @@
         </div>
       </div>
 
-      {#if finder.studies && finder.studies.length > 0}
-        <div class="overflow-x-auto">
-          <table class="table table-compact table-hover w-full">
-            <thead>
-              <tr>
-                <th class="w-28">Status</th>
-                <th>Study Name</th>
-                <th class="w-40">Created</th>
-                <th class="w-40">Time Span</th>
-                <th class="w-24 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each finder.studies as study}
-                <tr class="hover:bg-surface-800/50 transition-smooth">
-                  <td>
-                    <StatusBadge status={study.status} />
-                  </td>
-                  <td class="font-medium">{study.study_name}</td>
-                  <td class="text-sm text-surface-400"
-                    >{formatDateTime(study.created)}</td
-                  >
-                  <td class="text-sm text-surface-400">
-                    {formatDate(finder.start_date)} - {formatDate(
-                      finder.end_date
-                    )}
-                  </td>
-                  <td class="text-right">
-                    <a
-                      href="/archive/finder/{finderId}/study/{study.study_name}/{study.id}"
-                      class="btn btn-sm {study.status === 'COMPLETED'
-                        ? 'variant-soft-primary'
-                        : 'variant-soft-surface'}"
-                    >
-                      View
-                    </a>
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-      {:else}
-        <div class="text-center py-12">
-          <div class="text-4xl mb-2 opacity-20">📊</div>
-          <h3 class="text-base font-semibold mb-1">No study runs yet</h3>
-          <p class="text-sm text-surface-400 mb-4">
-            Execute a study to start searching for satellite imagery
-          </p>
-          <button
-            onclick={handleExecuteStudy}
-            disabled={executing}
-            class="btn variant-filled-primary btn-sm"
-          >
-            Execute Study
-          </button>
-        </div>
-      {/if}
+      <PaginatedList
+        items={finder.studies || []}
+        itemsPerPage={5}
+        emptyMessage="No study runs yet. Execute a study to start searching for satellite imagery."
+        emptyIcon="📊"
+      >
+        {#snippet children(study)}
+          <div class="tile">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-4 flex-1 min-w-0">
+                <StatusBadge status={study.status} />
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium truncate">{study.study_name}</p>
+                  <p class="text-sm text-surface-400">
+                    {formatDateTime(study.created)} • {formatDate(
+                      finder.start_date
+                    )} - {formatDate(finder.end_date)}
+                  </p>
+                </div>
+              </div>
+              <a
+                href="/archive/finder/{finderId}/study/{study.study_name}/{study.id}"
+                class="btn btn-sm {study.status === 'COMPLETED'
+                  ? 'variant-soft-primary'
+                  : 'variant-soft-surface'}"
+              >
+                View
+              </a>
+            </div>
+          </div>
+        {/snippet}
+      </PaginatedList>
     </SectionPanel>
   </div>
 {/if}

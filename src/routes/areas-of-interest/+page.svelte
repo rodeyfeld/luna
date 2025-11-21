@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
-import GeometryEditor from "$lib/components/shared/GeometryEditor.svelte";
-import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
-import MiniMap from "$lib/components/shared/MiniMap.svelte";
-import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
+  import GeometryEditor from "$lib/components/shared/GeometryEditor.svelte";
+  import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
+  import MiniMap from "$lib/components/shared/MiniMap.svelte";
+  import PaginatedList from "$lib/components/shared/PaginatedList.svelte";
+  import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
+  import { formatDateTime } from "$lib/utils/dates";
   import type { StoredGeometry } from "$lib/types/imagery";
 
   let loading = $state(true);
@@ -199,17 +201,14 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
 
       {#if loading}
         <LoadingSpinner />
-      {:else if geometries.length === 0}
-        <div class="text-center py-12">
-          <div class="text-6xl mb-4 opacity-20">🗺️</div>
-          <p class="text-surface-400 mb-2">No areas saved</p>
-          <p class="text-sm text-surface-500">
-            Create your first area to get started
-          </p>
-        </div>
       {:else}
-        <div class="space-y-3">
-          {#each geometries as geometryItem}
+        <PaginatedList
+          items={geometries}
+          itemsPerPage={10}
+          emptyMessage="No areas saved yet. Create your first area to get started."
+          emptyIcon="🗺️"
+        >
+          {#snippet children(geometryItem)}
             <a
               href={`/areas-of-interest/${encodeURIComponent(String(geometryItem.id))}`}
               class="tile flex items-center gap-4"
@@ -218,15 +217,15 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
               <div class="flex-1 min-w-0">
                 <p class="font-semibold truncate">{geometryItem.name}</p>
                 <p class="text-sm text-surface-500">
-                  {geometryItem.created ? new Date(geometryItem.created).toLocaleDateString() : "—"}
+                  {formatDateTime(geometryItem.created)}
                 </p>
               </div>
               <svg class="w-5 h-5 text-surface-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </a>
-          {/each}
-        </div>
+          {/snippet}
+        </PaginatedList>
       {/if}
     </SectionPanel>
   {/if}

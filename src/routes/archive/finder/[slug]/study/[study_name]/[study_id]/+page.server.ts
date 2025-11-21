@@ -11,15 +11,29 @@ export const load: PageServerLoad = async ({ params, fetch, parent }) => {
 			return {
 				finderData: parentData.finderData,
 				studyResults: null,
+				studyName: params.study_name,
+				studyId: params.study_id,
 				error: `Failed to load study results: ${response.statusText}`,
 			};
 		}
 		
 		const data = await response.json();
 		
+		// If there's an API error, show error message
+		if (data?.error) {
+			return {
+				finderData: parentData.finderData,
+				studyResults: null,
+				studyName: params.study_name,
+				studyId: params.study_id,
+				error: data.error,
+			};
+		}
+		
+		// Successfully loaded (even if empty results)
 		return {
 			finderData: parentData.finderData,
-			studyResults: data?.error ? null : data,
+			studyResults: data,
 			studyName: params.study_name,
 			studyId: params.study_id,
 			error: null,
@@ -29,6 +43,8 @@ export const load: PageServerLoad = async ({ params, fetch, parent }) => {
 		return {
 			finderData: parentData.finderData,
 			studyResults: null,
+			studyName: params.study_name,
+			studyId: params.study_id,
 			error: err instanceof Error ? err.message : 'Failed to load study results',
 		};
 	}
