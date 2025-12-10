@@ -49,9 +49,9 @@
   <SectionPanel variant="hero">
     <div class="flex justify-between items-start">
       <div>
-        <h1 class="text-3xl font-bold mb-2">Satellite Providers</h1>
+        <h1 class="text-3xl font-bold mb-2">Data Sources</h1>
         <p class="text-surface-300">
-          Available imagery sources and their integrations
+          Available public data sources and their integrations
         </p>
       </div>
     </div>
@@ -74,7 +74,7 @@
         <div class="text-6xl mb-4 opacity-20">🛰️</div>
         <h3 class="text-xl font-semibold mb-2">No providers configured</h3>
         <p class="text-surface-400">
-          No satellite providers are available
+          No data sources are available
         </p>
       </div>
     {:else}

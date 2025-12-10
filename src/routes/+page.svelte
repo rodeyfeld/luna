@@ -19,10 +19,10 @@
               </span>
             </h1>
             <p class="text-2xl md:text-3xl font-semibold text-surface-900 dark:text-surface-50">
-              Archive Imagery Finder
+              Public Data Finder
             </p>
             <p class="text-lg text-surface-600 dark:text-surface-300 max-w-[550px]">
-              Define areas of interest, search satellite archives, and run studies across multiple imagery providers.
+              Define areas of interest and search public data sources.
             </p>
           </div>
 
@@ -50,7 +50,7 @@
           <img
             id="hero-lunalogo"
             src={pinwheel}
-            alt="Luna - Archive Imagery Finder"
+            alt="Luna - Public Data Finder"
           />
         </div>
       </div>
@@ -93,7 +93,7 @@
             <div>
               <h3 class="text-xl font-semibold mb-2">3. Execute Studies</h3>
               <p class="text-surface-400">
-                Run archive lookup studies to search across multiple satellite imagery providers.
+                Run searches across public data sources.
               </p>
             </div>
           </div>
@@ -105,7 +105,7 @@
             <div>
               <h3 class="text-xl font-semibold mb-2">4. View Results</h3>
               <p class="text-surface-400">
-                Browse found imagery with collection details, dates, sensors, and providers.
+                Browse results with collection details, dates, and sources.
               </p>
             </div>
           </div>

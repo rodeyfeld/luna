@@ -394,15 +394,15 @@
             <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Configuration</p>
             <h2 class="text-2xl font-bold">Archive Search Settings</h2>
             <p class="text-sm text-surface-500">
-                Configure your multi-provider satellite archive search. Select providers, set time windows, and apply filters to find imagery matching your requirements.
+                Configure your public data search. Select sources, set time windows, and apply filters to find data matching your requirements.
             </p>
         </div>
 
         <div class="space-y-4">
             <div>
-                <h3 class="text-lg font-semibold mb-2">Satellite Providers</h3>
+                <h3 class="text-lg font-semibold mb-2">Data Sources</h3>
                 <p class="text-sm text-surface-500 mb-3">
-                    Select which satellite imagery providers to search. Multiple providers will be queried simultaneously for comprehensive coverage.
+                    Select which public data sources to search. Multiple sources will be queried simultaneously for comprehensive coverage.
                 </p>
                 {#if providers.length > 0}
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -505,7 +505,7 @@
             <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Review & Launch</p>
             <h2 class="text-2xl font-bold">Confirm Configuration</h2>
             <p class="text-sm text-surface-500">
-                Review your archive search settings and launch the multi-provider imagery finder.
+                Review your search settings and launch the public data finder.
             </p>
         </div>
 

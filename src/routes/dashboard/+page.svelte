@@ -22,7 +22,11 @@
     try {
       const response = await fetch('/api/archive');
       if (!response.ok) {
-        error = `Failed to load finders: ${response.statusText}`;
+        if (response.status === 502) {
+          error = "Backend service is unavailable. Please check that the Augur API is running.";
+        } else {
+          error = `Failed to load finders: ${response.statusText}`;
+        }
         loading = false;
         return;
       }
@@ -81,7 +85,7 @@
   <SectionPanel variant="hero">
     <div class="flex justify-between items-start gap-4">
       <div class="flex-1">
-        <h1 class="text-3xl font-bold mb-4">Imagery Finders</h1>
+        <h1 class="text-3xl font-bold mb-4">Data Finders</h1>
         
         {#if !loading && imageryFinders.length > 0}
           <div class="flex flex-wrap gap-3">
@@ -113,11 +117,11 @@
   <SectionPanel>
     {#if error}
       <div class="text-center py-12">
-        <div class="text-5xl mb-3 opacity-20">⚠️</div>
-        <h3 class="text-lg font-semibold mb-2">Connection Error</h3>
+        <div class="text-5xl mb-3 opacity-20">🔌</div>
+        <h3 class="text-lg font-semibold mb-2">Backend Unavailable</h3>
         <p class="text-surface-400 mb-6">{error}</p>
         <button onclick={loadData} class="btn variant-soft-primary">
-          Retry
+          Retry Connection
         </button>
       </div>
     {:else if loading}
@@ -126,7 +130,7 @@
       <PaginatedList
         items={imageryFinders}
         itemsPerPage={10}
-        emptyMessage="No imagery finders yet. Create your first finder to start searching for satellite imagery."
+        emptyMessage="No finders yet. Create your first finder to start searching public data."
         emptyIcon="🗺️"
       >
         {#snippet children(finder)}
