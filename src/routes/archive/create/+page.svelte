@@ -240,7 +240,7 @@
                 },
                 body: JSON.stringify({
                     imagery_finder_id: finderId,
-                    study_name: 'archive_lookup',
+                    study_name: 'imagery-finder-study',
                 }),
             });
 

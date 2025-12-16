@@ -125,7 +125,7 @@
         },
         body: JSON.stringify({
           imagery_finder_id: finder.id,
-          study_name: "archive_lookup",
+          study_name: "imagery-finder-study",
         }),
       });
 
