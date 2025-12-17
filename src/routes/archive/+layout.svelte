@@ -11,7 +11,8 @@
 
     let { data, children }: Props = $props();
 	const shelllessRoutes = ['/archive/create'];
-	const showArchiveShell = $derived(!shelllessRoutes.some((path) => $page.url.pathname.startsWith(path)));
+	const isStudyPage = $derived($page.url.pathname.includes('/study/'));
+	const showArchiveShell = $derived(!shelllessRoutes.some((path) => $page.url.pathname.startsWith(path)) && !isStudyPage);
 	
 	// Hide the big map on finder detail pages
 	const showBigMap = $derived(!$page.url.pathname.includes('/archive/finder/'));

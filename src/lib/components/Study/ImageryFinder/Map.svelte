@@ -17,7 +17,9 @@
     newFilterFeatureLayer,
     newFilterDraw,
   } from "$lib/components/Map/MapUtils";
-  import { Stroke, Style } from "ol/style";
+  import { Fill, Stroke, Style } from "ol/style";
+  import VectorLayer from "ol/layer/Vector";
+  import { Vector as VectorSource } from "ol/source";
   import ImageryResultHover from "./SideBar/ImageryResultHover.svelte";
   import Datatable, {
     type ArchiveLookupResult,
@@ -60,6 +62,27 @@
   );
   const highlightFeatureLayer = newHighlightFeatureLayer();
   const filterFeatureLayer = newFilterFeatureLayer();
+
+  // Create finder geometry layer (the search area) with distinct styling
+  const finderGeometry = study.study_data.imagery_finder_geometry
+    ? geojsonFormatter.readGeometry(study.study_data.imagery_finder_geometry)
+    : null;
+  const finderFeature = finderGeometry ? new Feature(finderGeometry) : null;
+  const finderLayer = new VectorLayer({
+    source: new VectorSource({
+      features: finderFeature ? [finderFeature] : [],
+    }),
+    style: new Style({
+      fill: new Fill({
+        color: "rgba(251, 191, 36, 0.15)", // amber/gold fill
+      }),
+      stroke: new Stroke({
+        color: "#f59e0b", // amber stroke
+        width: 3,
+        lineDash: [8, 4],
+      }),
+    }),
+  });
 
   const unsubscribe = selectedArchiveResultGeoJson.subscribe((value) => {
     highlightFeature(highlightFeatureLayer, value);
@@ -114,8 +137,12 @@
   }
   onMount(() => {
     map = lunaMap("map");
+    
+    // Add finder geometry layer first (underneath results)
+    map.addLayer(finderLayer);
     map.addLayer(baseFeatureLayer);
     map.addLayer(highlightFeatureLayer);
+    
     const container = document.querySelector("#image-popup") as HTMLElement;
     overlay = new Overlay({
       element: container,
@@ -124,22 +151,24 @@
       },
     });
     map.addOverlay(overlay);
-    const geometry = geojsonFormatter.readGeometry(
-      study.study_data.imagery_finder_geometry
-    );
-    const extent = geometry.getExtent();
-    map.getView().fit(extent, {
-      duration: 1000,
-      maxZoom: 5,
-    });
+    
+    // Zoom to finder geometry
+    if (finderGeometry) {
+      const extent = finderGeometry.getExtent();
+      map.getView().fit(extent, {
+        duration: 1000,
+        maxZoom: 8,
+        padding: [50, 50, 50, 50],
+      });
+    }
 
     const filterDraw = newFilterDraw(baseFeatureLayer, featureStore);
     map.addInteraction(filterDraw);
   });
 </script>
 
-<div class="w-full h-full grid grid-cols-10 gap-1">
-  <div class="col-span-5">
+<div class="w-full h-full grid grid-cols-12 gap-2">
+  <div class="col-span-5 overflow-y-auto max-h-full">
     <Datatable
       data={study.study_data.results}
       on:resultHover={handleResultHover}
@@ -147,8 +176,8 @@
       on:resultSelect={handleResultSelect}
     ></Datatable>
   </div>
-  <div class="col-span-5">
-    <div id="map" class="w-full h-full"></div>
+  <div class="col-span-7">
+    <div id="map" class="w-full h-full rounded-lg overflow-hidden"></div>
   </div>
 </div>
 <ImageryResultHover {overlay} result={hoveredResult}></ImageryResultHover>

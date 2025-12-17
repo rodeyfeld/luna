@@ -2,8 +2,7 @@
   import { page } from '$app/stores';
   import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
-  import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
-  import { formatDate, formatDateTime } from "$lib/utils/dates";
+  import StudyMap from "$lib/components/Study/ImageryFinder/Map.svelte";
 
   interface Props {
     data: {
@@ -67,7 +66,7 @@
           <span>ID: {data.studyId}</span>
           {#if studyData?.imagery_finder_id}
             <span>•</span>
-            <span>Finder: {finder?.name || data.studyData.imagery_finder_id}</span>
+            <span>Finder: {finder?.name || studyData?.imagery_finder_id}</span>
           {/if}
         </div>
       </div>
@@ -93,57 +92,25 @@
       <LoadingSpinner message="Loading study results..." />
     </div>
   {:else}
-    <!-- Archive Imagery Results -->
-    <SectionPanel>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">Archive Imagery Found</h2>
-        <span class="text-xs text-surface-500">
-          {results.length} {results.length === 1 ? 'item' : 'items'}
-        </span>
-      </div>
-
+    <!-- Archive Imagery Results with Map -->
+    <div class="h-[calc(100vh-280px)] min-h-[500px]">
       {#if results.length > 0}
-        <div class="overflow-x-auto">
-          <table class="table table-compact table-hover w-full">
-            <thead>
-              <tr>
-                <th>Collection</th>
-                <th>Sensor</th>
-                <th>Technique</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Geometry Type</th>
-                <th>Provider</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each results as result}
-                <tr class="hover:bg-surface-800/50 transition-smooth">
-                  <td class="font-medium">{result.collection || '—'}</td>
-                  <td class="text-sm">{result.sensor?.name || '—'}</td>
-                  <td class="text-sm">{result.sensor?.technique || '—'}</td>
-                  <td class="text-sm text-surface-400">{formatDate(result.start_date)}</td>
-                  <td class="text-sm text-surface-400">{formatDate(result.end_date)}</td>
-                  <td class="text-sm">{result.geometry?.type || '—'}</td>
-                  <td class="text-sm">{result.provider || '—'}</td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
+        <StudyMap study={data.studyResults} />
       {:else}
-        <div class="text-center py-16">
-          <div class="text-5xl mb-3 opacity-20">🔍</div>
-          <h3 class="text-lg font-semibold mb-2">No Archive Imagery Found</h3>
-          <p class="text-surface-400 mb-6">
-            This study didn't find any satellite imagery matching the search criteria.
-          </p>
-          <a href="/archive/finder/{$page.params.slug}" class="btn variant-soft-primary">
-            Back to Finder
-          </a>
-        </div>
+        <SectionPanel>
+          <div class="text-center py-16">
+            <div class="text-5xl mb-3 opacity-20">🔍</div>
+            <h3 class="text-lg font-semibold mb-2">No Archive Imagery Found</h3>
+            <p class="text-surface-400 mb-6">
+              This study didn't find any satellite imagery matching the search criteria.
+            </p>
+            <a href="/archive/finder/{$page.params.slug}" class="btn variant-soft-primary">
+              Back to Finder
+            </a>
+          </div>
+        </SectionPanel>
       {/if}
-    </SectionPanel>
+    </div>
   {/if}
 </div>
 

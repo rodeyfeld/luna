@@ -3,12 +3,14 @@
 
   type Sensor = {
     name?: string;
+    technique?: string;
   };
 
   export type ArchiveLookupResult = {
     id: number;
     external_id?: string;
     collection?: string;
+    provider?: string;
     start_date?: string;
     end_date?: string;
     sensor?: Sensor;
@@ -36,12 +38,16 @@
         month: "short",
         day: "numeric",
         year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
       });
     } catch {
       return value;
     }
+  }
+
+  function truncateId(id?: string | number): string {
+    if (!id) return "—";
+    const str = String(id);
+    return str.length > 4 ? `…${str.slice(-4)}` : str;
   }
 
   function handleHover(result: ArchiveLookupResult) {
@@ -75,10 +81,10 @@
         class="bg-surface-800/60 text-left text-surface-400 uppercase text-2xs tracking-wider"
       >
         <tr>
-          <th scope="col" class="px-4 py-3 font-semibold">Collection</th>
-          <th scope="col" class="px-4 py-3 font-semibold">Sensor</th>
-          <th scope="col" class="px-4 py-3 font-semibold">Window</th>
-          <th scope="col" class="px-4 py-3 font-semibold">Actions</th>
+          <th scope="col" class="px-2 py-2 font-semibold">Collection</th>
+          <th scope="col" class="px-2 py-2 font-semibold">Sensor</th>
+          <th scope="col" class="px-2 py-2 font-semibold">Window</th>
+          <th scope="col" class="px-2 py-2 font-semibold sr-only">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -94,43 +100,45 @@
             onblur={handleLeave}
             onclick={() => handleSelect(result)}
           >
-            <td class="px-4 py-3 align-middle">
+            <td class="px-2 py-2 align-middle">
               <div class="flex flex-col">
-                <p class="font-semibold text-surface-100">
+                <p class="font-semibold text-surface-100 text-xs">
                   {result.collection || "Unknown"}
                 </p>
-                <p class="text-xs text-surface-400">
-                  #{result.external_id || result.id}
+                <p class="text-2xs text-surface-400">
+                  {result.provider || "—"}
                 </p>
               </div>
             </td>
-            <td class="px-4 py-3 align-middle">
-              <span
-                class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-500/15 text-primary-200 border border-primary-500/30"
-              >
-                {result.sensor?.name || "—"}
-              </span>
+            <td class="px-2 py-2 align-middle">
+              <div class="flex flex-col gap-0.5">
+                <span
+                  class="inline-flex items-center w-fit px-1.5 py-0.5 rounded-full text-2xs bg-primary-500/15 text-primary-200 border border-primary-500/30"
+                >
+                  {result.sensor?.name || "—"}
+                </span>
+                <span class="text-2xs text-surface-400">
+                  {result.sensor?.technique || "—"}
+                </span>
+              </div>
             </td>
-            <td class="px-4 py-3 align-middle">
-              <div
-                class="flex flex-wrap items-center gap-1 text-xs text-surface-200"
-              >
+            <td class="px-2 py-2 align-middle">
+              <div class="flex flex-col text-2xs text-surface-200">
                 <span>{formatDate(result.start_date)}</span>
-                <span class="opacity-60">→</span>
                 <span>{formatDate(result.end_date)}</span>
               </div>
             </td>
-            <td class="px-4 py-3 align-middle">
+            <td class="px-2 py-2 align-middle">
               <button
                 type="button"
-                class="btn btn-xs variant-soft-primary"
+                class="btn btn-xs variant-soft-primary text-2xs px-2 py-1"
                 onclick={(event) => {
                   event.stopPropagation();
                   handleSelect(result);
                 }}
                 aria-label="Preview imagery thumbnail"
               >
-                Preview
+                View
               </button>
             </td>
           </tr>
