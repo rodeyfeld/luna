@@ -14,7 +14,7 @@
         <div class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 animate-fadeIn">
           <div class="space-y-4">
             <h1 class="text-5xl md:text-6xl font-bold">
-              <span class="bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+              <span class="text-primary-500">
                 LUNA
               </span>
             </h1>
