@@ -87,7 +87,6 @@
         <p class="eyebrow">Method</p>
         <h2 class="display mt-3 text-4xl sm:text-5xl">How it works</h2>
       </div>
-      <p class="max-w-sm text-sm text-haze">Four steps from a place on the map to the imagery that covers it.</p>
     </div>
 
     <!-- gap-px over a line-colored backdrop draws hairlines between cells at every breakpoint -->
