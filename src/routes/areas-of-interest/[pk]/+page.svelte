@@ -1,5 +1,6 @@
 <script lang="ts">
-  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
+  import EmptyState from "$lib/components/shared/EmptyState.svelte";
+  import { ArrowLeft, ChevronRight, ScanSearch, Wind } from "@lucide/svelte";
   import GeometryEditor from "$lib/components/shared/GeometryEditor.svelte";
   import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
   import type { StoredGeometry } from "$lib/types/imagery";
@@ -49,118 +50,123 @@
 
 <div class="page-stack">
   {#if geometryRecord}
-    <SectionPanel variant="hero">
-      <div class="flex justify-between items-start">
-        <div>
-          <h1 class="text-3xl font-bold mb-2">{geometryRecord.name}</h1>
-          <p class="text-surface-300">
-            {geometryPreview ? geometryPreview.type : "Area of Interest"}
-          </p>
-        </div>
-        <a class="btn variant-ghost-surface" href="/areas-of-interest">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back
-        </a>
+    <header class="page-head animate-fadeIn">
+      <div class="min-w-0">
+        <p class="eyebrow">
+          <a href="/areas-of-interest" class="transition-colors hover:text-moon">Atlas · Areas</a>
+          <span class="text-shade"> / </span>
+          <span class="readout">No. {geometryRecord.id}</span>
+        </p>
+        <h1 class="break-words">{geometryRecord.name}</h1>
+        <p class="readout text-sm">{geometryPreview ? geometryPreview.type : "Area of interest"}</p>
       </div>
-    </SectionPanel>
+      <a class="btn btn-quiet shrink-0" href="/areas-of-interest">
+        <ArrowLeft size={14} strokeWidth={1.5} />
+        Back
+      </a>
+    </header>
 
-    <SectionPanel>
-      <h2 class="text-xl font-semibold mb-4">Actions</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <a
-          href={`/archive/create?geometryId=${encodeURIComponent(String(geometryRecord.id))}`}
-          class="tile flex items-center gap-3"
-        >
-          <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <span class="font-medium">Create Imagery Finder</span>
-        </a>
-        <div class="tile flex items-center gap-3 opacity-40">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <span class="font-medium">Create Wind Speed <span class="text-xs text-surface-500">(coming soon)</span></span>
-        </div>
-      </div>
-    </SectionPanel>
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <section class="animate-fadeIn stagger-1 lg:col-span-2">
+        {#if geometryPreview}
+          <GeometryEditor geometry={geometryPreview} height="500px" showToolbar={false} />
+        {:else}
+          <div class="map-frame flex h-[300px] items-center justify-center text-sm text-haze">
+            Unable to display geometry
+          </div>
+        {/if}
+      </section>
+
+      <aside class="flex flex-col gap-6 animate-fadeIn stagger-2">
+        <section class="panel">
+          <p class="eyebrow border-b border-line px-5 py-3.5">Record</p>
+          <dl>
+            {#each metadataRows as row}
+              <div class="flex items-baseline justify-between gap-4 border-b border-line px-5 py-2.5 last:border-b-0">
+                <dt class="text-sm text-haze">{row.label}</dt>
+                <dd class="readout truncate text-sm text-dust">{row.value}</dd>
+              </div>
+            {/each}
+          </dl>
+        </section>
+
+        <section class="panel">
+          <p class="eyebrow border-b border-line px-5 py-3.5">Actions</p>
+          <a
+            href={`/archive/create?geometryId=${encodeURIComponent(String(geometryRecord.id))}`}
+            class="row flex items-center gap-3"
+          >
+            <ScanSearch size={16} strokeWidth={1.5} class="shrink-0 text-sodium" />
+            <span class="flex-1 text-sm font-medium text-moon">Create imagery finder</span>
+            <ChevronRight size={16} strokeWidth={1.5} class="shrink-0 text-shade" />
+          </a>
+          <div class="flex items-center gap-3 px-[1.1rem] py-[0.95rem] text-shade" aria-disabled="true">
+            <Wind size={16} strokeWidth={1.5} class="shrink-0" />
+            <span class="flex-1 text-sm">Create wind speed</span>
+            <span class="chip shrink-0 text-shade">Soon</span>
+          </div>
+        </section>
+      </aside>
+    </div>
 
     {#if finders.length > 0}
-    <SectionPanel>
-      <h2 class="text-xl font-semibold mb-4">Imagery Finders ({finders.length})</h2>
-      <div class="space-y-3">
-        {#each finders as finder}
-          <a
-            href={`/archive/finder/${finder.id}`}
-            class="tile flex items-center justify-between"
-          >
-            <div>
-              <div class="flex items-center gap-2 mb-1">
-                <span class="font-semibold">{finder.name}</span>
-                {#if finder.is_active}
-                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                {/if}
+      <section class="panel animate-fadeIn stagger-3">
+        <div class="flex items-center justify-between border-b border-line px-5 py-3.5">
+          <p class="eyebrow">Imagery finders</p>
+          <span class="readout text-xs text-haze">{finders.length}</span>
+        </div>
+        <div class="p-2 sm:p-3">
+          {#each finders as finder}
+            <a href={`/archive/finder/${finder.id}`} class="row flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <div class="mb-1 flex items-center gap-2.5">
+                  <span class="truncate font-medium text-moon">{finder.name}</span>
+                  {#if finder.is_active}
+                    <span class="chip shrink-0 text-sage">Active</span>
+                  {/if}
+                </div>
+                <div class="readout flex flex-wrap gap-x-3 text-xs text-haze">
+                  <span>{formatDate(finder.start_date)} → {formatDate(finder.end_date)}</span>
+                  {#if finder.studies && finder.studies.length > 0}
+                    <span>{finder.studies.length} {finder.studies.length === 1 ? 'study' : 'studies'}</span>
+                  {/if}
+                </div>
               </div>
-              <div class="text-sm text-surface-500">
-                {formatDate(finder.start_date)} - {formatDate(finder.end_date)}
-                {#if finder.studies && finder.studies.length > 0}
-                  • {finder.studies.length} {finder.studies.length === 1 ? 'study' : 'studies'}
-                {/if}
-              </div>
-            </div>
-            <svg class="w-5 h-5 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        {/each}
-      </div>
-    </SectionPanel>
+              <ChevronRight size={16} strokeWidth={1.5} class="shrink-0 text-shade" />
+            </a>
+          {/each}
+        </div>
+      </section>
     {/if}
 
-    <SectionPanel>
-      <h2 class="text-xl font-semibold mb-4">Map Preview</h2>
-      {#if geometryPreview}
-        <GeometryEditor geometry={geometryPreview} height="500px" showToolbar={false} />
-      {:else}
-        <div class="text-center py-8 text-surface-500">
-          Unable to display geometry
-        </div>
-      {/if}
-    </SectionPanel>
-
-    <SectionPanel>
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-semibold">GeoJSON</h3>
-      </div>
-      <pre class="code-block">{JSON.stringify(geometryPreview ?? geometryRecord.geometry, null, 2)}</pre>
-    </SectionPanel>
+    <section class="panel animate-fadeIn stagger-4">
+      <p class="eyebrow border-b border-line px-5 py-3.5">GeoJSON</p>
+      <pre class="code-block readout">{JSON.stringify(geometryPreview ?? geometryRecord.geometry, null, 2)}</pre>
+    </section>
   {:else}
-    <SectionPanel variant="hero">
-      <div class="text-center py-12">
-        <div class="text-6xl mb-4 opacity-20">🗺️</div>
-        <h1 class="text-2xl font-bold mb-2">Area not found</h1>
-        <p class="text-surface-400 mb-6">
-          {loadError ?? "This area of interest doesn't exist or has been removed."}
-        </p>
-        <a class="btn variant-filled-primary" href="/areas-of-interest">
-          Back to Library
-        </a>
-      </div>
-    </SectionPanel>
+    <section class="panel animate-fadeIn">
+      <EmptyState
+        title="Area not found"
+        description={loadError ?? "This area of interest doesn't exist or has been removed."}
+      >
+        {#snippet action()}
+          <a class="btn btn-primary" href="/areas-of-interest">
+            <ArrowLeft size={14} strokeWidth={1.5} />
+            Back to library
+          </a>
+        {/snippet}
+      </EmptyState>
+    </section>
   {/if}
 </div>
 
 <style>
   .code-block {
-    background: rgba(15, 23, 42, 0.65);
-    border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 1.5rem;
-    overflow-x: auto;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    max-height: 24rem;
+    overflow: auto;
+    padding: 1.25rem;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--color-dust);
   }
 </style>
-

@@ -1,23 +1,18 @@
 <script lang="ts">
-	export type SectionVariant = 'default' | 'hero' | 'muted';
+	import type { Snippet } from 'svelte';
 
-	export let variant: SectionVariant = 'default';
-	export let padding = 'px-4 sm:px-8 py-12';
-	export let tag: keyof HTMLElementTagNameMap = 'section';
-	export let className = '';
+	interface Props {
+		padding?: string;
+		tag?: keyof HTMLElementTagNameMap;
+		class?: string;
+		children?: Snippet;
+		[key: string]: unknown;
+	}
 
-	const variantClassMap: Record<SectionVariant, string> = {
-		default: '',
-		hero: 'section-hero',
-		muted: 'section-muted'
-	};
+	let { padding = 'p-5 sm:p-6', tag = 'section', class: className = '', children, ...rest }: Props =
+		$props();
 </script>
 
-<svelte:element
-	this={tag}
-	class={`section-panel w-full ${variantClassMap[variant]} ${padding} ${className}`.trim()}
-	{...$$restProps}
->
-	<slot />
+<svelte:element this={tag} class="panel w-full {padding} {className}" {...rest}>
+	{@render children?.()}
 </svelte:element>
-

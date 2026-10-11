@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
+  import { ArrowLeft, ChevronRight, CircleAlert } from "@lucide/svelte";
+  import EmptyState from "$lib/components/shared/EmptyState.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import StudyMap from "$lib/components/Study/ImageryFinder/Map.svelte";
 
@@ -22,95 +23,66 @@
 
 </script>
 
-<div class="w-full h-full overflow-y-auto p-6 space-y-4">
-  
-  <!-- Breadcrumbs -->
-  <nav class="flex items-center gap-2 text-sm mb-2">
-    <a href="/dashboard" class="text-surface-400 hover:text-surface-200 transition-smooth">
-      Dashboard
-    </a>
-    <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-    </svg>
-    <a href="/areas-of-interest" class="text-surface-400 hover:text-surface-200 transition-smooth">
-      Areas of Interest
-    </a>
-    {#if finder?.location?.id}
-      <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-      </svg>
-      <a href="/areas-of-interest/{finder.location.id}" class="text-surface-400 hover:text-surface-200 transition-smooth">
-        {finder.location.name || `Location #${finder.location.id}`}
-      </a>
-    {/if}
-    <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-    </svg>
-    <a href="/archive/finder/{$page.params.slug}" class="text-surface-400 hover:text-surface-200 transition-smooth">
-      {finder?.name || 'Finder'}
-    </a>
-    <svg class="w-4 h-4 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-    </svg>
-    <span class="text-surface-200 font-medium">Study Results</span>
-  </nav>
-
-  <!-- Study Header -->
-  <SectionPanel>
-    <div class="flex items-start justify-between">
-      <div>
-        <h1 class="text-xl font-bold mb-2">Study Results</h1>
-        <div class="flex items-center gap-3 text-sm text-surface-400">
-          <span>Study: {data.studyName}</span>
-          <span>•</span>
-          <span>ID: {data.studyId}</span>
-          {#if studyData?.imagery_finder_id}
-            <span>•</span>
-            <span>Finder: {finder?.name || studyData?.imagery_finder_id}</span>
-          {/if}
-        </div>
+<div class="min-w-0 space-y-6">
+  <header class="page-head">
+    <div class="min-w-0 flex-1">
+      <nav class="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-haze" aria-label="Breadcrumb">
+        <a href="/dashboard" class="hover:text-moon">Finders</a>
+        <ChevronRight size={12} strokeWidth={1.5} class="text-shade" />
+        <a href="/areas-of-interest" class="hover:text-moon">Areas</a>
+        {#if finder?.location?.id}
+          <ChevronRight size={12} strokeWidth={1.5} class="text-shade" />
+          <a href="/areas-of-interest/{finder.location.id}" class="max-w-[12rem] truncate hover:text-moon">
+            {finder.location.name || `Location #${finder.location.id}`}
+          </a>
+        {/if}
+        <ChevronRight size={12} strokeWidth={1.5} class="text-shade" />
+        <a href="/archive/finder/{$page.params.slug}" class="max-w-[14rem] truncate hover:text-moon">
+          {finder?.name || 'Finder'}
+        </a>
+      </nav>
+      <h1>Study results</h1>
+      <div class="readout mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-haze">
+        <span>study <span class="text-dust">{data.studyName}</span></span>
+        <span>id <span class="text-dust">{data.studyId}</span></span>
+        {#if studyData?.imagery_finder_id}
+          <span>finder <span class="text-dust">{finder?.name || studyData?.imagery_finder_id}</span></span>
+        {/if}
+        {#if results.length > 0}
+          <span><span class="text-moon">{results.length}</span> {results.length === 1 ? 'scene' : 'scenes'}</span>
+        {/if}
       </div>
-      <a href="/archive/finder/{$page.params.slug}" class="btn btn-sm variant-ghost-surface">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        <span>Back to Finder</span>
-      </a>
     </div>
-  </SectionPanel>
+    <a href="/archive/finder/{$page.params.slug}" class="btn btn-quiet shrink-0">
+      <ArrowLeft size={14} strokeWidth={1.5} />
+      <span>Back to finder</span>
+    </a>
+  </header>
 
   {#if data.error}
-    <SectionPanel>
-      <div class="text-center py-12">
-        <div class="text-5xl mb-3 opacity-20">⚠️</div>
-        <h3 class="text-lg font-semibold mb-2">Error Loading Results</h3>
-        <p class="text-surface-400">{data.error}</p>
-      </div>
-    </SectionPanel>
+    <div class="panel flex flex-col items-center px-6 py-14 text-center">
+      <CircleAlert size={28} strokeWidth={1.25} class="mb-4 text-rust" />
+      <h3 class="font-display text-3xl text-moon">Results unavailable</h3>
+      <p class="mt-2 max-w-md text-sm text-haze">{data.error}</p>
+    </div>
   {:else if !data.studyResults}
-    <div class="w-full h-full flex items-center justify-center py-12">
-      <LoadingSpinner message="Loading study results..." />
+    <div class="flex w-full items-center justify-center py-12">
+      <LoadingSpinner message="Loading study results" />
+    </div>
+  {:else if results.length > 0}
+    <div class="lg:h-[calc(100vh-16rem)] lg:min-h-[520px]">
+      <StudyMap study={data.studyResults} />
     </div>
   {:else}
-    <!-- Archive Imagery Results with Map -->
-    <div class="h-[calc(100vh-280px)] min-h-[500px]">
-      {#if results.length > 0}
-        <StudyMap study={data.studyResults} />
-      {:else}
-        <SectionPanel>
-          <div class="text-center py-16">
-            <div class="text-5xl mb-3 opacity-20">🔍</div>
-            <h3 class="text-lg font-semibold mb-2">No Archive Imagery Found</h3>
-            <p class="text-surface-400 mb-6">
-              This study didn't find any satellite imagery matching the search criteria.
-            </p>
-            <a href="/archive/finder/{$page.params.slug}" class="btn variant-soft-primary">
-              Back to Finder
-            </a>
-          </div>
-        </SectionPanel>
-      {/if}
+    <div class="panel">
+      <EmptyState
+        title="No archive imagery found"
+        description="This study didn't find any scenes matching the search criteria."
+      >
+        {#snippet action()}
+          <a href="/archive/finder/{$page.params.slug}" class="btn">Back to finder</a>
+        {/snippet}
+      </EmptyState>
     </div>
   {/if}
 </div>
-

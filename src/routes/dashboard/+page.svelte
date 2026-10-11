@@ -2,10 +2,11 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
-  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import MiniMap from "$lib/components/shared/MiniMap.svelte";
   import PaginatedList from "$lib/components/shared/PaginatedList.svelte";
   import { formatDate } from "$lib/utils/dates";
+  import { statusInfo } from "$lib/utils/status";
+  import { ChevronRight, Plug, Plus, RefreshCcw } from "@lucide/svelte";
 
   let imageryFinders = $state<any[]>([]);
   let loading = $state(true);
@@ -56,118 +57,97 @@
     
     return { stats, total };
   });
-
-  // Format status labels
-  function formatStatus(status: string): string {
-    return status
-      .split('_')
-      .map(word => word.charAt(0) + word.slice(1).toLowerCase())
-      .join(' ');
-  }
-
-  // Get status color
-  function getStatusColor(status: string): string {
-    const colors: Record<string, string> = {
-      'RUNNING': 'text-blue-400',
-      'COMPLETED': 'text-green-400',
-      'SUCCESS': 'text-green-400',
-      'ANOMALOUS': 'text-yellow-400',
-      'FAILED': 'text-red-400',
-      'ERROR': 'text-red-400',
-      'INITIALIZED': 'text-surface-400',
-      'PENDING': 'text-surface-400',
-    };
-    return colors[status] || 'text-surface-300';
-  }
 </script>
 
 <div class="page-stack">
-  <SectionPanel variant="hero">
-    <div class="flex justify-between items-start gap-4">
-      <div class="flex-1">
-        <h1 class="text-3xl font-bold mb-4">Data Finders</h1>
-        
-        {#if !loading && imageryFinders.length > 0}
-          <div class="flex flex-wrap gap-3">
-            <div class="stat-card bg-surface-800/50">
-              <p class="text-xs uppercase tracking-wider text-surface-400">Total Studies</p>
-              <p class="text-2xl font-bold text-primary-400">{studyStats.total}</p>
-            </div>
-            {#each Object.entries(studyStats.stats).sort((a, b) => b[1] - a[1]) as [status, count]}
-              <div class="stat-card bg-surface-800/30">
-                <p class="text-xs uppercase tracking-wider text-surface-400">{formatStatus(status)}</p>
-                <p class="text-2xl font-bold {getStatusColor(status)}">{count}</p>
-              </div>
-            {/each}
-          </div>
-        {/if}
-      </div>
-      <button
-        onclick={() => goto("/archive/create")}
-        class="btn variant-filled-primary shrink-0"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        <span>New Finder</span>
-      </button>
+  <header class="page-head animate-fadeIn">
+    <div class="min-w-0">
+      <p class="eyebrow">Index · Finders</p>
+      <h1>Data finders</h1>
+      <p>Saved searches against public imagery catalogues, and the studies run from them.</p>
     </div>
-  </SectionPanel>
+    <button onclick={() => goto("/archive/create")} class="btn btn-primary shrink-0">
+      <Plus size={14} strokeWidth={1.5} />
+      <span>New finder</span>
+    </button>
+  </header>
 
-  <SectionPanel>
+  {#if !loading && !error && imageryFinders.length > 0}
+    <div class="flex flex-wrap gap-y-6 animate-fadeIn stagger-1">
+      <div class="stat">
+        <p class="eyebrow">Finders</p>
+        <p class="stat-value">{imageryFinders.length}</p>
+      </div>
+      <div class="stat">
+        <p class="eyebrow">Studies</p>
+        <p class="stat-value">{studyStats.total}</p>
+      </div>
+      {#each Object.entries(studyStats.stats).sort((a, b) => b[1] - a[1]) as [status, count]}
+        {@const info = statusInfo(status)}
+        <div class="stat">
+          <p class="eyebrow">{info.label}</p>
+          <p class="stat-value {info.tone}">{count}</p>
+        </div>
+      {/each}
+    </div>
+  {/if}
+
+  <section class="panel animate-fadeIn stagger-2">
     {#if error}
-      <div class="text-center py-12">
-        <div class="text-5xl mb-3 opacity-20">🔌</div>
-        <h3 class="text-lg font-semibold mb-2">Backend Unavailable</h3>
-        <p class="text-surface-400 mb-6">{error}</p>
-        <button onclick={loadData} class="btn variant-soft-primary">
-          Retry Connection
+      <div class="flex flex-col items-center px-4 py-14 text-center">
+        <Plug size={28} strokeWidth={1.25} class="mb-5 text-rust" />
+        <h3 class="font-display text-2xl text-moon">Backend unavailable</h3>
+        <p class="mx-auto mt-2 mb-6 max-w-md text-sm text-haze">{error}</p>
+        <button onclick={loadData} class="btn">
+          <RefreshCcw size={14} strokeWidth={1.5} />
+          Retry connection
         </button>
       </div>
     {:else if loading}
-      <LoadingSpinner />
+      <LoadingSpinner message="Loading finders" />
     {:else}
-      <PaginatedList
-        items={imageryFinders}
-        itemsPerPage={10}
-        emptyMessage="No finders yet. Create your first finder to start searching public data."
-        emptyIcon="🗺️"
-      >
-        {#snippet children(finder)}
-          <a
-            href="/archive/finder/{finder.id}"
-            class="tile text-left block hover-lift"
-          >
-            <div class="flex items-center gap-4">
-              {#if finder.location?.geometry || finder.geometry}
-                <MiniMap geometry={finder.location?.geometry || finder.geometry} width="100px" height="70px" />
-              {/if}
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-3 mb-1">
-                  <h3 class="font-semibold text-lg truncate">{finder.name}</h3>
-                  {#if finder.is_active}
-                    <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
-                  {/if}
+      <div class="p-2 sm:p-3">
+        <PaginatedList
+          items={imageryFinders}
+          itemsPerPage={10}
+          emptyTitle="No finders yet"
+          emptyMessage="Create your first finder to start searching public data."
+        >
+          {#snippet emptyAction()}
+            <button onclick={() => goto("/archive/create")} class="btn btn-primary">
+              <Plus size={14} strokeWidth={1.5} />
+              New finder
+            </button>
+          {/snippet}
+          {#snippet children(finder)}
+            <a href="/archive/finder/{finder.id}" class="row">
+              <div class="flex items-center gap-4">
+                {#if finder.location?.geometry || finder.geometry}
+                  <div class="hidden sm:block">
+                    <MiniMap geometry={finder.location?.geometry || finder.geometry} width="96px" height="64px" />
+                  </div>
+                {/if}
+                <div class="min-w-0 flex-1">
+                  <div class="mb-1 flex items-center gap-2.5">
+                    <h3 class="truncate font-medium text-moon">{finder.name}</h3>
+                    {#if finder.is_active}
+                      <span class="chip shrink-0 text-sage">Active</span>
+                    {/if}
+                  </div>
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-haze">
+                    <span class="readout">{formatDate(finder.start_date)} → {formatDate(finder.end_date)}</span>
+                    <span class="readout">{finder.studies?.length || 0} {finder.studies?.length === 1 ? 'study' : 'studies'}</span>
+                    {#if finder.location?.name}
+                      <span class="truncate text-dust">{finder.location.name}</span>
+                    {/if}
+                  </div>
                 </div>
-                <div class="flex items-center gap-3 text-sm text-surface-400">
-                  <span>{formatDate(finder.start_date)} - {formatDate(finder.end_date)}</span>
-                  <span>•</span>
-                  <span>{finder.studies?.length || 0} {finder.studies?.length === 1 ? 'study' : 'studies'}</span>
-                  {#if finder.location?.name}
-                    <span>•</span>
-                    <span class="truncate">{finder.location.name}</span>
-                  {/if}
-                </div>
+                <ChevronRight size={16} strokeWidth={1.5} class="shrink-0 text-shade" />
               </div>
-              <div class="text-right flex-shrink-0">
-                <svg class="w-5 h-5 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </a>
-        {/snippet}
-      </PaginatedList>
+            </a>
+          {/snippet}
+        </PaginatedList>
+      </div>
     {/if}
-  </SectionPanel>
+  </section>
 </div>

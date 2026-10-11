@@ -1,148 +1,140 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
+  import { ArrowRight, ArrowUpRight } from "@lucide/svelte";
+  import MoonPhase from "$lib/components/shared/MoonPhase.svelte";
+  import type { Phase } from "$lib/utils/status";
 
-  const pinwheel = "/pinwheel.svg";
+  const steps: { phase: Phase; title: string; body: string }[] = [
+    {
+      phase: "new",
+      title: "Mark an area",
+      body: "Draw a polygon or drop a point anywhere on Earth. It becomes a saved area of interest.",
+    },
+    {
+      phase: "crescent",
+      title: "Set a finder",
+      body: "Give the area a window of time, a cloud ceiling, a resolution, and the sensors you care about.",
+    },
+    {
+      phase: "gibbous",
+      title: "Run a study",
+      body: "Luna searches the public archives for every capture that crossed your area in that window.",
+    },
+    {
+      phase: "full",
+      title: "Read the results",
+      body: "Browse footprints on the map with dates, sources, cloud cover and previews side by side.",
+    },
+  ];
+
+  const index = [
+    { href: "/areas-of-interest", numeral: "I", title: "Areas of interest", body: "Draw and manage the places you watch" },
+    { href: "/dashboard", numeral: "II", title: "Finders", body: "Search windows and the studies run against them" },
+    { href: "/providers", numeral: "III", title: "Sources", body: "Public archives and their integrations" },
+  ];
+
+  // Graticule for the hero globe: meridians as ellipses, parallels as chords
+  const meridians = [0.2, 0.45, 0.7, 0.9];
+  const parallels = [-0.66, -0.33, 0, 0.33, 0.66];
 </script>
 
-<div class="page-stack">
-  <!-- Hero Section -->
-  <SectionPanel variant="hero" padding="px-4 sm:px-8 py-16 md:py-24">
-    <div class="max-w-7xl mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <!-- Hero Content -->
-        <div class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 animate-fadeIn">
-          <div class="space-y-4">
-            <h1 class="text-5xl md:text-6xl font-bold">
-              <span class="text-primary-500">
-                LUNA
-              </span>
-            </h1>
-            <p class="text-2xl md:text-3xl font-semibold text-surface-900 dark:text-surface-50">
-              Public Data Finder
-            </p>
-            <p class="text-lg text-surface-600 dark:text-surface-300 max-w-[550px]">
-              Define areas of interest and search public data sources.
-            </p>
-          </div>
-
-          <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <button
-              onclick={() => goto("/areas-of-interest")}
-              class="btn variant-filled-primary text-lg px-8 py-4 transition-smooth hover:scale-105"
-            >
-              <span>Get Started</span>
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </button>
-            <button
-              onclick={() => goto("/dashboard")}
-              class="btn variant-soft-primary text-lg px-8 py-4 transition-smooth hover:scale-105"
-            >
-              <span>View Finders</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Hero Visual - THE SPINNING PINWHEEL! -->
-        <div class="hidden lg:flex justify-center items-center animate-scaleIn">
-          <img
-            id="hero-lunalogo"
-            src={pinwheel}
-            alt="Luna - Public Data Finder"
-          />
-        </div>
+<div class="flex flex-col gap-24 pb-12">
+  <!-- Hero -->
+  <section class="grid items-center gap-12 pt-6 lg:grid-cols-[1.1fr_1fr] lg:pt-12">
+    <div class="animate-fadeIn">
+      <p class="eyebrow">Pinwheel Labs</p>
+      <h1 class="display mt-5 text-[6.5rem] sm:text-[9rem]">luna</h1>
+      <p class="mt-6 max-w-lg text-lg leading-relaxed text-dust">
+        Mark a place on Earth, choose a window of time, and find every public satellite capture that passed
+        overhead.
+      </p>
+      <div class="mt-10 flex flex-wrap gap-3">
+        <a href="/areas-of-interest" class="btn btn-primary">
+          Mark an area
+          <ArrowRight size={14} strokeWidth={1.5} />
+        </a>
+        <a href="/dashboard" class="btn">Open finders</a>
       </div>
     </div>
-  </SectionPanel>
 
-  <!-- How It Works -->
-  <SectionPanel padding="px-4 sm:px-8 py-16">
-    <div class="max-w-4xl mx-auto">
-      <h2 class="text-3xl font-bold mb-8 text-center">How It Works</h2>
-      
-      <div class="space-y-6">
-        <div class="tile hover-lift">
-          <div class="flex items-start gap-4">
-            <div class="text-3xl">📍</div>
-            <div>
-              <h3 class="text-xl font-semibold mb-2">1. Define Your Area of Interest</h3>
-              <p class="text-surface-400">
-                Create or select a geographic location - point, polygon, or any geometry.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="tile hover-lift">
-          <div class="flex items-start gap-4">
-            <div class="text-3xl">🔍</div>
-            <div>
-              <h3 class="text-xl font-semibold mb-2">2. Create an Imagery Finder</h3>
-              <p class="text-surface-400">
-                Set date ranges and search parameters. Filter by cloud coverage, resolution, and sensor type.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="tile hover-lift">
-          <div class="flex items-start gap-4">
-            <div class="text-3xl">⚡</div>
-            <div>
-              <h3 class="text-xl font-semibold mb-2">3. Execute Studies</h3>
-              <p class="text-surface-400">
-                Run searches across public data sources.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="tile hover-lift">
-          <div class="flex items-start gap-4">
-            <div class="text-3xl">📊</div>
-            <div>
-              <h3 class="text-xl font-semibold mb-2">4. View Results</h3>
-              <p class="text-surface-400">
-                Browse results with collection details, dates, and sources.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="text-center mt-12">
-        <button
-          onclick={() => goto("/areas-of-interest")}
-          class="btn variant-filled-primary"
-        >
-          Define Your First Area
-        </button>
-      </div>
+    <div class="hidden justify-center animate-scaleIn stagger-2 lg:flex" aria-hidden="true">
+      <svg viewBox="-200 -200 400 400" class="h-[26rem] w-[26rem] overflow-visible">
+        <g fill="none" style="stroke: var(--color-line-strong)" stroke-width="1">
+          <circle r="170" />
+          {#each meridians as m}
+            <ellipse rx={170 * m} ry="170" />
+          {/each}
+          {#each parallels as p}
+            <line x1={-170 * Math.sqrt(1 - p * p)} x2={170 * Math.sqrt(1 - p * p)} y1={170 * p} y2={170 * p} />
+          {/each}
+          <line x1="0" x2="0" y1="-170" y2="170" />
+        </g>
+        <!-- an orbit, tilted, with one bright pass -->
+        <g transform="rotate(-24)">
+          <ellipse rx="196" ry="58" fill="none" style="stroke: var(--color-shade)" stroke-width="1" stroke-dasharray="2 5" />
+          <circle r="3.5" style="fill: var(--color-sodium)">
+            <animateMotion dur="14s" repeatCount="indefinite" path="M 196 0 A 196 58 0 1 1 -196 0 A 196 58 0 1 1 196 0" />
+          </circle>
+        </g>
+        <image href="/pinwheel.svg" x="-72" y="-72" width="144" height="144" class="hero-moon" />
+      </svg>
     </div>
-  </SectionPanel>
+  </section>
 
-  <!-- Quick Links -->
-  <SectionPanel variant="muted" padding="px-4 sm:px-8 py-12">
-    <div class="max-w-4xl mx-auto">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="/areas-of-interest" class="tile hover-lift text-center">
-          <div class="text-3xl mb-2">🗺️</div>
-          <h3 class="font-semibold mb-1">Areas of Interest</h3>
-          <p class="text-sm text-surface-400">Manage locations</p>
-        </a>
-        <a href="/dashboard" class="tile hover-lift text-center">
-          <div class="text-3xl mb-2">📡</div>
-          <h3 class="font-semibold mb-1">Imagery Finders</h3>
-          <p class="text-sm text-surface-400">View all finders</p>
-        </a>
-        <a href="/providers" class="tile hover-lift text-center">
-          <div class="text-3xl mb-2">🛰️</div>
-          <h3 class="font-semibold mb-1">Providers</h3>
-          <p class="text-sm text-surface-400">Available sources</p>
-        </a>
+  <!-- Method -->
+  <section class="animate-fadeIn stagger-3">
+    <div class="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
+      <div>
+        <p class="eyebrow">Method</p>
+        <h2 class="display mt-3 text-4xl sm:text-5xl">How it works</h2>
       </div>
+      <p class="max-w-sm text-sm text-haze">Four steps from a place on the map to the imagery that covers it.</p>
     </div>
-  </SectionPanel>
+
+    <!-- gap-px over a line-colored backdrop draws hairlines between cells at every breakpoint -->
+    <ol class="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
+      {#each steps as step, i}
+        <li class="bg-night py-8 sm:px-6">
+          <div class="flex items-center justify-between">
+            <MoonPhase phase={step.phase} size={22} class="text-moon" />
+            <span class="readout text-xs text-shade">0{i + 1}</span>
+          </div>
+          <h3 class="mt-6 text-lg font-medium">{step.title}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-haze">{step.body}</p>
+        </li>
+      {/each}
+    </ol>
+  </section>
+
+  <!-- Index -->
+  <section class="animate-fadeIn stagger-4">
+    <p class="eyebrow border-b border-line pb-4">Index</p>
+    <ul>
+      {#each index as entry}
+        <li>
+          <a href={entry.href} class="group flex items-center gap-6 border-b border-line py-6 transition-colors">
+            <span class="readout w-10 text-sm text-shade transition-colors group-hover:text-sodium">
+              {entry.numeral}
+            </span>
+            <span class="flex-1">
+              <span class="display block text-3xl transition-colors group-hover:text-white">{entry.title}</span>
+              <span class="mt-1 block text-sm text-haze">{entry.body}</span>
+            </span>
+            <ArrowUpRight
+              size={20}
+              strokeWidth={1.25}
+              class="text-shade transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-moon"
+            />
+          </a>
+        </li>
+      {/each}
+    </ul>
+  </section>
 </div>
+
+<style>
+  .hero-moon {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: rotate-moon 90s linear infinite;
+  }
+</style>

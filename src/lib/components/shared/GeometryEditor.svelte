@@ -2,14 +2,14 @@
 	import { onDestroy, onMount, createEventDispatcher } from 'svelte';
 	import Map from 'ol/Map';
 	import View from 'ol/View';
-	import TileLayer from 'ol/layer/Tile';
 	import VectorLayer from 'ol/layer/Vector';
 	import { Vector as VectorSource } from 'ol/source';
-	import OSM from 'ol/source/OSM';
+	import { drawStyle, highlightStyle } from '$lib/components/Map/MapUtils';
+	import { lunaBasemap } from '$lib/components/Map/basemap';
 	import { Draw, Modify, Snap } from 'ol/interaction';
 	import GeoJSON from 'ol/format/GeoJSON';
 	import { Feature } from 'ol';
-	import { Polygon, type Geometry } from 'ol/geom';
+	import { Point, Polygon, type Geometry } from 'ol/geom';
 
 	type GeoJSONGeometry = ReturnType<GeoJSON['writeGeometryObject']>;
 
@@ -18,6 +18,8 @@
 	export let height = '420px';
 	export let showToolbar = true;
 	export let convertPointSize = 0.5; // degrees
+	export let onchange: ((event: CustomEvent<{ geometry: GeoJSONGeometry | null }>) => void) | undefined =
+		undefined;
 
 	const dispatch = createEventDispatcher<{ change: { geometry: GeoJSONGeometry | null } }>();
 
@@ -35,21 +37,19 @@
 		vectorSource = new VectorSource();
 
 		const vectorLayer = new VectorLayer({
-			source: vectorSource
+			source: vectorSource,
+			style: highlightStyle
 		});
 
 		map = new Map({
 			target: mapEl,
 			layers: [
-				new TileLayer({
-					source: new OSM()
-				}),
+				lunaBasemap(),
 				vectorLayer
 			],
 			view: new View({
-				center: [0, 0],
-				zoom: 2,
-				projection: 'EPSG:4326'
+				center: [0, 20],
+				zoom: 2
 			})
 		});
 
@@ -101,10 +101,11 @@
 		if (mode === 'point') {
 			drawInteraction = new Draw({
 				source: vectorSource,
-				type: 'Point'
+				type: 'Point',
+				style: drawStyle
 			});
 			drawInteraction.on('drawend', (event) => {
-				const point = event.feature.getGeometry();
+				const point = event.feature.getGeometry() as Point | undefined;
 				if (!point) return;
 				const [x, y] = point.getCoordinates();
 				const size = convertPointSize;
@@ -124,7 +125,8 @@
 		} else {
 			drawInteraction = new Draw({
 				source: vectorSource,
-				type: 'Polygon'
+				type: 'Polygon',
+				style: drawStyle
 			});
 			drawInteraction.on('drawend', (event) => {
 				const geom = event.feature.getGeometry();
@@ -145,7 +147,7 @@
 		});
 		manualUpdate = true;
 		geometry = structuredClone(geometryObject);
-		dispatch('change', { geometry });
+		emitChange(geometry);
 		manualUpdate = false;
 	}
 
@@ -177,48 +179,40 @@
 	function clearGeometry() {
 		vectorSource?.clear();
 		geometry = null;
-		dispatch('change', { geometry: null });
+		emitChange(null);
+	}
+
+	// Support both `on:change` (legacy) and an `onchange` prop (runes-mode parents)
+	function emitChange(value: GeoJSONGeometry | null) {
+		dispatch('change', { geometry: value });
+		onchange?.(new CustomEvent('change', { detail: { geometry: value } }));
 	}
 </script>
 
 <div class="geometry-editor space-y-3">
 	{#if showToolbar}
 		<div class="flex flex-wrap items-center justify-between gap-3">
-			<div class="flex items-center gap-2">
-				<span class="text-sm text-surface-400">Draw Mode:</span>
-				<div class="btn-group">
-					<button
-						type="button"
-						class={`btn btn-sm ${drawMode === 'polygon' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-						onclick={() => (drawMode = 'polygon')}
-					>
+			<div class="flex items-center gap-3">
+				<span class="eyebrow">Draw</span>
+				<div class="seg">
+					<button type="button" aria-pressed={drawMode === 'polygon'} onclick={() => (drawMode = 'polygon')}>
 						Polygon
 					</button>
-					<button
-						type="button"
-						class={`btn btn-sm ${drawMode === 'point' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-						onclick={() => (drawMode = 'point')}
-					>
-						Quick Point
+					<button type="button" aria-pressed={drawMode === 'point'} onclick={() => (drawMode = 'point')}>
+						Quick point
 					</button>
 				</div>
 			</div>
-			<button type="button" class="btn btn-sm variant-ghost-error" onclick={clearGeometry}>
-				Clear
-			</button>
+			<button type="button" class="btn btn-sm btn-quiet" onclick={clearGeometry}>Clear</button>
 		</div>
 	{/if}
-	<div class="geometry-editor__map" bind:this={mapEl} style={`height:${height}`}></div>
+	<div class="geometry-editor__map map-frame" bind:this={mapEl} style={`height:${height}`}></div>
 </div>
 
 <style>
 	.geometry-editor__map {
 		width: 100%;
 		min-height: 300px;
-		border-radius: 16px;
-		overflow: hidden;
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+		cursor: crosshair;
 	}
 </style>
-

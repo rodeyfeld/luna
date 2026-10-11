@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import type Map from 'ol/Map';
     import { Feature } from 'ol';
     import GeoJSON from 'ol/format/GeoJSON';
     import { newBaseFeatureLayer, newHighlightFeatureLayer, highlightFeature, lunaMap, newDrawFeatureLayer, newBaseDraw, newBaseModify } from '$lib/components/Map/MapUtils'
@@ -22,7 +23,7 @@
         highlightFeature(highlightFeatureLayer, value)
     })
 
-    let map;
+    let map: Map;
     onMount(() => {
         map = lunaMap("imageryFinderMap")
         map.addLayer(baseFeatureLayer)
@@ -53,12 +54,6 @@
 
 </script>
 
-<style>
-    #imageryFinderMap {
-      height: 100%;
-      width: 100%;
-    }
-</style>
-
-<div id="imageryFinderMap" class="w-full h-full"></div>
-
+<div class="map-frame h-[70vh] min-h-[420px] w-full">
+    <div id="imageryFinderMap" class="h-full w-full"></div>
+</div>

@@ -7,6 +7,7 @@
 
     let { data }: Props = $props();
 </script>
-<Map study={data.study}>   
-</Map>
+<div class="lg:h-[calc(100vh-10rem)] lg:min-h-[520px]">
+    <Map study={data.study}></Map>
+</div>
 

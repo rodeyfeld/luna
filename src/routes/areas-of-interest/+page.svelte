@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
   import GeometryEditor from "$lib/components/shared/GeometryEditor.svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
   import MiniMap from "$lib/components/shared/MiniMap.svelte";
@@ -8,6 +7,7 @@
   import { normalizeGeometry, type GeoJSONGeometry } from "$lib/utils/geometry";
   import { formatDateTime } from "$lib/utils/dates";
   import type { StoredGeometry } from "$lib/types/imagery";
+  import { ChevronRight, Plus, RefreshCcw } from "@lucide/svelte";
 
   let loading = $state(true);
   let saving = $state(false);
@@ -95,57 +95,30 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
     geometryDraft = normalizeGeometry(event.detail.geometry);
     if (success) success = null;
   }
-
 </script>
 
 <div class="page-stack">
-  <SectionPanel variant="hero">
-    <div class="flex justify-between items-start">
-      <div>
-        <h1 class="text-3xl font-bold mb-2">Areas of Interest</h1>
-        <p class="text-surface-300">
-          Draw new areas or select from your saved library
-        </p>
-      </div>
-      <div class="flex gap-2">
-        <button
-          type="button"
-          class={`btn btn-sm ${mode === 'create' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-          onclick={() => (mode = 'create')}
-        >
-          Create New
-        </button>
-        <button
-          type="button"
-          class={`btn btn-sm ${mode === 'library' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-          onclick={() => (mode = 'library')}
-        >
-          Library ({geometries.length})
-        </button>
-      </div>
+  <header class="page-head animate-fadeIn">
+    <div class="min-w-0">
+      <p class="eyebrow">Atlas · Areas</p>
+      <h1>Areas of interest</h1>
+      <p>Draw new areas or pick from your saved library.</p>
     </div>
-  </SectionPanel>
+    <div class="seg shrink-0">
+      <button type="button" aria-pressed={mode === 'library'} onclick={() => (mode = 'library')}>
+        Library <span class="readout ml-1 text-haze">{geometries.length}</span>
+      </button>
+      <button type="button" aria-pressed={mode === 'create'} onclick={() => (mode = 'create')}>
+        Draw new
+      </button>
+    </div>
+  </header>
 
   {#if mode === "create"}
-    <SectionPanel>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">Draw Area of Interest</h2>
-        <div class="btn-group">
-          <button
-            type="button"
-            class={`btn btn-sm ${drawMode === 'polygon' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-            onclick={() => (drawMode = 'polygon')}
-          >
-            Polygon
-          </button>
-          <button
-            type="button"
-            class={`btn btn-sm ${drawMode === 'point' ? 'variant-filled-primary' : 'variant-soft-surface'}`}
-            onclick={() => (drawMode = 'point')}
-          >
-            Point
-          </button>
-        </div>
+    <section class="panel p-5 sm:p-6 animate-fadeIn">
+      <div class="mb-5">
+        <p class="eyebrow">New area</p>
+        <h2 class="mt-1.5 font-display text-3xl text-moon">Draw an area of interest</h2>
       </div>
 
       <GeometryEditor
@@ -155,79 +128,86 @@ let geometryDraft = $state<GeoJSONGeometry | null>(null);
         onchange={handleGeometryChange}
       />
 
-      <div class="space-y-4 mt-6">
-        <label class="label">
+      <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+        <label class="field flex-1">
           <span>Name</span>
           <input
             class="input"
-            placeholder="e.g., Downtown Area"
+            placeholder="e.g. Downtown area"
             bind:value={geometryName}
           />
         </label>
 
-        {#if error}
-          <div class="text-sm text-error-500">{error}</div>
-        {/if}
-        {#if success}
-          <div class="text-sm text-success-500">{success}</div>
-        {/if}
-
         <button
-          class="btn variant-filled-primary"
+          class="btn btn-primary"
           onclick={handleSave}
           disabled={saving}
         >
-          {saving ? "Saving..." : "Save Area of Interest"}
+          <Plus size={14} strokeWidth={1.5} />
+          {saving ? "Saving…" : "Save area"}
         </button>
       </div>
-    </SectionPanel>
+
+      {#if error}
+        <p class="mt-3 text-sm text-rust">{error}</p>
+      {/if}
+      {#if success}
+        <p class="mt-3 text-sm text-sage">{success}</p>
+      {/if}
+    </section>
   {/if}
 
   {#if mode === "library"}
-    <SectionPanel>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">Saved Areas</h2>
+    <section class="panel animate-fadeIn">
+      <div class="flex items-center justify-between gap-4 border-b border-line px-5 py-3.5">
+        <p class="eyebrow">Saved areas</p>
         <button
-          class="btn btn-sm variant-ghost-surface"
+          class="btn btn-sm btn-quiet btn-icon"
           onclick={loadGeometries}
           aria-label="Refresh saved areas"
           title="Refresh saved areas"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
+          <RefreshCcw size={14} strokeWidth={1.5} />
         </button>
       </div>
 
       {#if loading}
-        <LoadingSpinner />
+        <LoadingSpinner message="Loading areas" />
       {:else}
-        <PaginatedList
-          items={geometries}
-          itemsPerPage={10}
-          emptyMessage="No areas saved yet. Create your first area to get started."
-          emptyIcon="🗺️"
-        >
-          {#snippet children(geometryItem)}
-            <a
-              href={`/areas-of-interest/${encodeURIComponent(String(geometryItem.id))}`}
-              class="tile flex items-center gap-4"
-            >
-              <MiniMap geometry={geometryItem.geometry} width="100px" height="70px" />
-              <div class="flex-1 min-w-0">
-                <p class="font-semibold truncate">{geometryItem.name}</p>
-                <p class="text-sm text-surface-500">
-                  {formatDateTime(geometryItem.created)}
-                </p>
-              </div>
-              <svg class="w-5 h-5 text-surface-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          {/snippet}
-        </PaginatedList>
+        {#if error}
+          <p class="px-5 pt-4 text-sm text-rust">{error}</p>
+        {/if}
+        <div class="p-2 sm:p-3">
+          <PaginatedList
+            items={geometries}
+            itemsPerPage={10}
+            emptyTitle="No areas saved yet"
+            emptyMessage="Draw your first area to get started."
+          >
+            {#snippet emptyAction()}
+              <button class="btn btn-primary" onclick={() => (mode = 'create')}>
+                <Plus size={14} strokeWidth={1.5} />
+                Draw new
+              </button>
+            {/snippet}
+            {#snippet children(geometryItem)}
+              <a
+                href={`/areas-of-interest/${encodeURIComponent(String(geometryItem.id))}`}
+                class="row flex items-center gap-4"
+              >
+                <MiniMap geometry={geometryItem.geometry} width="96px" height="64px" />
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-medium text-moon">{geometryItem.name}</p>
+                  <p class="readout mt-1 text-xs text-haze">
+                    {formatDateTime(geometryItem.created)}
+                  </p>
+                </div>
+                <ChevronRight size={16} strokeWidth={1.5} class="shrink-0 text-shade" />
+              </a>
+            {/snippet}
+          </PaginatedList>
+        </div>
       {/if}
-    </SectionPanel>
+    </section>
   {/if}
-
 </div>

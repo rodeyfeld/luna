@@ -3,8 +3,9 @@
     import { goto, invalidateAll } from '$app/navigation';
     import { get } from 'svelte/store';
     import { page } from '$app/stores';
-    import SectionPanel from '$lib/components/shared/SectionPanel.svelte';
     import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
+    import MiniMap from '$lib/components/shared/MiniMap.svelte';
+    import { ChevronDown, CircleAlert, LoaderCircle, Pencil, RefreshCcw, Play } from '@lucide/svelte';
     import { normalizeGeometry, type GeoJSONGeometry } from '$lib/utils/geometry';
 
     let name = $state('');
@@ -336,234 +337,243 @@
 </script>
 
 <div class="page-stack">
-    <SectionPanel variant="hero">
-        <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-            <div class="space-y-4 flex-1">
-                <p class="uppercase tracking-[0.3em] text-xs text-surface-300/70">Workflow handoff</p>
-                <h1 class="text-4xl font-bold">Imagery Finder Launchpad</h1>
-                <p class="text-surface-200/80 max-w-2xl">
-                    This screen is the second half of the new workflow: confirm the AOI you just built, shape the archive window,
-                    dial in filters, and hand the package directly to the archive_lookup study.
-                </p>
-                <div class="flex flex-wrap gap-3">
-                    <button class="btn variant-filled-primary" onclick={() => goto('/areas-of-interest')}>
-                        Edit Geometries
-                    </button>
-                    <button class="btn variant-ghost-surface" onclick={loadSavedGeometries} disabled={savedLoading}>
-                        {savedLoading ? 'Syncing...' : 'Sync Library'}
-                    </button>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3 w-full lg:max-w-lg">
-                <div class="stat-card" data-variant="accent">
-                    <p class="text-sm text-surface-300/80">Active AOI</p>
-                    <p class="text-lg font-semibold truncate">
-                        {selectedGeometryRecord ? selectedGeometryRecord.name : 'None selected'}
-                    </p>
-                    <span class="text-xs text-surface-300/70">{geometrySummary}</span>
-                </div>
-                <div class="stat-card">
-                    <p class="text-sm text-surface-300/80">Archive window</p>
-                    <p class="text-lg font-semibold">{dateRangeSummary}</p>
-                    <span class="text-xs text-surface-300/70">Search window</span>
-                </div>
-                <div class="stat-card">
-                    <p class="text-sm text-surface-300/80">Execution plan</p>
-                    <p class="text-lg font-semibold">{autoExecute ? 'Create + run' : 'Create only'}</p>
-                    <span class="text-xs text-surface-300/70">archive_lookup study</span>
-                </div>
-            </div>
-        </div>
-    </SectionPanel>
-
-    {#if error}
-        <SectionPanel variant="muted">
-            <aside class="alert variant-filled-error">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="alert-message">
-                    <p>{error}</p>
-                </div>
-            </aside>
-        </SectionPanel>
-    {/if}
-
-    <SectionPanel className="space-y-6">
-        <div>
-            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Configuration</p>
-            <h2 class="text-2xl font-bold">Archive Search Settings</h2>
-            <p class="text-sm text-surface-500">
-                Configure your public data search. Select sources, set time windows, and apply filters to find data matching your requirements.
+    <header class="page-head">
+        <div class="min-w-0">
+            <p class="eyebrow">Finder · new</p>
+            <h1>New imagery finder</h1>
+            <p>
+                Confirm the area you just drew, set the archive window and filters, and hand the package straight to
+                the archive_lookup study.
             </p>
         </div>
+        <div class="flex flex-wrap gap-2">
+            <button class="btn" onclick={() => goto('/areas-of-interest')}>
+                <Pencil size={13} strokeWidth={1.5} />
+                <span>Edit areas</span>
+            </button>
+            <button class="btn btn-quiet" onclick={loadSavedGeometries} disabled={savedLoading}>
+                <RefreshCcw size={13} strokeWidth={1.5} class={savedLoading ? 'animate-spin' : ''} />
+                <span>{savedLoading ? 'Syncing' : 'Sync library'}</span>
+            </button>
+        </div>
+    </header>
 
-        <div class="space-y-4">
-            <div>
-                <h3 class="text-lg font-semibold mb-2">Data Sources</h3>
-                <p class="text-sm text-surface-500 mb-3">
-                    Select which public data sources to search. Multiple sources will be queried simultaneously for comprehensive coverage.
+    {#if error}
+        <div class="flex items-start gap-3 rounded-md border border-rust/40 bg-rust/10 px-4 py-3 text-sm text-rust" role="alert">
+            <CircleAlert size={16} strokeWidth={1.5} class="mt-0.5 shrink-0" />
+            <p>{error}</p>
+        </div>
+    {/if}
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <!-- Configuration -->
+        <div class="min-w-0 space-y-6">
+            <section class="panel p-5 sm:p-6">
+                <p class="eyebrow">01 · Sources</p>
+                <h2 class="mt-2 font-display text-2xl text-moon">Data sources</h2>
+                <p class="mt-1 mb-5 text-sm text-haze">
+                    Every selected source is queried at once for the widest coverage.
                 </p>
                 {#if providers.length > 0}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {#each providers as provider}
-                            <label class="tile flex items-center gap-3 cursor-pointer hover-lift">
+                            {@const checked = selectedProviders.has(provider.id || provider.name)}
+                            <label
+                                class="flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors {checked
+                                    ? 'border-line-strong bg-ink-2'
+                                    : 'border-line hover:border-line-strong'}"
+                            >
                                 <input
                                     type="checkbox"
-                                    class="checkbox"
-                                    checked={selectedProviders.has(provider.id || provider.name)}
+                                    class="mt-1 h-3.5 w-3.5 shrink-0"
+                                    {checked}
                                     onchange={() => toggleProvider(provider.id || provider.name)}
                                 />
-                                <div class="flex-1">
-                                    <p class="font-semibold">{provider.name}</p>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm text-moon">{provider.name}</p>
                                     {#if provider.description}
-                                        <p class="text-xs text-surface-500">{provider.description}</p>
+                                        <p class="mt-0.5 text-xs text-haze">{provider.description}</p>
                                     {/if}
                                 </div>
                             </label>
                         {/each}
                     </div>
                 {:else}
-                    <div class="tile text-sm text-surface-500">
-                        <LoadingSpinner message="Loading providers..." />
+                    <LoadingSpinner size="sm" message="Loading providers" />
+                {/if}
+            </section>
+
+            <section class="panel space-y-5 p-5 sm:p-6">
+                <div>
+                    <p class="eyebrow">02 · Window</p>
+                    <h2 class="mt-2 font-display text-2xl text-moon">Name and time window</h2>
+                </div>
+
+                <label class="field">
+                    <span>Finder name <span class="text-sodium">*</span></span>
+                    <input
+                        class="input"
+                        type="text"
+                        placeholder="e.g. Midtown canopy audit · Spring 2024"
+                        bind:value={name}
+                    />
+                </label>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <label class="field">
+                        <span>Archive start <span class="text-sodium">*</span></span>
+                        <input class="input" type="date" bind:value={startDate} />
+                    </label>
+
+                    <label class="field">
+                        <span>Archive end <span class="text-sodium">*</span></span>
+                        <input class="input" type="date" bind:value={endDate} />
+                    </label>
+                </div>
+            </section>
+
+            <section class="panel">
+                <button
+                    class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left sm:px-6"
+                    onclick={() => (showAdvanced = !showAdvanced)}
+                    aria-expanded={showAdvanced}
+                >
+                    <div>
+                        <p class="eyebrow">03 · Filters</p>
+                        <h2 class="mt-2 font-display text-2xl text-moon">
+                            Refine results <span class="font-sans text-sm text-haze">optional</span>
+                        </h2>
+                    </div>
+                    <ChevronDown
+                        size={16}
+                        strokeWidth={1.5}
+                        class="shrink-0 text-haze transition-transform {showAdvanced ? 'rotate-180' : ''}"
+                    />
+                </button>
+
+                {#if showAdvanced}
+                    <div class="grid grid-cols-1 gap-4 border-t border-line px-5 py-5 sm:grid-cols-2 sm:px-6">
+                        <label class="field sm:col-span-2">
+                            <span>Max cloud coverage (%)</span>
+                            <input
+                                class="input"
+                                type="number"
+                                min="0"
+                                max="100"
+                                placeholder="e.g. 20"
+                                bind:value={cloudCoverage}
+                            />
+                        </label>
+                        <label class="field">
+                            <span>EO resolution max (cm)</span>
+                            <input class="input" type="number" placeholder="e.g. 50" bind:value={eoResolutionMax} />
+                        </label>
+                        <label class="field">
+                            <span>EO resolution min (cm)</span>
+                            <input class="input" type="number" placeholder="e.g. 10" bind:value={eoResolutionMin} />
+                        </label>
+                        <label class="field">
+                            <span>SAR resolution max (cm)</span>
+                            <input class="input" type="number" placeholder="e.g. 100" bind:value={sarResolutionMax} />
+                        </label>
+                        <label class="field">
+                            <span>SAR resolution min (cm)</span>
+                            <input class="input" type="number" placeholder="e.g. 25" bind:value={sarResolutionMin} />
+                        </label>
                     </div>
                 {/if}
-            </div>
+            </section>
         </div>
 
-        <label class="label">
-            <span>Finder name <span class="text-error-500">*</span></span>
-            <input
-                class="input"
-                type="text"
-                placeholder="e.g., Midtown canopy audit · Spring 2024"
-                bind:value={name}
-            />
-        </label>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label class="label">
-                <span>Archive start <span class="text-error-500">*</span></span>
-                <input class="input" type="date" bind:value={startDate} />
-            </label>
-
-            <label class="label">
-                <span>Archive end <span class="text-error-500">*</span></span>
-                <input class="input" type="date" bind:value={endDate} />
-            </label>
-        </div>
-
-        <div class="space-y-4">
-            <button class="btn variant-ghost-surface w-full justify-between" onclick={() => (showAdvanced = !showAdvanced)}>
-                <span>Refine results (optional)</span>
-                <svg
-                    class={`w-5 h-5 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-
-            {#if showAdvanced}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface-100-800-token rounded-xl p-4">
-                    <label class="label">
-                        <span>Maximum cloud coverage (%)</span>
-                        <input
-                            class="input"
-                            type="number"
-                            min="0"
-                            max="100"
-                            placeholder="e.g., 20"
-                            bind:value={cloudCoverage}
-                        />
-                    </label>
-                    <label class="label">
-                        <span>EO resolution max (cm)</span>
-                        <input class="input" type="number" placeholder="e.g., 50" bind:value={eoResolutionMax} />
-                    </label>
-                    <label class="label">
-                        <span>EO resolution min (cm)</span>
-                        <input class="input" type="number" placeholder="e.g., 10" bind:value={eoResolutionMin} />
-                    </label>
-                    <label class="label">
-                        <span>SAR resolution max (cm)</span>
-                        <input class="input" type="number" placeholder="e.g., 100" bind:value={sarResolutionMax} />
-                    </label>
-                    <label class="label">
-                        <span>SAR resolution min (cm)</span>
-                        <input class="input" type="number" placeholder="e.g., 25" bind:value={sarResolutionMin} />
-                    </label>
+        <!-- Review & launch -->
+        <aside class="min-w-0 lg:sticky lg:top-20 lg:self-start">
+            <section class="panel">
+                <div class="border-b border-line px-5 py-4">
+                    <p class="eyebrow">Review</p>
+                    <h2 class="mt-2 font-display text-2xl text-moon">Launch plan</h2>
                 </div>
-            {/if}
-        </div>
-    </SectionPanel>
 
-    <SectionPanel variant="muted" className="space-y-6">
-        <div>
-            <p class="uppercase tracking-[0.3em] text-xs text-surface-400">Review & Launch</p>
-            <h2 class="text-2xl font-bold">Confirm Configuration</h2>
-            <p class="text-sm text-surface-500">
-                Review your search settings and launch the public data finder.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="tile space-y-2">
-                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Finder name</p>
-                <p class="text-lg font-semibold">{name || 'Pending name'}</p>
-                <p class="text-sm text-surface-500">
-                    {selectedGeometryRecord ? selectedGeometryRecord.name : 'Awaiting geometry selection'}
-                </p>
-            </div>
-            <div class="tile space-y-2">
-                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Archive window</p>
-                <p class="text-lg font-semibold">{dateRangeSummary}</p>
-                <p class="text-sm text-surface-500">UTC</p>
-            </div>
-            <div class="tile space-y-2">
-                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Geometry type</p>
-                <p class="text-lg font-semibold">{geometrySummary}</p>
-                <p class="text-sm text-surface-500">Normalized GeoJSON</p>
-            </div>
-        </div>
-
-        {#if hasAdvancedFilters}
-            <div class="tile space-y-2">
-                <p class="text-xs text-surface-400 uppercase tracking-[0.3em]">Filter stack</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-surface-300">
-                    {#each activeFilters as filter}
-                        <p><span class="text-surface-500">{filter.label}:</span> {filter.value}</p>
-                    {/each}
+                <div class="border-b border-line p-5">
+                    {#if geometry}
+                        {#key selectedGeometryId}
+                            <MiniMap {geometry} width="100%" height="140px" />
+                        {/key}
+                    {:else}
+                        <div class="flex h-[140px] items-center justify-center rounded border border-dashed border-line-strong text-xs text-haze">
+                            No area selected
+                        </div>
+                    {/if}
                 </div>
-            </div>
-        {/if}
 
-        <label class="flex items-center gap-3 cursor-pointer">
-            <input class="checkbox" type="checkbox" bind:checked={autoExecute} />
-            <div>
-                <p class="font-semibold">Auto-run archive_lookup after creation</p>
-                <p class="text-xs text-surface-500">
-                    Leave this on for zero-touch launches, or disable it if you prefer to review the finder page before execution.
-                </p>
-            </div>
-        </label>
+                <dl class="divide-y divide-line text-sm">
+                    <div class="flex items-baseline justify-between gap-4 px-5 py-3">
+                        <dt class="eyebrow shrink-0">Area</dt>
+                        <dd class="min-w-0 text-right">
+                            <p class="truncate text-moon">
+                                {selectedGeometryRecord ? selectedGeometryRecord.name : 'None selected'}
+                            </p>
+                            <p class="readout text-[0.7rem] text-haze">{geometrySummary}</p>
+                        </dd>
+                    </div>
+                    <div class="flex items-baseline justify-between gap-4 px-5 py-3">
+                        <dt class="eyebrow shrink-0">Name</dt>
+                        <dd class="min-w-0 truncate text-right {name ? 'text-moon' : 'text-shade'}">{name || 'Pending'}</dd>
+                    </div>
+                    <div class="flex items-baseline justify-between gap-4 px-5 py-3">
+                        <dt class="eyebrow shrink-0">Window</dt>
+                        <dd class="readout text-right text-xs text-moon">{dateRangeSummary}</dd>
+                    </div>
+                    <div class="flex items-baseline justify-between gap-4 px-5 py-3">
+                        <dt class="eyebrow shrink-0">Plan</dt>
+                        <dd class="text-right text-moon">{autoExecute ? 'Create + run' : 'Create only'}</dd>
+                    </div>
+                    {#if hasAdvancedFilters}
+                        <div class="px-5 py-3">
+                            <dt class="eyebrow mb-2">Filters</dt>
+                            <dd class="space-y-1">
+                                {#each activeFilters as filter}
+                                    <p class="flex justify-between gap-4 text-xs">
+                                        <span class="text-haze">{filter.label}</span>
+                                        <span class="readout text-moon">{filter.value}</span>
+                                    </p>
+                                {/each}
+                            </dd>
+                        </div>
+                    {/if}
+                </dl>
 
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-sm text-surface-500">{launchStatusMessage}</p>
-            <button
-                class="btn variant-filled-primary min-w-[220px]"
-                onclick={handleCreate}
-                disabled={!isLaunchReady || creating || executing}
-            >
-                {creating || executing ? 'Working...' : 'Launch Finder'}
-            </button>
-        </div>
-    </SectionPanel>
+                <div class="space-y-4 border-t border-line p-5">
+                    <label class="flex cursor-pointer items-start gap-3">
+                        <input class="mt-1 h-3.5 w-3.5 shrink-0" type="checkbox" bind:checked={autoExecute} />
+                        <span>
+                            <span class="block text-sm text-moon">Run archive_lookup after creation</span>
+                            <span class="block text-xs text-haze">
+                                Turn off to review the finder page before executing.
+                            </span>
+                        </span>
+                    </label>
+
+                    <p class="text-xs {isLaunchReady ? 'text-dust' : 'text-sodium'}">{launchStatusMessage}</p>
+
+                    <button
+                        class="btn btn-primary w-full"
+                        onclick={handleCreate}
+                        disabled={!isLaunchReady || creating || executing}
+                    >
+                        {#if creating || executing}
+                            <LoaderCircle size={14} strokeWidth={1.5} class="animate-spin" />
+                            <span>{creating ? 'Creating' : 'Executing'}</span>
+                        {:else}
+                            <Play size={14} strokeWidth={1.5} />
+                            <span>Launch finder</span>
+                        {/if}
+                    </button>
+                </div>
+            </section>
+        </aside>
+    </div>
 
     {#if creating || executing}
-        <LoadingSpinner message={creating ? 'Creating imagery finder...' : 'Executing archive lookup...'} />
+        <LoadingSpinner message={creating ? 'Creating imagery finder' : 'Executing archive lookup'} />
     {/if}
 </div>
-

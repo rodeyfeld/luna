@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import LoadingSpinner from "$lib/components/shared/LoadingSpinner.svelte";
-  import SectionPanel from "$lib/components/shared/SectionPanel.svelte";
+  import EmptyState from "$lib/components/shared/EmptyState.svelte";
+  import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
+  import { CircleAlert, RefreshCcw } from "@lucide/svelte";
 
   let providers = $state<any[]>([]);
   let integrations = $state<any[]>([]);
@@ -46,78 +48,73 @@
 </script>
 
 <div class="page-stack">
-  <SectionPanel variant="hero">
-    <div class="flex justify-between items-start">
-      <div>
-        <h1 class="text-3xl font-bold mb-2">Data Sources</h1>
-        <p class="text-surface-300">
-          Available public data sources and their integrations
-        </p>
-      </div>
+  <header class="page-head animate-fadeIn">
+    <div class="min-w-0">
+      <p class="eyebrow">Register · Sources</p>
+      <h1>Data sources</h1>
+      <p>Public imagery providers Luna can search, and the integrations wired up for each.</p>
     </div>
-  </SectionPanel>
-
-  <SectionPanel>
-    {#if loading}
-      <LoadingSpinner />
-    {:else if error}
-      <div class="text-center py-12">
-        <div class="text-5xl mb-3 opacity-20">⚠️</div>
-        <h3 class="text-lg font-semibold mb-2">Connection Error</h3>
-        <p class="text-surface-400 mb-6">{error}</p>
-        <button onclick={loadData} class="btn variant-soft-primary">
-          Retry
-        </button>
-      </div>
-    {:else if providers.length === 0}
-      <div class="text-center py-16">
-        <div class="text-6xl mb-4 opacity-20">🛰️</div>
-        <h3 class="text-xl font-semibold mb-2">No providers configured</h3>
-        <p class="text-surface-400">
-          No data sources are available
-        </p>
-      </div>
-    {:else}
-      <div class="space-y-4">
-        {#each providers as provider}
-          <div class="stat-card">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h3 class="text-lg font-semibold mb-1">{provider.name}</h3>
-                <div class="flex items-center gap-2 text-sm text-surface-400">
-                  {#if provider.is_active}
-                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span>Active</span>
-                  {:else}
-                    <span class="w-2 h-2 rounded-full bg-surface-500"></span>
-                    <span>Inactive</span>
-                  {/if}
-                  <span>•</span>
-                  <span>{filterIntegrationsByProvider(provider.id).length} {filterIntegrationsByProvider(provider.id).length === 1 ? 'integration' : 'integrations'}</span>
-                </div>
-              </div>
-            </div>
-
-            {#if filterIntegrationsByProvider(provider.id).length > 0}
-              <div class="mt-3 space-y-2">
-                {#each filterIntegrationsByProvider(provider.id) as integration}
-                  <div class="flex items-center justify-between text-sm p-2 bg-surface-900/30 rounded">
-                    <div class="flex items-center gap-2">
-                      <span class="font-medium">{integration.name}</span>
-                      {#if !integration.is_active}
-                        <span class="text-xs text-surface-500">(inactive)</span>
-                      {/if}
-                    </div>
-                    <div class="text-surface-500">
-                      {integration.config_options?.length || 0} options
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            {/if}
-          </div>
-        {/each}
-      </div>
+    {#if !loading && !error}
+      <p class="readout shrink-0 text-xs text-haze">
+        {providers.length} {providers.length === 1 ? 'provider' : 'providers'}
+        <span class="text-shade">·</span>
+        {integrations.length} {integrations.length === 1 ? 'integration' : 'integrations'}
+      </p>
     {/if}
-  </SectionPanel>
+  </header>
+
+  {#if loading}
+    <LoadingSpinner message="Loading sources" />
+  {:else if error}
+    <section class="panel flex flex-col items-center px-4 py-14 text-center">
+      <CircleAlert size={28} strokeWidth={1.25} class="mb-5 text-rust" />
+      <h3 class="font-display text-2xl text-moon">Connection error</h3>
+      <p class="mx-auto mt-2 mb-6 max-w-md text-sm text-haze">{error}</p>
+      <button onclick={loadData} class="btn">
+        <RefreshCcw size={14} strokeWidth={1.5} />
+        Retry
+      </button>
+    </section>
+  {:else if providers.length === 0}
+    <section class="panel">
+      <EmptyState title="No providers configured" description="No data sources are available yet." />
+    </section>
+  {:else}
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {#each providers as provider, i}
+        {@const providerIntegrations = filterIntegrationsByProvider(provider.id)}
+        <section class="panel animate-fadeIn stagger-{Math.min(i + 1, 5)} flex flex-col">
+          <div class="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+            <div class="min-w-0">
+              <p class="eyebrow readout">No. {String(provider.id).padStart(2, '0')}</p>
+              <h3 class="mt-1.5 truncate font-display text-2xl text-moon">{provider.name}</h3>
+            </div>
+            <div class="shrink-0 pt-1">
+              <StatusBadge status={provider.is_active ? 'ACTIVE' : 'INACTIVE'} size="sm" />
+            </div>
+          </div>
+
+          {#if providerIntegrations.length > 0}
+            <ul>
+              {#each providerIntegrations as integration}
+                <li class="flex items-center justify-between gap-3 border-b border-line px-5 py-2.5 text-sm last:border-b-0">
+                  <span class="flex min-w-0 items-center gap-2">
+                    <span class="truncate {integration.is_active ? 'text-dust' : 'text-shade'}">{integration.name}</span>
+                    {#if !integration.is_active}
+                      <span class="chip shrink-0 text-haze">Inactive</span>
+                    {/if}
+                  </span>
+                  <span class="readout shrink-0 text-xs text-haze">
+                    {integration.config_options?.length || 0} options
+                  </span>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <p class="px-5 py-4 text-sm text-shade">No integrations</p>
+          {/if}
+        </section>
+      {/each}
+    </div>
+  {/if}
 </div>

@@ -8,17 +8,6 @@ export default defineConfig({
         host: true,
         port: 5173
     },
-    optimizeDeps: {
-        exclude: [
-            '@skeletonlabs/skeleton',
-            '@skeletonlabs/skeleton-svelte',
-            '@skeletonlabs/skeleton-svelte/components',
-            '@skeletonlabs/skeleton-svelte/utilities'
-        ]
-    },
-    ssr: {
-        noExternal: ['@skeletonlabs/skeleton-svelte']
-    },
     build: {
         target: 'esnext'
     }

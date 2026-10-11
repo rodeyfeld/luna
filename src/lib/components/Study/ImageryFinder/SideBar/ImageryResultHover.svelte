@@ -35,7 +35,7 @@
 
 <div id="image-popup" class="popup" aria-live="polite" bind:this={popupElement}>
   {#if result}
-    <div class="card">
+    <div class="panel flex flex-col gap-3 p-3">
       {#if result.thumbnail}
         <img
           class="thumb"
@@ -44,26 +44,24 @@
           loading="lazy"
         />
       {:else}
-        <div class="thumb thumb--placeholder">
-          <span>No preview</span>
-        </div>
+        <div class="thumb thumb--placeholder eyebrow">No preview</div>
       {/if}
 
-      <div class="meta">
-        <p class="meta-title">{result.collection || "Unknown collection"}</p>
-        <p class="meta-subtitle">
+      <div class="min-w-0">
+        <p class="truncate text-sm text-moon">{result.collection || "Unknown collection"}</p>
+        <p class="readout mt-0.5 truncate text-[0.68rem] text-haze">
           #{result.external_id || result.id}
         </p>
-        <dl class="meta-grid">
-          <div>
-            <dt>Sensor</dt>
-            <dd>{result.sensor?.name || "—"}</dd>
+        <dl class="mt-3 grid gap-2 border-t border-line pt-3 text-xs">
+          <div class="flex items-baseline justify-between gap-3">
+            <dt class="eyebrow">Sensor</dt>
+            <dd class="text-dust">{result.sensor?.name || "—"}</dd>
           </div>
           <div>
-            <dt>Window</dt>
-            <dd>
+            <dt class="eyebrow mb-1">Window</dt>
+            <dd class="readout text-[0.7rem] text-dust">
               <span>{formatDate(result.start_date)}</span>
-              <span class="sep">→</span>
+              <span class="mx-1 text-shade">→</span>
               <span>{formatDate(result.end_date)}</span>
             </dd>
           </div>
@@ -71,7 +69,7 @@
       </div>
     </div>
   {:else}
-    <div class="card card--empty">
+    <div class="panel p-3 text-xs text-haze">
       Hover over a result to preview imagery details.
     </div>
   {/if}
@@ -80,83 +78,24 @@
 <style>
   .popup {
     position: absolute;
-    min-width: 280px;
-    max-width: 320px;
+    width: 280px;
+    max-width: calc(100vw - 2rem);
     pointer-events: none;
-  }
-
-  .card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    background: rgba(10, 12, 20, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 0.75rem;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-    padding: 1rem;
-  }
-
-  .card--empty {
-    color: #d0d7e3;
-    font-size: 0.875rem;
   }
 
   .thumb {
     width: 100%;
-    border-radius: 0.5rem;
+    max-height: 180px;
+    border-radius: 0.3rem;
     object-fit: cover;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--color-line);
+    background: var(--color-night);
   }
 
   .thumb--placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 140px;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.85rem;
-  }
-
-  .meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .meta-title {
-    font-weight: 600;
-    color: white;
-  }
-
-  .meta-subtitle {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .meta-grid {
-    display: grid;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  dt {
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 0.15rem;
-  }
-
-  dd {
-    margin: 0;
-  }
-
-  .sep {
-    opacity: 0.6;
-    margin: 0 0.25rem;
+    min-height: 120px;
   }
 </style>
-
-

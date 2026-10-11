@@ -1,16 +1,67 @@
 import { Fill, Stroke, Style } from 'ol/style.js';
 import { Vector as VectorSource } from 'ol/source.js';
 import VectorLayer from 'ol/layer/Vector';
-import TileLayer from 'ol/layer/Tile.js';
 import { View } from 'ol';
 import Map from 'ol/Map.js';
-import OSM from 'ol/source/OSM.js';
 import { Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Draw, Modify } from 'ol/interaction.js';
 import { Polygon } from 'ol/geom';
+import { useGeographic } from 'ol/proj.js';
 import type { Writable } from 'svelte/store';
 import Collection from 'ol/Collection'
+import { lunaBasemap } from './basemap';
+
+// Vector basemap tiles only come in Web Mercator. Rather than reproject every
+// geometry by hand, tell OpenLayers that all coordinates we pass in or read back
+// (features, view centers, extents, drawn shapes) are lon/lat. The view itself
+// renders in EPSG:3857.
+useGeographic();
+
+/** Overlay colors, matched to the app's flat palette in app.css */
+export const mapColors = {
+    moon: '#ebe6d9',
+    dust: '#a7abb5',
+    sodium: '#e8a54b',
+    tide: '#86a9cc',
+    sage: '#93bf9f',
+    night: '#07090d',
+};
+
+export function alpha(hex: string, a: number): string {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+/** Saved area / finder footprint */
+export const areaStyle = new Style({
+    fill: new Fill({ color: alpha(mapColors.moon, 0.06) }),
+    stroke: new Stroke({ color: alpha(mapColors.moon, 0.85), width: 1.5 }),
+});
+
+/** Selected or hovered feature */
+export const highlightStyle = new Style({
+    fill: new Fill({ color: alpha(mapColors.sodium, 0.14) }),
+    stroke: new Stroke({ color: mapColors.sodium, width: 2.5 }),
+});
+
+/** Shape being drawn by the user */
+export const drawStyle = new Style({
+    fill: new Fill({ color: alpha(mapColors.sodium, 0.1) }),
+    stroke: new Stroke({ color: mapColors.sodium, width: 2, lineDash: [6, 4] }),
+});
+
+/** Imagery result footprints */
+export const footprintStyle = new Style({
+    fill: new Fill({ color: alpha(mapColors.tide, 0.03) }),
+    stroke: new Stroke({ color: alpha(mapColors.tide, 0.55), width: 0.75 }),
+});
+
+/** The search area a study ran against */
+export const searchAreaStyle = new Style({
+    fill: new Fill({ color: alpha(mapColors.moon, 0.04) }),
+    stroke: new Stroke({ color: alpha(mapColors.moon, 0.9), width: 1.5, lineDash: [8, 5] }),
+});
 
 /**
  * Create a simple map with a single geometry and auto-zoom to it
@@ -27,6 +78,7 @@ export function createSimpleGeometryMap(
         strokeWidth?: number;
         padding?: number[];
         duration?: number;
+        labels?: boolean;
     }
 ): Map {
     const vectorSource = new VectorSource();
@@ -35,18 +87,15 @@ export function createSimpleGeometryMap(
     // Parse and add geometry
     if (geometry) {
         try {
-            const feature = geoJSON.readFeature(geometry, {
-                dataProjection: 'EPSG:4326',
-                featureProjection: 'EPSG:4326',
-            });
+            const feature = geoJSON.readFeature(geometry) as Feature;
 
             feature.setStyle(new Style({
                 fill: new Fill({
-                    color: options?.fillColor || 'rgba(59, 130, 246, 0.2)',
+                    color: options?.fillColor || alpha(mapColors.moon, 0.06),
                 }),
                 stroke: new Stroke({
-                    color: options?.strokeColor || 'rgba(59, 130, 246, 1)',
-                    width: options?.strokeWidth || 2,
+                    color: options?.strokeColor || alpha(mapColors.moon, 0.85),
+                    width: options?.strokeWidth || 1.5,
                 }),
             }));
 
@@ -63,15 +112,12 @@ export function createSimpleGeometryMap(
     const map = new Map({
         target: htmlTarget,
         layers: [
-            new TileLayer({
-                source: new OSM(),
-            }),
+            lunaBasemap({ labels: options?.labels }),
             vectorLayer,
         ],
         view: new View({
-            center: [0, 0],
+            center: [0, 20],
             zoom: 2,
-            projection: 'EPSG:4326',
         }),
     });
 
@@ -82,7 +128,7 @@ export function createSimpleGeometryMap(
             const extent = vectorSource.getExtent();
             map.getView().fit(extent, {
                 padding: options?.padding || [60, 60, 60, 60],
-                duration: options?.duration || 500,
+                duration: options?.duration ?? 500,
             });
         }
     }, 150);
@@ -92,15 +138,10 @@ export function createSimpleGeometryMap(
 export function lunaMap(htmlTarget: string): Map {
     return new Map({
         view: new View({
-            center: [0, 0],
-            zoom: 1.1,
-            projection: 'EPSG:4326',
+            center: [0, 20],
+            zoom: 2,
         }),
-        layers: [
-            new TileLayer({
-                source: new OSM(),
-            }),
-        ],
+        layers: [lunaBasemap()],
         target: htmlTarget,
     });
 }
@@ -108,15 +149,10 @@ export function lunaMap(htmlTarget: string): Map {
 export function lunaLockedMap(htmlTarget: string): Map {
     return new Map({
         view: new View({
-            center: [0, 0],
-            zoom: 1.1,
-            projection: 'EPSG:4326',
+            center: [0, 20],
+            zoom: 2,
         }),
-        layers: [
-            new TileLayer({
-                source: new OSM(),
-            }),
-        ],
+        layers: [lunaBasemap()],
         target: htmlTarget,
         interactions: new Collection()
     });
@@ -127,15 +163,7 @@ export function newBaseFeatureLayer(features: Array<Feature>): VectorLayer {
         source: new VectorSource({
             features: features
         }),
-        style: new Style({
-            fill: new Fill({
-                color: 'rgba(0, 255, 255, .1)',
-            }),
-            stroke: new Stroke({
-                color: '#5f7b97',
-                width: 2,
-            }),
-        })
+        style: areaStyle
     })
 }
 
@@ -147,15 +175,7 @@ export function newHighlightFeatureLayer(): VectorLayer {
         source: new VectorSource({
             features: new Array<Feature>()
         }),
-        style: new Style({
-            fill: new Fill({
-                color: 'rgba(0, 255, 255, .1)',
-            }),
-            stroke: new Stroke({
-                color: '#c99ef5',
-                width: 4,
-            }),
-        })
+        style: highlightStyle
     })
 }
 
@@ -164,15 +184,7 @@ export function newDrawFeatureLayer(): VectorLayer {
         source: new VectorSource({
             features: new Array<Feature>()
         }),
-        style: new Style({
-            fill: new Fill({
-                color: '#9777b850',
-            }),
-            stroke: new Stroke({
-                color: '#9dff4d',
-                width: 4,
-            }),
-        })
+        style: drawStyle
     })
 }
 
@@ -182,15 +194,7 @@ export function newFilterFeatureLayer(): VectorLayer {
         source: new VectorSource({
             features: new Array<Feature>()
         }),
-        style: new Style({
-            fill: new Fill({
-                color: '#9777b850',
-            }),
-            stroke: new Stroke({
-                color: '#9dff4d',
-                width: 4,
-            }),
-        })
+        style: drawStyle
     })
 }
 
@@ -203,6 +207,7 @@ export function newFilterDraw(layer: VectorLayer, featureStore: Writable<Array<F
     const draw = new Draw({
         source: source,
         type: 'Point',
+        style: drawStyle,
     });
     draw.on('drawend', function(event) {
 
@@ -249,6 +254,7 @@ export function newBaseDraw(layer: VectorLayer, createFinderGeoJson: Writable<st
     const draw = new Draw({
         source: source,
         type: 'Point',
+        style: drawStyle,
     });
     draw.on('drawend', function(event) {
         // Clear the previous point if it exists

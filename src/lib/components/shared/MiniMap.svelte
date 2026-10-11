@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { createSimpleGeometryMap } from '$lib/components/Map/MapUtils';
+  import { alpha, createSimpleGeometryMap, mapColors } from '$lib/components/Map/MapUtils';
   import { normalizeGeometry } from '$lib/utils/geometry';
   import type Map from 'ol/Map';
   import 'ol/ol.css';
@@ -62,11 +62,12 @@
       }
 
       map = createSimpleGeometryMap(mapElement, normalizedGeometry, {
-        fillColor: 'rgba(59, 130, 246, 0.15)',
-        strokeColor: 'rgba(59, 130, 246, 0.5)',
-        strokeWidth: 1.5,
-        padding: [15, 15, 15, 15],
+        fillColor: alpha(mapColors.sodium, 0.12),
+        strokeColor: mapColors.sodium,
+        strokeWidth: 1.25,
+        padding: [14, 14, 14, 14],
         duration: 0, // No animation for minimap
+        labels: false,
       });
       
       // Disable all interactions for minimap
@@ -87,6 +88,15 @@
 <div
   bind:this={mapElement}
   style="width: {width}; height: {height}; min-width: {width}; min-height: {height};"
-  class="rounded border border-surface-700/50 bg-surface-900 overflow-hidden"
+  class="minimap overflow-hidden rounded border border-line bg-night"
 ></div>
 
+
+<style>
+  /* Thumbnails are glanceable, not interactive: hide attribution and controls */
+  .minimap :global(.ol-attribution),
+  .minimap :global(.ol-zoom),
+  .minimap :global(.ol-rotate) {
+    display: none;
+  }
+</style>

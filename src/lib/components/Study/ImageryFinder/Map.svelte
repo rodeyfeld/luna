@@ -16,8 +16,9 @@
     newBaseModify,
     newFilterFeatureLayer,
     newFilterDraw,
+    footprintStyle,
+    searchAreaStyle,
   } from "$lib/components/Map/MapUtils";
-  import { Fill, Stroke, Style } from "ol/style";
   import VectorLayer from "ol/layer/Vector";
   import { Vector as VectorSource } from "ol/source";
   import ImageryResultHover from "./SideBar/ImageryResultHover.svelte";
@@ -52,14 +53,7 @@
 
   const baseFeatureLayer = newBaseFeatureLayer(features);
   featureStore.set(features);
-  baseFeatureLayer.setStyle(
-    new Style({
-      stroke: new Stroke({
-        color: "#5f7b97",
-        width: 0.5,
-      }),
-    })
-  );
+  baseFeatureLayer.setStyle(footprintStyle);
   const highlightFeatureLayer = newHighlightFeatureLayer();
   const filterFeatureLayer = newFilterFeatureLayer();
 
@@ -72,16 +66,7 @@
     source: new VectorSource({
       features: finderFeature ? [finderFeature] : [],
     }),
-    style: new Style({
-      fill: new Fill({
-        color: "rgba(251, 191, 36, 0.15)", // amber/gold fill
-      }),
-      stroke: new Stroke({
-        color: "#f59e0b", // amber stroke
-        width: 3,
-        lineDash: [8, 4],
-      }),
-    }),
+    style: searchAreaStyle,
   });
 
   const unsubscribe = selectedArchiveResultGeoJson.subscribe((value) => {
@@ -167,8 +152,8 @@
   });
 </script>
 
-<div class="w-full h-full grid grid-cols-12 gap-2">
-  <div class="col-span-5 overflow-y-auto max-h-full">
+<div class="flex h-full flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+  <div class="panel max-h-[50vh] min-w-0 overflow-y-auto lg:max-h-full">
     <Datatable
       data={study.study_data.results}
       on:resultHover={handleResultHover}
@@ -176,15 +161,13 @@
       on:resultSelect={handleResultSelect}
     ></Datatable>
   </div>
-  <div class="col-span-7">
-    <div id="map" class="w-full h-full rounded-lg overflow-hidden"></div>
+  <div class="map-frame h-[60vh] min-w-0 shrink-0 lg:h-full">
+    <div id="map" class="h-full w-full"></div>
+    <div class="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-3 rounded border border-line bg-night/85 px-3 py-2 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-haze">
+      <span class="flex items-center gap-1.5"><span class="inline-block h-0 w-4 border-t border-dashed border-moon"></span>Search area</span>
+      <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-3 border border-tide/60"></span>Scenes</span>
+      <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-3 border-2 border-sodium bg-sodium/15"></span>Selected</span>
+    </div>
   </div>
 </div>
 <ImageryResultHover {overlay} result={hoveredResult}></ImageryResultHover>
-
-<style>
-  #map {
-    height: 100%;
-    width: 100%;
-  }
-</style>
