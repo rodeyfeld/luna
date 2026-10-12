@@ -17,7 +17,7 @@
     {
       phase: "gibbous",
       title: "Run a study",
-      body: "Luna searches the public archives for every capture that crossed your area in that window.",
+      body: "Luna searches its catalog of public archives, refreshed nightly from Copernicus, for every capture that crossed your area in that window.",
     },
     {
       phase: "full",
