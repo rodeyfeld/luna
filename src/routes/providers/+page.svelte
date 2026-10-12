@@ -15,6 +15,7 @@
   let error = $state<string | null>(null);
 
   onMount(async () => {
+    loadFreshness();
     await loadData();
   });
 
@@ -23,10 +24,9 @@
     error = null;
 
     try {
-      const [providersResponse, integrationsResponse, freshnessResponse] = await Promise.all([
+      const [providersResponse, integrationsResponse] = await Promise.all([
         fetch('/api/providers'),
         fetch('/api/providers/integrations'),
-        fetch('/api/providers/archive/freshness'),
       ]);
 
       if (!providersResponse.ok) {
@@ -40,17 +40,24 @@
         const integrationsData = await integrationsResponse.json();
         integrations = Array.isArray(integrationsData) ? integrationsData : [];
       }
-
-      // Freshness is extra detail; the page still works without it
-      if (freshnessResponse.ok) {
-        const freshnessData = await freshnessResponse.json();
-        freshness = Array.isArray(freshnessData) ? freshnessData : [];
-      }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load data';
     }
 
     loading = false;
+  }
+
+  // Extra detail loaded on its own so a slow or failing archive query never holds up the page
+  async function loadFreshness() {
+    try {
+      const response = await fetch('/api/providers/archive/freshness');
+      if (response.ok) {
+        const data = await response.json();
+        freshness = Array.isArray(data) ? data : [];
+      }
+    } catch {
+      freshness = [];
+    }
   }
 
   function filterIntegrationsByProvider(providerId: number) {
